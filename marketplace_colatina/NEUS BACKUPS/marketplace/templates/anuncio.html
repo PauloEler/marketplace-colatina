@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ a.titulo }} — Mercado Colatina{% endblock %}
+
+{% block content %}
+<p style="margin-bottom:16px;"><a href="/" style="color:#1a6b3c;">← Voltar</a></p>
+
+<div class="detalhe">
+  <div>
+    {% if a.foto %}
+      <img src="/uploads/{{ a.foto }}" alt="{{ a.titulo }}" class="detalhe-foto">
+    {% else %}
+      <div class="sem-foto-grande">🛍️</div>
+    {% endif %}
+    <div class="detalhe-box" style="margin-top:16px;">
+      <h1 style="font-size:1.3rem;">{{ a.titulo }}</h1>
+      <div class="detalhe-preco">R$ {{ a.preco }}</div>
+      <div class="detalhe-info">
+        📦 {{ a.condicao }} &nbsp;|&nbsp; 🏷️ {{ a.categoria }} &nbsp;|&nbsp; 👁️ {{ a.visualizacoes }} visualizações
+      </div>
+      <hr style="border:none; border-top:1px solid #eee;">
+      <div class="detalhe-desc">{{ a.descricao }}</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="vendedor-box">
+      <p style="font-size:0.8rem; color:#888; margin-bottom:6px;">VENDEDOR</p>
+      <div class="vendedor-nome">{{ a.vendedor_nome }}</div>
+      <p style="font-size:0.82rem; color:#888; margin-top:4px;">Colatina, ES</p>
+
+      <a class="btn btn-wpp"
+         href="https://wa.me/55{{ a.whatsapp | replace(' ','') | replace('-','') | replace('(','') | replace(')','') }}?text=Olá!%20Vi%20seu%20anúncio%20*{{ a.titulo | urlencode }}*%20no%20Mercado%20Colatina.%20Ainda%20está%20disponível?"
+         target="_blank">
+        💬 Falar no WhatsApp
+      </a>
+
+      <p style="font-size:0.75rem; color:#aaa; margin-top:10px; text-align:center;">
+        Combine diretamente com o vendedor. Cuidado com golpes.
+      </p>
+    </div>
+
+    {% if session.get('usuario_id') == a.usuario_id or session.get('is_admin') %}
+    <div class="vendedor-box" style="margin-top:12px;">
+      <p style="font-size:0.85rem; font-weight:600; margin-bottom:10px;">Gerenciar</p>
+      <form method="POST" action="/deletar/{{ a.id }}" onsubmit="return confirm('Remover este anúncio?')">
+        <button class="btn btn-perigo" style="width:100%">🗑️ Remover anúncio</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

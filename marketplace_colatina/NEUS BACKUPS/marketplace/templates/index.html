@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block busca %}
+<div class="busca-bar">
+  <form class="busca-inner" method="GET" action="/">
+    <input type="text" name="q" placeholder="🔍 O que você procura?" value="{{ busca }}">
+    <select name="categoria">
+      <option value="">Todas as categorias</option>
+      {% for cat in categorias %}
+        <option value="{{ cat }}" {% if cat == categoria_sel %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Buscar</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+  <h2 style="font-size:1.1rem; color:#555;">
+    {% if busca or categoria_sel %}
+      {{ anuncios|length }} resultado(s) encontrado(s)
+    {% else %}
+      {{ anuncios|length }} anúncios disponíveis
+    {% endif %}
+  </h2>
+  {% if busca or categoria_sel %}
+    <a href="/" style="font-size:0.85rem; color:#1a6b3c;">✕ Limpar filtros</a>
+  {% endif %}
+</div>
+
+{% if anuncios %}
+  <div class="grid">
+    {% for a in anuncios %}
+    <a href="/anuncio/{{ a.id }}" class="card">
+      {% if a.foto %}
+        <img src="/uploads/{{ a.foto }}" alt="{{ a.titulo }}">
+      {% else %}
+        <div class="card-sem-foto">🛍️</div>
+      {% endif %}
+      <div class="card-body">
+        <div class="card-titulo">{{ a.titulo }}</div>
+        <div class="card-preco">R$ {{ a.preco }}</div>
+        <div class="card-cat">{{ a.categoria }}</div>
+        <span class="card-condicao">{{ a.condicao }}</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <div style="text-align:center; padding:60px 20px; color:#aaa;">
+    <div style="font-size:3rem;">📭</div>
+    <p style="margin-top:12px;">Nenhum anúncio encontrado.</p>
+    {% if session.get('usuario_id') %}
+      <a href="/criar" class="btn btn-verde" style="margin-top:16px;">Criar anúncio</a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

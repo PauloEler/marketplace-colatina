@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Minha Conta — Mercado Colatina{% endblock %}
+{% block content %}
+<div style="max-width:400px; margin:40px auto;">
+  <h2 style="margin-bottom:20px;">Minha Conta</h2>
+  <div class="form-box">
+    <p style="margin-bottom:16px; color:#555;">Usuário: <strong>{{ session.usuario_nome }}</strong></p>
+    <hr style="border:none; border-top:1px solid #eee; margin-bottom:16px;">
+    <h3 style="margin-bottom:16px; font-size:1rem;">Alterar Senha</h3>
+    <form method="POST">
+      <div class="form-grupo">
+        <label>Senha atual</label>
+        <input type="password" name="senha_atual" required autofocus>
+      </div>
+      <div class="form-grupo">
+        <label>Nova senha</label>
+        <input type="password" name="nova_senha" required>
+      </div>
+      <div class="form-grupo">
+        <label>Confirmar nova senha</label>
+        <input type="password" name="confirmar" required>
+      </div>
+      <button class="btn btn-verde" type="submit" style="width:100%">Salvar nova senha</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
