@@ -18,6 +18,8 @@ def init_db():
             whatsapp TEXT NOT NULL DEFAULT '',
             is_admin INTEGER DEFAULT 0,
             ativo INTEGER DEFAULT 1,
+            plano_ativo INTEGER DEFAULT 0,
+            plano_expira DATE,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS anuncios (
@@ -30,6 +32,7 @@ def init_db():
             condicao TEXT NOT NULL DEFAULT 'Usado',
             foto TEXT,
             ativo INTEGER DEFAULT 1,
+            destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)

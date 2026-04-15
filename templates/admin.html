@@ -29,18 +29,29 @@
 <h3 style="margin-bottom:10px">Usuários ({{ usuarios|length }})</h3>
 <div style="overflow-x:auto">
 <table>
-  <thead><tr><th>Nome</th><th>Username</th><th>WhatsApp</th><th>Admin</th><th>Status</th><th>Ação</th></tr></thead>
+  <thead><tr><th>Nome</th><th>Username</th><th>WhatsApp</th><th>Admin</th><th>Plano</th><th>Expira</th><th>Status</th><th>Ações</th></tr></thead>
   <tbody>
   {% for u in usuarios %}
   <tr>
     <td>{{ u.nome }}</td><td>{{ u.username }}</td><td>{{ u.whatsapp }}</td>
     <td>{{ '✅' if u.is_admin else '—' }}</td>
-    <td><span class="badge {{ 'badge-verde' if u.ativo else 'badge-cinza' }}">{{ 'Ativo' if u.ativo else 'Inativo' }}</span></td>
     <td>
+      {% if u.is_admin %}—
+      {% elif u.plano_ativo %}<span class="badge badge-verde">💳 Ativo</span>
+      {% else %}<span class="badge badge-cinza">Grátis</span>{% endif %}
+    </td>
+    <td style="font-size:.8rem">{{ u.plano_expira or '—' }}</td>
+    <td><span class="badge {{ 'badge-verde' if u.ativo else 'badge-cinza' }}">{{ 'Ativo' if u.ativo else 'Inativo' }}</span></td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap">
       {% if u.username != 'admin' %}
       <form method="POST" action="/admin/usuario/{{ u.id }}/toggle">
-        <button class="btn {{ 'btn-cinza' if u.ativo else 'btn-verde' }}" style="font-size:.8rem;padding:4px 10px">
+        <button class="btn {{ 'btn-cinza' if u.ativo else 'btn-verde' }}" style="font-size:.78rem;padding:4px 8px">
           {{ 'Desativar' if u.ativo else 'Ativar' }}
+        </button>
+      </form>
+      <form method="POST" action="/admin/usuario/{{ u.id }}/plano">
+        <button class="btn {{ 'btn-cinza' if u.plano_ativo else 'btn-verde' }}" style="font-size:.78rem;padding:4px 8px">
+          {{ '❌ Plano' if u.plano_ativo else '✅ Plano' }}
         </button>
       </form>
       {% endif %}

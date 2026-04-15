@@ -11,8 +11,20 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
-CATEGORIAS = ['Eletrônicos','Móveis','Roupas e Calçados','Veículos',
-               'Eletrodomésticos','Imóveis','Serviços','Alimentos','Outros']
+LIMITE_GRATIS = 3
+VALOR_PLANO = 'R$ 10,00'
+PIX_CHAVE = '27998984840'
+
+def pode_criar_anuncio(usuario_id):
+    db = get_db()
+    u = db.execute("SELECT plano_ativo, plano_expira, is_admin FROM usuarios WHERE id=?", (usuario_id,)).fetchone()
+    if u['is_admin'] or u['plano_ativo']:
+        return True, None
+    total = db.execute("SELECT COUNT(*) FROM anuncios WHERE usuario_id=? AND ativo=1", (usuario_id,)).fetchone()[0]
+    if total < LIMITE_GRATIS:
+        restam = LIMITE_GRATIS - total
+        return True, f'Você tem {restam} anúncio(s) gratuito(s) restante(s).'
+    return False, 'limite'
 
 def allowed_file(f):
     return '.' in f and f.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
@@ -123,7 +135,15 @@ def criar_anuncio():
     if not logado():
         flash('Faça login para anunciar.','erro')
         return redirect(url_for('login'))
+    
+    pode, aviso = pode_criar_anuncio(session['usuario_id'])
+    if not pode:
+        return redirect(url_for('assinar'))
+    
     if request.method == 'POST':
+        pode, aviso = pode_criar_anuncio(session['usuario_id'])
+        if not pode:
+            return redirect(url_for('assinar'))
         titulo    = request.form['titulo'].strip()
         descricao = request.form['descricao'].strip()
         preco     = request.form['preco'].strip()
@@ -142,7 +162,12 @@ def criar_anuncio():
         db.commit()
         flash('Anúncio publicado!','ok')
         return redirect(url_for('meus_anuncios'))
-    return render_template('criar.html', categorias=CATEGORIAS)
+    return render_template('criar.html', categorias=CATEGORIAS, aviso=aviso)
+
+@app.route('/assinar')
+def assinar():
+    if not logado(): return redirect(url_for('login'))
+    return render_template('assinar.html', valor=VALOR_PLANO, pix=PIX_CHAVE)
 
 @app.route('/meus-anuncios')
 def meus_anuncios():
@@ -203,6 +228,20 @@ def admin_toggle_anuncio(id):
     a = db.execute("SELECT ativo FROM anuncios WHERE id=?",(id,)).fetchone()
     if a:
         db.execute("UPDATE anuncios SET ativo=? WHERE id=?",(0 if a['ativo'] else 1,id)); db.commit()
+    return redirect(url_for('painel_admin'))
+
+@app.route('/admin/usuario/<int:id>/plano', methods=['POST'])
+def admin_toggle_plano(id):
+    if not admin(): return redirect(url_for('index'))
+    from datetime import date, timedelta
+    db = get_db()
+    u = db.execute("SELECT plano_ativo FROM usuarios WHERE id=?",(id,)).fetchone()
+    if u:
+        novo = 0 if u['plano_ativo'] else 1
+        expira = (date.today() + timedelta(days=30)).isoformat() if novo else None
+        db.execute("UPDATE usuarios SET plano_ativo=?, plano_expira=? WHERE id=?",(novo, expira, id))
+        db.commit()
+        flash(f'Plano {"ativado" if novo else "desativado"}.','ok')
     return redirect(url_for('painel_admin'))
 
 if __name__ == '__main__':
