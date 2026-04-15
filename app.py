@@ -53,7 +53,17 @@ def index():
         q += " AND a.categoria=?"; p.append(cat)
     q += " ORDER BY a.criado_em DESC"
     anuncios = db.execute(q, p).fetchall()
-    return render_template('index.html', anuncios=anuncios, categorias=CATEGORIAS, busca=busca, cat_sel=cat)
+
+    # Info do plano do usuário logado
+    info_plano = None
+    if session.get('usuario_id'):
+        u = db.execute("SELECT plano_ativo, is_admin FROM usuarios WHERE id=?", (session['usuario_id'],)).fetchone()
+        if not u['is_admin'] and not u['plano_ativo']:
+            total = db.execute("SELECT COUNT(*) FROM anuncios WHERE usuario_id=? AND ativo=1", (session['usuario_id'],)).fetchone()[0]
+            restam = max(0, LIMITE_GRATIS - total)
+            info_plano = {'restam': restam, 'limite': LIMITE_GRATIS}
+
+    return render_template('index.html', anuncios=anuncios, categorias=CATEGORIAS, busca=busca, cat_sel=cat, info_plano=info_plano, valor_plano=VALOR_PLANO)
 
 @app.route('/anuncio/<int:id>')
 def anuncio(id):
