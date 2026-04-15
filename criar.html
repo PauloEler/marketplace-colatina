@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Criar Anúncio — Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/meus-anuncios" class="voltar">← Voltar aos meus anúncios</a>{% endblock %}
+
+{% block content %}
+<div style="max-width:580px;margin:0 auto">
+  <h2 style="margin-bottom:18px">Criar Anúncio</h2>
+  <div class="form-box">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="form-grupo">
+        <label>Título do produto *</label>
+        <input type="text" name="titulo" required placeholder="Ex: iPhone 13 128GB">
+      </div>
+      <div class="form-grupo">
+        <label>Preço (R$) *</label>
+        <input type="text" name="preco" required placeholder="Ex: 1.200,00">
+      </div>
+      <div class="form-grupo">
+        <label>Categoria *</label>
+        <select name="categoria" required>
+          {% for c in categorias %}<option>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Condição *</label>
+        <select name="condicao" required>
+          <option>Novo</option>
+          <option selected>Seminovo</option>
+          <option>Usado</option>
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Descrição *</label>
+        <textarea name="descricao" required placeholder="Estado, detalhes, o que está incluso..."></textarea>
+      </div>
+      <div class="form-grupo">
+        <label>Foto (opcional, máx 5MB)</label>
+        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp">
+      </div>
+      <button class="btn btn-verde" type="submit" style="width:100%">Publicar Anúncio</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
