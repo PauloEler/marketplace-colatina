@@ -14,6 +14,19 @@ app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 LIMITE_GRATIS = 3
 VALOR_PLANO = 'R$ 10,00'
 PIX_CHAVE = '27998984840'
+CATEGORIAS = [
+    'Eletrônicos',
+    'Móveis',
+    'Roupas e Calçados',
+    'Veículos',
+    'Eletrodomésticos',
+    'Imóveis',
+    'Serviços',
+    'Alimentos',
+    'Outros',
+]
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def pode_criar_anuncio(usuario_id):
     db = get_db()
@@ -78,6 +91,10 @@ def anuncio(id):
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/health')
+def health():
+    return {'status': 'ok'}, 200
 
 # ── CADASTRO / LOGIN ──────────────────────────────────────────────────────────
 
@@ -255,8 +272,8 @@ def admin_toggle_plano(id):
     return redirect(url_for('painel_admin'))
 
 if __name__ == '__main__':
-    port  = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_ENV') != 'production'
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', '').lower() in {'1', 'true', 'yes'}
     print(f"\n✅ Mercado Colatina rodando em http://localhost:{port}")
     print("   Admin: /admin  |  login: admin / admin123\n")
     app.run(debug=debug, host='0.0.0.0', port=port)
