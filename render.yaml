@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: mercado-colatina
+    env: python
+    region: ohio
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_ENV
+        value: production
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: ADMIN_NAME
+        value: Administrador
+      - key: ADMIN_WHATSAPP
+        value: "27998984840"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mercado-colatina-db
+          property: connectionString
+
+databases:
+  - name: mercado-colatina-db
+    databaseName: mercado_colatina
+    user: mercado_colatina
+    plan: free

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Admin | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">Voltar ao inicio</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom:22px">Painel admin</h2>
+
+<div class="form-box" style="margin-bottom:28px">
+  <h3 style="margin-bottom:14px">Cadastrar novo usuario</h3>
+  <form method="POST" action="/admin/usuario">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
+      <div class="form-grupo" style="margin:0"><label>Nome</label><input type="text" name="nome" required minlength="3" maxlength="80"></div>
+      <div class="form-grupo" style="margin:0"><label>Username</label><input type="text" name="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}"></div>
+      <div class="form-grupo" style="margin:0"><label>Senha</label><input type="text" name="senha" required minlength="4"></div>
+      <div class="form-grupo" style="margin:0"><label>WhatsApp</label><input type="text" name="whatsapp" required inputmode="numeric" minlength="10" maxlength="11" pattern="[0-9]{10,11}" placeholder="27999999999"></div>
+    </div>
+    <div style="margin-top:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:6px;font-size:.86rem">
+        <input type="checkbox" name="is_admin"> Administrador
+      </label>
+      <button class="btn btn-verde" type="submit">Cadastrar</button>
+    </div>
+  </form>
+</div>
+
+<h3 style="margin-bottom:10px">Usuarios ({{ usuarios|length }})</h3>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr><th>Nome</th><th>Username</th><th>WhatsApp</th><th>Admin</th><th>Plano</th><th>Expira</th><th>Status</th><th>Acoes</th></tr></thead>
+  <tbody>
+  {% for u in usuarios %}
+  <tr>
+    <td>{{ u.nome }}</td>
+    <td>{{ u.username }}</td>
+    <td>{{ u.whatsapp }}</td>
+    <td>{{ 'Sim' if u.is_admin else '-' }}</td>
+    <td>
+      {% if u.is_admin %}-
+      {% elif u.plano_ativo %}<span class="badge badge-verde">Ativo</span>
+      {% else %}<span class="badge badge-cinza">Gratis</span>{% endif %}
+    </td>
+    <td>{{ u.plano_expira or '-' }}</td>
+    <td><span class="badge {{ 'badge-verde' if u.ativo else 'badge-cinza' }}">{{ 'Ativo' if u.ativo else 'Inativo' }}</span></td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap">
+      {% if u.username != 'admin' %}
+      <form method="POST" action="/admin/usuario/{{ u.id }}/toggle">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn {{ 'btn-cinza' if u.ativo else 'btn-verde' }}" style="font-size:.78rem;padding:4px 8px">
+          {{ 'Desativar' if u.ativo else 'Ativar' }}
+        </button>
+      </form>
+      <form method="POST" action="/admin/usuario/{{ u.id }}/plano">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn {{ 'btn-cinza' if u.plano_ativo else 'btn-verde' }}" style="font-size:.78rem;padding:4px 8px">
+          {{ 'Remover plano' if u.plano_ativo else 'Ativar plano' }}
+        </button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<h3 style="margin-bottom:10px">Anuncios ({{ anuncios|length }})</h3>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr><th>Titulo</th><th>Vendedor</th><th>Preco</th><th>Categoria</th><th>Vistas</th><th>Status</th><th>Acao</th></tr></thead>
+  <tbody>
+  {% for a in anuncios %}
+  <tr>
+    <td><a href="/anuncio/{{ a.id }}" style="color:#1a6b3c">{{ a.titulo[:38] }}</a></td>
+    <td>{{ a.vendedor_nome }}</td>
+    <td>R$ {{ a.preco }}</td>
+    <td>{{ a.categoria }}</td>
+    <td>{{ a.visualizacoes }}</td>
+    <td><span class="badge {{ 'badge-verde' if a.ativo else 'badge-cinza' }}">{{ 'Ativo' if a.ativo else 'Inativo' }}</span></td>
+    <td>
+      <form method="POST" action="/admin/anuncio/{{ a.id }}/toggle">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn {{ 'btn-cinza' if a.ativo else 'btn-verde' }}" style="font-size:.8rem;padding:4px 10px">
+          {{ 'Ocultar' if a.ativo else 'Ativar' }}
+        </button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

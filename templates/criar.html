@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Criar Anuncio | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/meus-anuncios" class="voltar">Voltar aos meus anuncios</a>{% endblock %}
+
+{% block content %}
+<div style="max-width:620px;margin:0 auto">
+  <h2 style="margin-bottom:18px">Criar anuncio</h2>
+  {% if aviso %}
+  <div style="background:#fff8e1;border:1px solid #f5c842;border-radius:12px;padding:12px 14px;margin-bottom:16px">{{ aviso }}</div>
+  {% endif %}
+  <div class="form-box">
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-grupo">
+        <label>Titulo do produto</label>
+        <input type="text" name="titulo" required minlength="4" maxlength="120" placeholder="Ex: iPhone 13 128GB">
+      </div>
+      <div class="form-grupo">
+        <label>Preco</label>
+        <input type="text" name="preco" required maxlength="20" placeholder="Ex: 1.200,00">
+      </div>
+      <div class="form-grupo">
+        <label>Categoria</label>
+        <select name="categoria" required>
+          {% for c in categorias %}<option>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Condicao</label>
+        <select name="condicao" required>
+          <option>Novo</option>
+          <option selected>Seminovo</option>
+          <option>Usado</option>
+        </select>
+      </div>
+      <div class="form-grupo">
+        <label>Descricao</label>
+        <textarea name="descricao" required minlength="10" maxlength="2000" placeholder="Estado, detalhes e o que esta incluso"></textarea>
+      </div>
+      <div class="form-grupo">
+        <label>Foto (opcional, max. 5 MB)</label>
+        <input type="file" name="foto" accept=".jpg,.jpeg,.png,.webp">
+      </div>
+      <button class="btn btn-verde" type="submit" style="width:100%">Publicar anuncio</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

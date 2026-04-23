@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}{{ a.titulo }} | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">Voltar aos anuncios</a>{% endblock %}
+
+{% block content %}
+<div class="detalhe">
+  <div>
+    {% if a.foto %}<img src="/uploads/{{ a.foto }}" alt="{{ a.titulo }}" class="detalhe-foto">
+    {% else %}<div class="sem-foto-grande">Sem foto</div>{% endif %}
+    <div class="detalhe-box">
+      <h1 style="font-size:1.4rem">{{ a.titulo }}</h1>
+      <div class="detalhe-preco">R$ {{ a.preco }}</div>
+      <div class="detalhe-info">{{ a.condicao }} | {{ a.categoria }} | {{ a.visualizacoes }} visualizacao(oes)</div>
+      <hr style="border:none;border-top:1px solid #eee">
+      <div class="detalhe-desc">{{ a.descricao }}</div>
+    </div>
+  </div>
+  <div>
+    <div class="vendedor-box">
+      <p style="font-size:.8rem;color:#888;margin-bottom:6px">VENDEDOR</p>
+      <div style="font-weight:700;font-size:1.05rem">{{ a.vendedor_nome }}</div>
+      <p style="font-size:.82rem;color:#888;margin-top:4px">Colatina, ES</p>
+      <a class="btn btn-wpp" target="_blank"
+         href="https://wa.me/55{{ a.whatsapp|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Ola!%20Vi%20seu%20anuncio%20{{ a.titulo|urlencode }}%20no%20Mercado%20Colatina.%20Ainda%20esta%20disponivel?">
+        Falar no WhatsApp
+      </a>
+      <p style="font-size:.76rem;color:#888;margin-top:10px;text-align:center">Negocie direto com o vendedor.</p>
+    </div>
+    {% if session.get('usuario_id') == a.usuario_id or session.get('is_admin') %}
+    <div class="vendedor-box">
+      <p style="font-size:.86rem;font-weight:600;margin-bottom:10px">Gerenciar</p>
+      <form method="POST" action="/deletar/{{ a.id }}" onsubmit="return confirm('Remover este anuncio?')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-perigo" style="width:100%">Remover anuncio</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

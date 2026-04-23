@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block busca %}
+<div class="busca-bar">
+  <form class="busca-inner" method="GET" action="/">
+    <input type="text" name="q" placeholder="O que voce procura?" value="{{ busca }}">
+    <select name="categoria">
+      <option value="">Todas as categorias</option>
+      {% for c in categorias %}
+        <option value="{{ c }}" {% if c == cat_sel %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Buscar</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if not busca and not cat_sel %}
+<section style="background:linear-gradient(135deg,#1a6b3c,#2d9e5f);border-radius:18px;padding:38px 28px;color:#fff;margin-bottom:28px;text-align:center;box-shadow:0 12px 28px rgba(26,107,60,.18)">
+  <h1 style="font-size:1.9rem;font-weight:800;margin-bottom:10px">Compre e venda em Colatina</h1>
+  <p style="font-size:1rem;opacity:.92;margin-bottom:24px">Um marketplace local para negociar com quem esta perto de voce.</p>
+  {% if not session.get('usuario_id') %}
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <a href="/cadastro" style="background:#f5c842;color:#1a1a1a;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none">Cadastrar gratis</a>
+    <a href="/login" style="background:rgba(255,255,255,.14);color:#fff;padding:12px 24px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.35)">Entrar</a>
+  </div>
+  {% else %}
+  <a href="/criar" style="background:#f5c842;color:#1a1a1a;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;display:inline-block">+ Criar anuncio</a>
+  {% endif %}
+</section>
+
+{% if info_plano %}
+  {% if info_plano.restam > 0 %}
+  <div style="background:#fff8e1;border:1px solid #f5c842;border-radius:12px;padding:14px 18px;margin-bottom:22px">
+    <strong>Plano gratuito:</strong> voce ainda tem <strong>{{ info_plano.restam }} anuncio(s)</strong> disponivel(is).
+    <a href="/assinar" style="color:#1a6b3c;margin-left:8px;font-size:.9rem">Ver plano pago</a>
+  </div>
+  {% else %}
+  <div style="background:#fdecea;border:1px solid #e57373;border-radius:12px;padding:14px 18px;margin-bottom:22px">
+    <strong>Limite atingido.</strong> Assine por <strong>{{ valor_plano }}/mes</strong> para continuar anunciando.
+    <a href="/assinar" style="color:#1a6b3c;margin-left:8px;font-weight:700">Assinar agora</a>
+  </div>
+  {% endif %}
+{% endif %}
+
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px">
+  <div style="background:#fff;border-radius:14px;padding:20px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.06)">
+    <div style="font-size:2rem;margin-bottom:8px">1</div>
+    <strong style="font-size:.95rem">Crie sua conta</strong>
+    <p style="font-size:.84rem;color:#777;margin-top:4px">Cadastro rapido e gratuito</p>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:20px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.06)">
+    <div style="font-size:2rem;margin-bottom:8px">2</div>
+    <strong style="font-size:.95rem">Publique seu anuncio</strong>
+    <p style="font-size:.84rem;color:#777;margin-top:4px">Foto, preco e descricao</p>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:20px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.06)">
+    <div style="font-size:2rem;margin-bottom:8px">3</div>
+    <strong style="font-size:.95rem">Feche pelo WhatsApp</strong>
+    <p style="font-size:.84rem;color:#777;margin-top:4px">Contato direto com o vendedor</p>
+  </div>
+</section>
+
+<section style="background:#fff;border-radius:14px;padding:24px;margin-bottom:28px;box-shadow:0 6px 18px rgba(0,0,0,.06)">
+  <h3 style="margin-bottom:16px;font-size:1.05rem;text-align:center">Planos</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+    <div style="border:2px solid #e0e0e0;border-radius:12px;padding:16px;text-align:center">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:4px">Gratuito</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#1a6b3c">R$ 0</div>
+      <ul style="list-style:none;margin-top:10px;font-size:.84rem;color:#555;line-height:2">
+        <li>Ate 3 anuncios</li>
+        <li>Contato por WhatsApp</li>
+        <li>Todas as categorias</li>
+      </ul>
+      {% if not session.get('usuario_id') %}
+      <a href="/cadastro" style="display:block;margin-top:12px;background:#e8f5e9;color:#1a6b3c;padding:9px;border-radius:8px;font-weight:600;text-decoration:none;font-size:.86rem">Comecar gratis</a>
+      {% endif %}
+    </div>
+    <div style="border:2px solid #1a6b3c;border-radius:12px;padding:16px;text-align:center;background:#f0faf4">
+      <div style="font-weight:700;font-size:1rem;margin-bottom:4px">Mensal</div>
+      <div style="font-size:1.5rem;font-weight:700;color:#1a6b3c">{{ valor_plano }}<span style="font-size:.86rem;font-weight:400">/mes</span></div>
+      <ul style="list-style:none;margin-top:10px;font-size:.84rem;color:#555;line-height:2">
+        <li>Anuncios ilimitados</li>
+        <li>Contato por WhatsApp</li>
+        <li>Todas as categorias</li>
+      </ul>
+      <a href="/assinar" style="display:block;margin-top:12px;background:#1a6b3c;color:#fff;padding:9px;border-radius:8px;font-weight:600;text-decoration:none;font-size:.86rem">Assinar agora</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+  <h2 style="font-size:1rem;color:#555">
+    {% if busca or cat_sel %}{{ anuncios|length }} resultado(s)
+    {% else %}{{ anuncios|length }} anuncios disponiveis{% endif %}
+  </h2>
+  {% if busca or cat_sel %}<a href="/" style="font-size:.9rem;color:#1a6b3c">Limpar filtros</a>{% endif %}
+</div>
+
+{% if anuncios %}
+<div class="grid">
+  {% for a in anuncios %}
+  <a href="/anuncio/{{ a.id }}" class="card">
+    {% if a.foto %}<img src="/uploads/{{ a.foto }}" alt="{{ a.titulo }}">
+    {% else %}<div class="card-sem-foto">Foto</div>{% endif %}
+    <div class="card-body">
+      <div class="card-titulo">{{ a.titulo }}</div>
+      <div class="card-preco">R$ {{ a.preco }}</div>
+      <div class="card-cat">{{ a.categoria }}</div>
+      <span class="card-cond">{{ a.condicao }}</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div style="text-align:center;padding:44px;color:#888;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)">
+  <p style="font-size:1.05rem">Nenhum anuncio encontrado.</p>
+  {% if session.get('usuario_id') %}
+  <a href="/criar" class="btn btn-verde" style="margin-top:16px;display:inline-block">Criar primeiro anuncio</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} | Mercado Colatina{% endblock %}
+
+{% block content %}
+<div style="max-width:640px;margin:40px auto 0">
+  <div class="form-box" style="text-align:center">
+    <h1 style="margin-bottom:10px">{{ titulo }}</h1>
+    <p style="color:#666;line-height:1.7">{{ mensagem }}</p>
+    <a href="/" class="btn btn-verde" style="margin-top:18px">Voltar para a pagina inicial</a>
+  </div>
+</div>
+{% endblock %}
