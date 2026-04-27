@@ -63,6 +63,14 @@ Defina pelo menos:
 - `UPLOAD_FOLDER`
 - `ADMIN_PASSWORD`
 
+### Render com Blueprint
+
+Este repositorio ja inclui `render.yaml`, entao voce pode criar a infra direto pelo Render Blueprint.
+
+Link de deploy:
+
+`https://render.com/deploy?repo=https://github.com/PauloEler/marketplace-colatina`
+
 ## Persistencia
 
 Se publicar em uma plataforma com filesystem temporario, configure volume/disco persistente para:
@@ -71,6 +79,11 @@ Se publicar em uma plataforma com filesystem temporario, configure volume/disco 
 - pasta de uploads
 
 Sem isso, imagens e banco podem ser perdidos a cada novo deploy.
+
+No Render Free, o Postgres fica persistente, mas a pasta de uploads continua efemera. Isso significa que fotos enviadas podem sumir em restart ou redeploy. Para uso real em producao, o ideal e:
+
+- usar um plano pago com persistent disk
+- ou mover uploads para armazenamento externo
 
 ## Observacoes
 
