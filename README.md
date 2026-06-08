@@ -1,83 +1,84 @@
 # MERCADO COLATINA 🌿
+
 Sistema local de compra e venda tipo OLX para a região de Colatina, ES.
 
----
+## Como rodar
 
-## COMO RODAR
-
-### 1. Instalar dependências (primeira vez)
-```
-pip install flask
-```
-
-### 2. Iniciar o sistema
-```
+```bash
+pip install -r requirements.txt
 python app.py
 ```
 
-### 3. Acessar no navegador
-```
+Acesse:
+
+```text
 http://localhost:5000
 ```
 
----
+## Configuração segura
 
-## LOGIN ADMIN (padrão)
-- Usuário: `admin`
-- Senha: `admin123`
-- Painel admin: `http://localhost:5000/admin`
+Crie um arquivo `.env` local usando `.env.example` como modelo.
 
-⚠️ Mude a senha do admin pelo banco de dados após o primeiro acesso.
+Nunca envie para o GitHub:
 
----
+- `.env` real;
+- banco real;
+- uploads reais;
+- senhas reais;
+- chaves Pix reais;
+- dados reais de usuários.
 
-## O QUE O SISTEMA FAZ
+## Administrador
 
-**Público (sem login):**
-- Ver todos os anúncios
-- Buscar por palavras e filtrar por categoria
-- Ver detalhe de cada anúncio
-- Contato direto pelo WhatsApp do vendedor
+O administrador inicial deve ser configurado por variáveis de ambiente:
 
-**Usuários cadastrados:**
-- Criar anúncios com foto
-- Ver e remover seus próprios anúncios
-
-**Admin (você):**
-- Cadastrar e desativar usuários
-- Ativar/ocultar qualquer anúncio
-
----
-
-## CATEGORIAS
-Eletrônicos, Móveis, Roupas e Calçados, Veículos,
-Eletrodomésticos, Imóveis, Serviços, Alimentos, Outros
-
----
-
-## ESTRUTURA DOS ARQUIVOS
+```env
+ADMIN_USERNAME=admin_local
+ADMIN_PASSWORD=troque-esta-senha
+ADMIN_NOME=Administrador
+ADMIN_WHATSAPP=
 ```
+
+Nunca use credenciais padrão em produção.
+
+Consulte `docs/SEGURANCA.md` antes de colocar online.
+
+## O que o sistema faz
+
+**Público:**
+
+- Ver anúncios.
+- Buscar por palavra e categoria.
+- Ver detalhes do anúncio.
+- Contato pelo WhatsApp do vendedor.
+
+**Usuários:**
+
+- Criar anúncios com foto.
+- Ver e remover próprios anúncios.
+
+**Admin:**
+
+- Cadastrar e desativar usuários.
+- Ativar ou ocultar anúncios.
+
+## Estrutura básica
+
+```text
 marketplace/
-├── app.py           — Servidor Flask (rotas)
-├── database.py      — Banco de dados SQLite
-├── marketplace.db   — Banco (criado automaticamente)
+├── app.py
+├── database.py
 ├── requirements.txt
-├── uploads/         — Fotos dos anúncios
+├── .env.example
+├── docs/
+├── uploads/      # não versionar
 └── templates/
-    ├── base.html
-    ├── index.html
-    ├── anuncio.html
-    ├── login.html
-    ├── criar.html
-    ├── meus_anuncios.html
-    └── admin.html
 ```
 
----
+## Próximos passos
 
-## PRÓXIMOS PASSOS (quando quiser evoluir)
-- [ ] Colocar online (Heroku, Railway, VPS)
-- [ ] IA dentro do sistema para gerar descrições de anúncios
-- [ ] Sistema de avaliação de vendedores
-- [ ] Anúncios em destaque (pagos)
-- [ ] Notificação por WhatsApp quando alguém entrar em contato
+- [ ] Testar a consolidação de segurança.
+- [ ] Revisar produção antes de publicar online.
+- [ ] Validar imagens com verificação profunda.
+- [ ] Implementar limite de tentativas de login.
+- [ ] Criar política mínima de senha.
