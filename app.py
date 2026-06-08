@@ -92,7 +92,7 @@ def index():
             restam = max(0, LIMITE_GRATIS - total)
             info_plano = {'restam': restam, 'limite': LIMITE_GRATIS}
 
-    return render_template('index.html', anuncios=anuncios, categorias=CATEGORIAS, busca=busa if False else busca, cat_sel=cat, info_plano=info_plano, valor_plano=VALOR_PLANO)
+    return render_template('index.html', anuncios=anuncios, categorias=CATEGORIAS, busca=busca, cat_sel=cat, info_plano=info_plano, valor_plano=VALOR_PLANO)
 
 @app.route('/anuncio/<int:id>')
 def anuncio(id):
