@@ -4,16 +4,25 @@ import os, uuid
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'colatina_market_2026')
+
+FLASK_ENV = os.environ.get('FLASK_ENV', 'development').lower()
+SECRET_KEY = os.environ.get('SECRET_KEY')
+
+if not SECRET_KEY:
+    if FLASK_ENV == 'production':
+        raise RuntimeError('SECRET_KEY deve ser configurada em producao.')
+    SECRET_KEY = 'dev-secret-key-change-me'
+
+app.secret_key = SECRET_KEY
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
 
-LIMITE_GRATIS = 3
-VALOR_PLANO = 'R$ 10,00'
-PIX_CHAVE = '27998984840'
+LIMITE_GRATIS = int(os.environ.get('LIMITE_GRATIS', 3))
+VALOR_PLANO = os.environ.get('VALOR_PLANO', 'R$ 10,00')
+PIX_CHAVE = os.environ.get('PIX_CHAVE', 'configure-pix-no-env-local')
 CATEGORIAS = [
     'Eletrônicos',
     'Móveis',
@@ -275,5 +284,5 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', '').lower() in {'1', 'true', 'yes'}
     print(f"\n✅ Mercado Colatina rodando em http://localhost:{port}")
-    print("   Admin: /admin  |  login: admin / admin123\n")
+    print("   Admin: /admin  |  configure credenciais localmente\n")
     app.run(debug=debug, host='0.0.0.0', port=port)
