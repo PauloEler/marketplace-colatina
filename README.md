@@ -1,4 +1,5 @@
 # MERCADO COLATINA 🌿
+
 Sistema local de compra e venda tipo OLX para a região de Colatina, ES.
 
 ---
@@ -6,63 +7,86 @@ Sistema local de compra e venda tipo OLX para a região de Colatina, ES.
 ## COMO RODAR
 
 ### 1. Instalar dependências (primeira vez)
-```
-pip install flask
+
+```bash
+pip install -r requirements.txt
 ```
 
-### 2. Iniciar o sistema
-```
+### 2. Configurar ambiente local
+
+Crie um arquivo `.env` local usando `.env.example` como modelo.
+
+Nunca envie `.env`, banco real, uploads ou dados de usuários para o GitHub.
+
+### 3. Iniciar o sistema
+
+```bash
 python app.py
 ```
 
-### 3. Acessar no navegador
-```
+### 4. Acessar no navegador
+
+```text
 http://localhost:5000
 ```
 
 ---
 
-## LOGIN ADMIN (padrão)
-- Usuário: `admin`
-- Senha: `admin123`
-- Painel admin: `http://localhost:5000/admin`
+## CONFIGURAÇÃO DO ADMINISTRADOR
 
-⚠️ Mude a senha do admin pelo banco de dados após o primeiro acesso.
+Este projeto pode criar um usuário administrador para testes locais.
+
+Nunca use credenciais padrão em produção.
+
+As credenciais de administrador devem ser configuradas localmente, fora do repositório, usando variáveis de ambiente ou procedimento seguro de criação de usuário.
+
+Consulte:
+
+- `.env.example`
+- `docs/SEGURANCA.md`
+
+Antes de colocar o sistema online, revise autenticação, criação do admin, senhas, uploads e chave secreta da aplicação.
 
 ---
 
 ## O QUE O SISTEMA FAZ
 
 **Público (sem login):**
+
 - Ver todos os anúncios
 - Buscar por palavras e filtrar por categoria
 - Ver detalhe de cada anúncio
 - Contato direto pelo WhatsApp do vendedor
 
 **Usuários cadastrados:**
+
 - Criar anúncios com foto
 - Ver e remover seus próprios anúncios
 
-**Admin (você):**
+**Admin:**
+
 - Cadastrar e desativar usuários
 - Ativar/ocultar qualquer anúncio
 
 ---
 
 ## CATEGORIAS
+
 Eletrônicos, Móveis, Roupas e Calçados, Veículos,
 Eletrodomésticos, Imóveis, Serviços, Alimentos, Outros
 
 ---
 
 ## ESTRUTURA DOS ARQUIVOS
-```
+
+```text
 marketplace/
 ├── app.py           — Servidor Flask (rotas)
 ├── database.py      — Banco de dados SQLite
-├── marketplace.db   — Banco (criado automaticamente)
 ├── requirements.txt
-├── uploads/         — Fotos dos anúncios
+├── .env.example     — Modelo de variáveis locais
+├── docs/            — Documentação técnica e segurança
+├── uploads/         — Fotos dos anúncios (não versionar)
 └── templates/
     ├── base.html
     ├── index.html
@@ -75,8 +99,27 @@ marketplace/
 
 ---
 
+## SEGURANÇA
+
+Este repositório deve guardar engenharia, não dados vivos.
+
+Não envie para o GitHub:
+
+- `.env` real;
+- banco `marketplace.db` real;
+- uploads reais;
+- senhas reais;
+- chaves Pix reais;
+- dados reais de usuários.
+
+---
+
 ## PRÓXIMOS PASSOS (quando quiser evoluir)
-- [ ] Colocar online (Heroku, Railway, VPS)
+
+- [ ] Blindar criação do administrador
+- [ ] Exigir `SECRET_KEY` segura em produção
+- [ ] Revisar segurança de uploads
+- [ ] Colocar online somente após auditoria
 - [ ] IA dentro do sistema para gerar descrições de anúncios
 - [ ] Sistema de avaliação de vendedores
 - [ ] Anúncios em destaque (pagos)
