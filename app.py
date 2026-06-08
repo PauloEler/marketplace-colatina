@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from database import init_db, get_db
 import os, uuid
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'colatina_market_2026')
@@ -28,6 +29,17 @@ CATEGORIAS = [
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
+def senha_tem_hash(valor):
+    return valor.startswith(('scrypt:', 'pbkdf2:', 'argon2:'))
+
+
+def senha_confere(senha_armazenada, senha_digitada):
+    if senha_tem_hash(senha_armazenada):
+        return check_password_hash(senha_armazenada, senha_digitada)
+    return senha_armazenada == senha_digitada
+
+
 def pode_criar_anuncio(usuario_id):
     db = get_db()
     u = db.execute("SELECT plano_ativo, plano_expira, is_admin FROM usuarios WHERE id=?", (usuario_id,)).fetchone()
@@ -39,14 +51,18 @@ def pode_criar_anuncio(usuario_id):
         return True, f'Você tem {restam} anúncio(s) gratuito(s) restante(s).'
     return False, 'limite'
 
+
 def allowed_file(f):
     return '.' in f and f.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def logado():
     return session.get('usuario_id')
 
+
 def admin():
     return session.get('is_admin', False)
+
 
 with app.app_context():
     init_db()
@@ -105,9 +121,10 @@ def cadastro():
         username = request.form['username'].strip()
         senha    = request.form['senha'].strip()
         whatsapp = request.form['whatsapp'].strip()
+        senha_hash = generate_password_hash(senha)
         db = get_db()
         try:
-            db.execute("INSERT INTO usuarios (nome,username,senha,whatsapp) VALUES (?,?,?,?)",(nome,username,senha,whatsapp))
+            db.execute("INSERT INTO usuarios (nome,username,senha,whatsapp) VALUES (?,?,?,?)",(nome,username,senha_hash,whatsapp))
             db.commit()
             flash('Conta criada! Faça login.','ok')
             return redirect(url_for('login'))
@@ -121,8 +138,11 @@ def login():
         username = request.form['username'].strip()
         senha    = request.form['senha'].strip()
         db = get_db()
-        u = db.execute("SELECT * FROM usuarios WHERE username=? AND senha=? AND ativo=1",(username,senha)).fetchone()
-        if u:
+        u = db.execute("SELECT * FROM usuarios WHERE username=? AND ativo=1",(username,)).fetchone()
+        if u and senha_confere(u['senha'], senha):
+            if not senha_tem_hash(u['senha']):
+                db.execute("UPDATE usuarios SET senha=? WHERE id=?", (generate_password_hash(senha), u['id']))
+                db.commit()
             session['usuario_id']   = u['id']
             session['usuario_nome'] = u['nome']
             session['is_admin']     = bool(u['is_admin'])
@@ -147,11 +167,11 @@ def minha_conta():
         confirma = request.form['confirmar'].strip()
         db = get_db()
         u = db.execute("SELECT * FROM usuarios WHERE id=?",(session['usuario_id'],)).fetchone()
-        if u['senha'] != atual:      flash('Senha atual incorreta.','erro')
+        if not senha_confere(u['senha'], atual): flash('Senha atual incorreta.','erro')
         elif nova != confirma:        flash('Nova senha e confirmação não coincidem.','erro')
         elif len(nova) < 4:           flash('Senha muito curta (mín. 4 caracteres).','erro')
         else:
-            db.execute("UPDATE usuarios SET senha=? WHERE id=?",(nova,session['usuario_id'])); db.commit()
+            db.execute("UPDATE usuarios SET senha=? WHERE id=?",(generate_password_hash(nova),session['usuario_id'])); db.commit()
             flash('Senha alterada com sucesso!','ok')
     return render_template('minha_conta.html')
 
@@ -231,9 +251,10 @@ def admin_criar_usuario():
     senha    = request.form['senha'].strip()
     whatsapp = request.form['whatsapp'].strip()
     is_adm   = 1 if request.form.get('is_admin') else 0
+    senha_hash = generate_password_hash(senha)
     db = get_db()
     try:
-        db.execute("INSERT INTO usuarios (nome,username,senha,whatsapp,is_admin) VALUES (?,?,?,?,?)",(nome,username,senha,whatsapp,is_adm))
+        db.execute("INSERT INTO usuarios (nome,username,senha,whatsapp,is_admin) VALUES (?,?,?,?,?)",(nome,username,senha_hash,whatsapp,is_adm))
         db.commit(); flash(f'Usuário {nome} cadastrado.','ok')
     except:
         flash('Username já existe.','erro')
@@ -275,5 +296,5 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', '').lower() in {'1', 'true', 'yes'}
     print(f"\n✅ Mercado Colatina rodando em http://localhost:{port}")
-    print("   Admin: /admin  |  login: admin / admin123\n")
+    print("   Admin: /admin  |  login configurado localmente\n")
     app.run(debug=debug, host='0.0.0.0', port=port)

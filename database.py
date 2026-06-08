@@ -1,4 +1,5 @@
 import sqlite3, os
+from werkzeug.security import generate_password_hash
 
 DB_PATH = os.environ.get(
     'DATABASE_PATH',
@@ -20,13 +21,14 @@ def _criar_admin_por_ambiente(db):
     admin_whatsapp = os.environ.get('ADMIN_WHATSAPP', '')
 
     if admin_username and admin_password:
+        senha_hash = generate_password_hash(admin_password)
         db.execute(
             """
             INSERT OR IGNORE INTO usuarios
                 (nome, username, senha, whatsapp, is_admin)
             VALUES (?, ?, ?, ?, 1)
             """,
-            (admin_nome, admin_username, admin_password, admin_whatsapp)
+            (admin_nome, admin_username, senha_hash, admin_whatsapp)
         )
         return
 
