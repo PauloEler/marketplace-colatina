@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'colatina_market_2026')
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'uploads')
+UPLOAD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'uploads'))
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024
@@ -53,7 +53,36 @@ def pode_criar_anuncio(usuario_id):
 
 
 def allowed_file(f):
-    return '.' in f and f.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
+    if not f or not f.filename:
+        return False
+    nome_seguro = secure_filename(f.filename)
+    if not nome_seguro or '.' not in nome_seguro:
+        return False
+    extensao = nome_seguro.rsplit('.', 1)[1].lower()
+    return extensao in ALLOWED_EXTENSIONS
+
+
+def salvar_upload_seguro(file_storage):
+    if not file_storage or not file_storage.filename:
+        return None
+
+    nome_seguro = secure_filename(file_storage.filename)
+    if not nome_seguro or '.' not in nome_seguro:
+        return None
+
+    extensao = nome_seguro.rsplit('.', 1)[1].lower()
+    if extensao not in ALLOWED_EXTENSIONS:
+        return None
+
+    nome_final = f"{uuid.uuid4().hex}.{extensao}"
+    pasta_uploads = os.path.abspath(app.config['UPLOAD_FOLDER'])
+    caminho_final = os.path.abspath(os.path.join(pasta_uploads, nome_final))
+
+    if os.path.commonpath([pasta_uploads, caminho_final]) != pasta_uploads:
+        raise RuntimeError('Caminho de upload invalido.')
+
+    file_storage.save(caminho_final)
+    return nome_final
 
 
 def logado():
@@ -106,7 +135,7 @@ def anuncio(id):
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'], secure_filename(filename))
 
 @app.route('/health')
 def health():
@@ -198,11 +227,7 @@ def criar_anuncio():
         condicao  = request.form['condicao']
         foto = None
         if 'foto' in request.files:
-            f = request.files['foto']
-            if f and f.filename and allowed_file(f.filename):
-                ext  = f.filename.rsplit('.',1)[1].lower()
-                foto = f"{uuid.uuid4().hex}.{ext}"
-                f.save(os.path.join(app.config['UPLOAD_FOLDER'], foto))
+            foto = salvar_upload_seguro(request.files['foto'])
         db = get_db()
         db.execute("INSERT INTO anuncios (usuario_id,titulo,descricao,preco,categoria,condicao,foto) VALUES (?,?,?,?,?,?,?)",
                    (session['usuario_id'],titulo,descricao,preco,categoria,condicao,foto))
