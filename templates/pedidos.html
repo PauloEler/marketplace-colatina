@@ -14,6 +14,11 @@
       <span class="badge order-status status-{{ p.status }}">{{ pedido_status_label(p.status) }}</span>
       <span>Pedido #{{ p.id }}</span>
     </div>
+    {% if p.pagamento_status != 'nao_iniciado' %}
+      <div class="payment-order-status payment-{{ p.pagamento_status }}">
+        <span class="payment-dot"></span>{{ pagamento_status_label(p.pagamento_status) }}
+      </div>
+    {% endif %}
     <h3>{% if p.anuncio_ativo %}<a href="/anuncio/{{ p.anuncio_id }}">{{ p.titulo }}</a>{% else %}{{ p.titulo }}{% endif %}</h3>
     <div class="order-price">R$ {{ p.valor }}</div>
     <div class="order-details">
@@ -50,14 +55,28 @@
           Conversar no WhatsApp
         </a>
         {% if tipo == 'compra' %}
+          {% if p.pagamento_status == 'aprovado' %}
+            <span class="payment-confirmed-note">Pagamento confirmado</span>
+          {% elif p.vendedor_mp_user_id and mercadopago_pagamentos_configurados() %}
+            <form method="POST" action="/pedido/{{ p.id }}/pagar-mercadopago">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-mp" type="submit">Pagar com Mercado Pago</button>
+            </form>
+          {% elif p.vendedor_mp_user_id %}
+            <span class="payment-waiting-note">Pagamento online em ativação</span>
+          {% else %}
+            <span class="payment-waiting-note">Vendedor ainda não conectou o Mercado Pago</span>
+          {% endif %}
           <form method="POST" action="/pedido/{{ p.id }}/concluir">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-verde" type="submit">Recebi o produto</button>
           </form>
-          <form method="POST" action="/pedido/{{ p.id }}/cancelar">
+          {% if p.pagamento_status != 'aprovado' %}<form method="POST" action="/pedido/{{ p.id }}/cancelar">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-cinza" type="submit">Cancelar</button>
-          </form>
+          </form>{% endif %}
+        {% elif not p.vendedor_mp_user_id %}
+          <a class="btn btn-mp" href="/minha-conta">Conectar Mercado Pago</a>
         {% endif %}
       {% endif %}
     </div>

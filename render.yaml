@@ -39,6 +39,16 @@ services:
         value: Mercado Colatina
       - key: PAYMENT_WHATSAPP
         value: "27998984840"
+      - key: MP_CLIENT_ID
+        value: "3630928256298103"
+      - key: MP_CLIENT_SECRET
+        sync: false
+      - key: MP_WEBHOOK_SECRET
+        sync: false
+      - key: MP_REDIRECT_URI
+        value: https://mercado-colatina.onrender.com/mercadopago/oauth/callback
+      - key: MARKETPLACE_FEE_PERCENT
+        value: "0"
 
 databases:
   - name: mercado-colatina-db

@@ -4,12 +4,14 @@
 {% block voltar %}<a href="/" class="voltar">Voltar ao inicio</a>{% endblock %}
 
 {% block content %}
-<div style="max-width:420px;margin:0 auto">
-  <h2 style="margin-bottom:18px">Minha conta</h2>
-  <div class="form-box">
-    <p style="margin-bottom:14px;color:#555">Usuario: <strong>{{ session.usuario_nome }}</strong></p>
-    <hr style="border:none;border-top:1px solid #eee;margin-bottom:16px">
-    <h3 style="margin-bottom:14px;font-size:1rem">Alterar senha</h3>
+<div class="account-page">
+  <div class="dashboard-heading">
+    <div><div class="section-kicker">Configurações</div><h1>Minha conta</h1><p>Gerencie sua segurança e seus recebimentos.</p></div>
+  </div>
+  <div class="account-grid">
+  <div class="form-box account-card">
+    <p class="account-user">Usuário: <strong>{{ session.usuario_nome }}</strong></p>
+    <h2>Alterar senha</h2>
     <form method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-grupo">
@@ -26,6 +28,26 @@
       </div>
       <button class="btn btn-verde" type="submit" style="width:100%">Salvar nova senha</button>
     </form>
+  </div>
+
+  <section class="form-box account-card mp-account-card" aria-labelledby="mp-title">
+    <div class="mp-brand-line"><span class="mp-mark">MP</span><div><div class="section-kicker">Recebimentos</div><h2 id="mp-title">Mercado Pago</h2></div></div>
+    {% if usuario.mp_user_id %}
+      <div class="mp-connection-status connected"><span></span><strong>Conta conectada</strong></div>
+      <p>Seus compradores poderão pagar pedidos confirmados pelo Checkout Pro. O valor será processado diretamente na sua conta Mercado Pago.</p>
+      <form method="POST" action="/mercadopago/desconectar">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-cinza full-button" type="submit">Desconectar Mercado Pago</button>
+      </form>
+    {% elif mercadopago_configurado() %}
+      <div class="mp-connection-status"><span></span><strong>Conta não conectada</strong></div>
+      <p>Conecte sua própria conta Mercado Pago para receber pagamentos dos produtos vendidos no Mercado Colatina.</p>
+      <a class="btn btn-mp full-button" href="/mercadopago/conectar">Conectar Mercado Pago</a>
+      <small>Você será direcionado ao ambiente seguro do Mercado Pago para autorizar a conexão.</small>
+    {% else %}
+      <p>A integração com o Mercado Pago está em configuração.</p>
+    {% endif %}
+  </section>
   </div>
 </div>
 {% endblock %}

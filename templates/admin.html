@@ -102,7 +102,7 @@
 <h3 style="margin-bottom:10px">Pedidos ({{ pedidos|length }})</h3>
 <div style="overflow-x:auto">
 <table>
-  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Status</th><th>Data</th></tr></thead>
+  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>Data</th></tr></thead>
   <tbody>
   {% for p in pedidos %}
   <tr>
@@ -113,10 +113,11 @@
     <td>R$ {{ p.valor }}</td>
     <td>{{ pedido_entrega_label(p.entrega) }}</td>
     <td><span class="badge order-status status-{{ p.status }}">{{ pedido_status_label(p.status) }}</span></td>
+    <td><span class="badge payment-admin payment-{{ p.pagamento_status }}">{{ pagamento_status_label(p.pagamento_status) }}</span></td>
     <td>{{ p.criado_em }}</td>
   </tr>
   {% else %}
-  <tr><td colspan="8">Nenhum pedido registrado.</td></tr>
+  <tr><td colspan="9">Nenhum pedido registrado.</td></tr>
   {% endfor %}
   </tbody>
 </table>

@@ -1,7 +1,9 @@
 import os
 import re
 import secrets
-from datetime import date, timedelta
+import base64
+import hashlib
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
@@ -12,6 +14,20 @@ from werkzeug.security import check_password_hash, generate_password_hash
 load_dotenv()
 
 from database import close_db, get_db, init_db
+from mercadopago_service import (
+    MercadoPagoError,
+    REDIRECT_URI as MP_REDIRECT_URI,
+    configurado as mercadopago_configurado,
+    pagamentos_configurados as mercadopago_pagamentos_configurados,
+    consultar_pagamento,
+    criar_preferencia,
+    criar_url_autorizacao,
+    criptografar_token,
+    descriptografar_token,
+    renovar_token,
+    trocar_codigo_por_token,
+    webhook_valido,
+)
 from storage import excluir_imagem, salvar_imagem
 
 app = Flask(__name__)
@@ -61,6 +77,14 @@ PIX_TITULAR = os.environ.get("PIX_RECEIVER_NAME", "Mercado Colatina")
 PAGAMENTO_WHATSAPP = os.environ.get(
     "PAYMENT_WHATSAPP", os.environ.get("ADMIN_WHATSAPP", PIX_CHAVE)
 )
+try:
+    MARKETPLACE_FEE_PERCENT = Decimal(
+        os.environ.get("MARKETPLACE_FEE_PERCENT", "0")
+    )
+except InvalidOperation:
+    MARKETPLACE_FEE_PERCENT = Decimal("0")
+if MARKETPLACE_FEE_PERCENT < 0 or MARKETPLACE_FEE_PERCENT > 30:
+    MARKETPLACE_FEE_PERCENT = Decimal("0")
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,24}$")
 PEDIDO_STATUS = {
     "aguardando": "Aguardando vendedor",
@@ -72,6 +96,15 @@ PEDIDO_STATUS = {
 PEDIDO_ENTREGA = {
     "retirada": "Retirada combinada",
     "entrega_combinada": "Entrega combinada",
+}
+PAGAMENTO_STATUS = {
+    "nao_iniciado": "Pagamento não iniciado",
+    "aguardando": "Aguardando pagamento",
+    "pendente": "Pagamento em análise",
+    "aprovado": "Pagamento aprovado",
+    "rejeitado": "Pagamento não aprovado",
+    "cancelado": "Pagamento cancelado",
+    "reembolsado": "Pagamento reembolsado",
 }
 
 
@@ -89,6 +122,10 @@ def pedido_status_label(valor):
 
 def pedido_entrega_label(valor):
     return PEDIDO_ENTREGA.get(valor, valor)
+
+
+def pagamento_status_label(valor):
+    return PAGAMENTO_STATUS.get(valor, valor)
 
 
 def foto_url(foto, largura=1200):
@@ -152,6 +189,14 @@ def normalizar_preco(valor):
     return f"{inteiro},{centavos}"
 
 
+def preco_decimal(valor):
+    texto = str(valor or "").replace(".", "").replace(",", ".")
+    try:
+        return Decimal(texto).quantize(Decimal("0.01"))
+    except InvalidOperation as exc:
+        raise ValueError("Preco invalido") from exc
+
+
 def validar_usuario(nome, username, senha, whatsapp):
     if len(nome) < 3:
         return "Informe um nome com pelo menos 3 caracteres."
@@ -185,6 +230,102 @@ def csrf_token():
         token = secrets.token_hex(16)
         session["_csrf_token"] = token
     return token
+
+
+def salvar_tokens_mercadopago(db, usuario_id, dados):
+    access_token = dados.get("access_token")
+    refresh_token = dados.get("refresh_token")
+    mp_user_id = dados.get("user_id")
+    if not access_token or not refresh_token or not mp_user_id:
+        raise MercadoPagoError("Autorizacao incompleta do Mercado Pago.")
+    expira_em = datetime.now(timezone.utc) + timedelta(
+        seconds=int(dados.get("expires_in") or 15552000)
+    )
+    db.execute(
+        "UPDATE usuarios SET mp_access_token=?, mp_refresh_token=?, mp_user_id=?, "
+        "mp_token_expira=?, mp_conectado_em=CURRENT_TIMESTAMP WHERE id=?",
+        (
+            criptografar_token(access_token, app.secret_key),
+            criptografar_token(refresh_token, app.secret_key),
+            str(mp_user_id),
+            expira_em.isoformat(),
+            usuario_id,
+        ),
+    )
+    db.commit()
+
+
+def obter_token_vendedor(usuario_id):
+    db = get_db()
+    usuario = db.execute(
+        "SELECT mp_access_token, mp_refresh_token, mp_token_expira FROM usuarios WHERE id=?",
+        (usuario_id,),
+    ).fetchone()
+    if not usuario or not usuario["mp_access_token"]:
+        raise MercadoPagoError("O vendedor ainda nao conectou o Mercado Pago.")
+
+    access_token = descriptografar_token(usuario["mp_access_token"], app.secret_key)
+    expira = usuario["mp_token_expira"]
+    if expira:
+        try:
+            data_expira = datetime.fromisoformat(str(expira).replace("Z", "+00:00"))
+            if data_expira.tzinfo is None:
+                data_expira = data_expira.replace(tzinfo=timezone.utc)
+        except ValueError:
+            data_expira = datetime.now(timezone.utc)
+        if data_expira <= datetime.now(timezone.utc) + timedelta(days=1):
+            refresh_token = descriptografar_token(
+                usuario["mp_refresh_token"], app.secret_key
+            )
+            novos_dados = renovar_token(refresh_token)
+            salvar_tokens_mercadopago(db, usuario_id, novos_dados)
+            access_token = novos_dados["access_token"]
+    return access_token
+
+
+def atualizar_pagamento_do_pedido(db, pagamento):
+    referencia = str(pagamento.get("external_reference") or "")
+    correspondencia = re.fullmatch(r"MC-PEDIDO-(\d+)", referencia)
+    if not correspondencia:
+        return False
+    pedido_id = int(correspondencia.group(1))
+    pedido = db.execute(
+        "SELECT p.*, u.mp_user_id FROM pedidos p "
+        "JOIN usuarios u ON u.id=p.vendedor_id WHERE p.id=?",
+        (pedido_id,),
+    ).fetchone()
+    if not pedido:
+        return False
+
+    collector_id = str(pagamento.get("collector_id") or "")
+    if pedido["mp_user_id"] and collector_id != str(pedido["mp_user_id"]):
+        return False
+    try:
+        valor_pago = Decimal(str(pagamento.get("transaction_amount"))).quantize(
+            Decimal("0.01")
+        )
+    except (InvalidOperation, TypeError):
+        return False
+    if valor_pago != preco_decimal(pedido["valor"]):
+        return False
+
+    status_mp = str(pagamento.get("status") or "")
+    mapa_status = {
+        "approved": "aprovado",
+        "pending": "pendente",
+        "in_process": "pendente",
+        "rejected": "rejeitado",
+        "cancelled": "cancelado",
+        "refunded": "reembolsado",
+        "charged_back": "reembolsado",
+    }
+    status_local = mapa_status.get(status_mp, "pendente")
+    db.execute(
+        "UPDATE pedidos SET pagamento_status=?, mp_payment_id=?, atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+        (status_local, str(pagamento.get("id") or ""), pedido_id),
+    )
+    db.commit()
+    return True
 
 
 def pode_criar_anuncio(usuario_id):
@@ -237,6 +378,9 @@ app.jinja_env.globals["plano_valido"] = plano_valido
 app.jinja_env.globals["foto_url"] = foto_url
 app.jinja_env.globals["pedido_status_label"] = pedido_status_label
 app.jinja_env.globals["pedido_entrega_label"] = pedido_entrega_label
+app.jinja_env.globals["pagamento_status_label"] = pagamento_status_label
+app.jinja_env.globals["mercadopago_configurado"] = mercadopago_configurado
+app.jinja_env.globals["mercadopago_pagamentos_configurados"] = mercadopago_pagamentos_configurados
 
 
 @app.before_request
@@ -326,7 +470,7 @@ def adicionar_cabecalhos_seguranca(response):
 
 @app.before_request
 def proteger_formularios():
-    if request.method == "POST":
+    if request.method == "POST" and request.endpoint != "mercadopago_webhook":
         token_sessao = session.get("_csrf_token")
         token_form = request.form.get("csrf_token")
         if not token_sessao or not token_form or token_sessao != token_form:
@@ -510,15 +654,16 @@ def minha_conta():
     if not logado():
         return redirect(url_for("login"))
 
+    db = get_db()
+    usuario = db.execute(
+        "SELECT * FROM usuarios WHERE id=?",
+        (session["usuario_id"],),
+    ).fetchone()
+
     if request.method == "POST":
         atual = request.form["senha_atual"].strip()
         nova = request.form["nova_senha"].strip()
         confirma = request.form["confirmar"].strip()
-        db = get_db()
-        usuario = db.execute(
-            "SELECT * FROM usuarios WHERE id=?",
-            (session["usuario_id"],),
-        ).fetchone()
 
         if not check_password_hash(usuario["senha"], atual):
             flash("Senha atual incorreta.", "erro")
@@ -534,7 +679,73 @@ def minha_conta():
             db.commit()
             flash("Senha alterada com sucesso!", "ok")
 
-    return render_template("minha_conta.html")
+    return render_template("minha_conta.html", usuario=usuario)
+
+
+@app.route("/mercadopago/conectar")
+def mercadopago_conectar():
+    if not logado():
+        return redirect(url_for("login"))
+    if not mercadopago_configurado():
+        flash("A integracao com o Mercado Pago ainda esta sendo configurada.", "erro")
+        return redirect(url_for("minha_conta"))
+
+    state = secrets.token_urlsafe(32)
+    code_verifier = secrets.token_urlsafe(64)
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode("ascii")).digest()
+    ).rstrip(b"=").decode("ascii")
+    session["mp_oauth_state"] = state
+    session["mp_code_verifier"] = code_verifier
+    return redirect(criar_url_autorizacao(state, code_challenge))
+
+
+@app.route("/mercadopago/oauth/callback")
+def mercadopago_oauth_callback():
+    if not logado():
+        return redirect(url_for("login"))
+    state = request.args.get("state", "")
+    code = request.args.get("code", "")
+    state_sessao = session.pop("mp_oauth_state", None)
+    code_verifier = session.pop("mp_code_verifier", None)
+    if not state or not state_sessao or not secrets.compare_digest(state, state_sessao):
+        flash("Nao foi possivel validar a conexao com o Mercado Pago.", "erro")
+        return redirect(url_for("minha_conta"))
+    if not code or not code_verifier:
+        flash("Autorizacao do Mercado Pago cancelada ou expirada.", "erro")
+        return redirect(url_for("minha_conta"))
+    try:
+        dados = trocar_codigo_por_token(code, code_verifier)
+        salvar_tokens_mercadopago(get_db(), session["usuario_id"], dados)
+    except MercadoPagoError:
+        app.logger.exception("Falha ao conectar conta Mercado Pago")
+        flash("Nao foi possivel conectar o Mercado Pago. Tente novamente.", "erro")
+        return redirect(url_for("minha_conta"))
+    flash("Conta Mercado Pago conectada com sucesso!", "ok")
+    return redirect(url_for("minha_conta"))
+
+
+@app.route("/mercadopago/desconectar", methods=["POST"])
+def mercadopago_desconectar():
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    pedido_aberto = db.execute(
+        "SELECT id FROM pedidos WHERE vendedor_id=? AND status='confirmado' "
+        "AND pagamento_status IN ('aguardando','pendente','aprovado') LIMIT 1",
+        (session["usuario_id"],),
+    ).fetchone()
+    if pedido_aberto:
+        flash("Conclua os pedidos pagos ou em andamento antes de desconectar.", "erro")
+        return redirect(url_for("minha_conta"))
+    db.execute(
+        "UPDATE usuarios SET mp_access_token=NULL, mp_refresh_token=NULL, mp_user_id=NULL, "
+        "mp_token_expira=NULL, mp_conectado_em=NULL WHERE id=?",
+        (session["usuario_id"],),
+    )
+    db.commit()
+    flash("Conta Mercado Pago desconectada.", "ok")
+    return redirect(url_for("minha_conta"))
 
 
 @app.route("/criar", methods=["GET", "POST"])
@@ -828,7 +1039,8 @@ def pedidos():
     campos = (
         "SELECT p.*, a.titulo, a.foto, a.condicao, a.ativo AS anuncio_ativo, "
         "comprador.nome AS comprador_nome, comprador.whatsapp AS comprador_whatsapp, "
-        "vendedor.nome AS vendedor_nome, vendedor.whatsapp AS vendedor_whatsapp "
+        "vendedor.nome AS vendedor_nome, vendedor.whatsapp AS vendedor_whatsapp, "
+        "vendedor.mp_user_id AS vendedor_mp_user_id "
         "FROM pedidos p "
         "JOIN anuncios a ON a.id=p.anuncio_id "
         "JOIN usuarios comprador ON comprador.id=p.comprador_id "
@@ -874,6 +1086,9 @@ def atualizar_pedido(pedido_id, acao):
     if not status_permitido:
         flash("Este pedido nao permite mais essa acao.", "erro")
         return redirect(url_for("pedidos"))
+    if acao == "cancelar" and pedido["pagamento_status"] == "aprovado":
+        flash("Um pedido pago precisa passar pelo atendimento para ser cancelado.", "erro")
+        return redirect(url_for("pedidos"))
 
     if acao == "confirmar":
         db.execute(
@@ -917,6 +1132,150 @@ def atualizar_pedido(pedido_id, acao):
     return redirect(url_for("pedidos"))
 
 
+@app.route("/pedido/<int:pedido_id>/pagar-mercadopago", methods=["POST"])
+def pagar_mercadopago(pedido_id):
+    if not logado():
+        return redirect(url_for("login"))
+    if not mercadopago_pagamentos_configurados():
+        flash("Os pagamentos pelo Mercado Pago ainda estao em ativacao.", "erro")
+        return redirect(url_for("pedidos"))
+    db = get_db()
+    pedido = db.execute(
+        "SELECT p.*, a.titulo, a.foto, vendedor.mp_user_id "
+        "FROM pedidos p JOIN anuncios a ON a.id=p.anuncio_id "
+        "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id WHERE p.id=?",
+        (pedido_id,),
+    ).fetchone()
+    if not pedido or pedido["comprador_id"] != session["usuario_id"]:
+        abort(404)
+    if pedido["status"] != "confirmado":
+        flash("O vendedor precisa confirmar o pedido antes do pagamento.", "erro")
+        return redirect(url_for("pedidos"))
+    if pedido["pagamento_status"] == "aprovado":
+        flash("Este pedido ja esta pago.", "ok")
+        return redirect(url_for("pedidos"))
+    if not pedido["mp_user_id"]:
+        flash("O vendedor ainda nao conectou o Mercado Pago.", "erro")
+        return redirect(url_for("pedidos"))
+
+    try:
+        access_token = obter_token_vendedor(pedido["vendedor_id"])
+        valor = preco_decimal(pedido["valor"])
+        comissao = (valor * MARKETPLACE_FEE_PERCENT / Decimal("100")).quantize(
+            Decimal("0.01")
+        )
+        item = {
+            "id": str(pedido["anuncio_id"]),
+            "title": pedido["titulo"][:120],
+            "quantity": 1,
+            "currency_id": "BRL",
+            "unit_price": float(valor),
+        }
+        imagem = foto_url(pedido["foto"], 700) if pedido["foto"] else ""
+        if imagem.startswith("https://"):
+            item["picture_url"] = imagem
+        retorno_base = url_for(
+            "mercadopago_retorno", pedido_id=pedido_id, _external=True
+        )
+        preferencia = {
+            "items": [item],
+            "external_reference": f"MC-PEDIDO-{pedido_id}",
+            "back_urls": {
+                "success": f"{retorno_base}&resultado=sucesso",
+                "pending": f"{retorno_base}&resultado=pendente",
+                "failure": f"{retorno_base}&resultado=falha",
+            },
+            "auto_return": "approved",
+            "notification_url": url_for(
+                "mercadopago_webhook", _external=True
+            ),
+            "statement_descriptor": "MERCADOCOLATINA",
+            "metadata": {"pedido_id": pedido_id},
+        }
+        if comissao > 0:
+            preferencia["marketplace_fee"] = float(comissao)
+        resposta = criar_preferencia(access_token, preferencia)
+        checkout_url = resposta.get("init_point")
+        if not checkout_url:
+            raise MercadoPagoError("Checkout indisponivel.")
+        db.execute(
+            "UPDATE pedidos SET pagamento_status='aguardando', mp_preference_id=?, "
+            "mp_checkout_url=?, comissao=?, atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+            (resposta.get("id"), checkout_url, f"{comissao:.2f}", pedido_id),
+        )
+        db.commit()
+        return redirect(checkout_url)
+    except (MercadoPagoError, ValueError):
+        app.logger.exception("Falha ao criar checkout Mercado Pago")
+        flash("Nao foi possivel abrir o pagamento. Tente novamente.", "erro")
+        return redirect(url_for("pedidos"))
+
+
+@app.route("/mercadopago/retorno")
+def mercadopago_retorno():
+    if not logado():
+        return redirect(url_for("login"))
+    try:
+        pedido_id = int(request.args.get("pedido_id", "0"))
+    except ValueError:
+        pedido_id = 0
+    db = get_db()
+    pedido = db.execute("SELECT * FROM pedidos WHERE id=?", (pedido_id,)).fetchone()
+    if not pedido or pedido["comprador_id"] != session["usuario_id"]:
+        abort(404)
+
+    payment_id = request.args.get("payment_id") or request.args.get("collection_id")
+    if payment_id and payment_id != "null":
+        try:
+            access_token = obter_token_vendedor(pedido["vendedor_id"])
+            pagamento = consultar_pagamento(access_token, payment_id)
+            atualizar_pagamento_do_pedido(db, pagamento)
+        except MercadoPagoError:
+            app.logger.exception("Falha ao conferir retorno do Mercado Pago")
+
+    pedido_atualizado = db.execute(
+        "SELECT pagamento_status FROM pedidos WHERE id=?", (pedido_id,)
+    ).fetchone()
+    if pedido_atualizado and pedido_atualizado["pagamento_status"] == "aprovado":
+        flash("Pagamento aprovado pelo Mercado Pago!", "ok")
+    elif request.args.get("resultado") == "pendente":
+        flash("Pagamento em analise pelo Mercado Pago.", "ok")
+    else:
+        flash("Pagamento nao concluido. Voce pode tentar novamente.", "erro")
+    return redirect(url_for("pedidos"))
+
+
+@app.route("/mercadopago/webhook", methods=["POST"])
+def mercadopago_webhook():
+    payload = request.get_json(silent=True) or {}
+    data_id = request.args.get("data.id") or (payload.get("data") or {}).get("id")
+    if not data_id:
+        return "", 200
+    if not webhook_valido(
+        request.headers.get("x-signature"),
+        request.headers.get("x-request-id"),
+        data_id,
+    ):
+        return "", 401
+    if payload.get("type") != "payment":
+        return "", 200
+
+    mp_user_id = payload.get("user_id")
+    vendedor = get_db().execute(
+        "SELECT id FROM usuarios WHERE mp_user_id=?", (str(mp_user_id),)
+    ).fetchone()
+    if not vendedor:
+        return "", 200
+    try:
+        access_token = obter_token_vendedor(vendedor["id"])
+        pagamento = consultar_pagamento(access_token, data_id)
+        atualizar_pagamento_do_pedido(get_db(), pagamento)
+    except MercadoPagoError:
+        app.logger.exception("Falha ao processar webhook Mercado Pago")
+        return "", 503
+    return "", 200
+
+
 @app.route("/seguranca")
 def pagina_seguranca():
     return render_template(
@@ -939,9 +1298,10 @@ def pagina_privacidade():
         titulo="Privacidade",
         resumo="Tratamos apenas os dados necessários para manter sua conta e permitir o contato entre compradores e vendedores.",
         secoes=[
-            ("Dados utilizados", "Nome, nome de usuário, senha protegida, WhatsApp, informações dos anúncios e histórico dos pedidos realizados."),
-            ("Finalidade", "Os dados são usados para autenticação, administração da conta, publicação dos anúncios, organização dos pedidos e contato entre as partes."),
-            ("Proteção", "Senhas não são armazenadas em texto legível. O acesso administrativo deve ser restrito e monitorado."),
+            ("Dados utilizados", "Nome, nome de usuário, senha protegida, WhatsApp, informações dos anúncios, histórico dos pedidos e situação dos pagamentos realizados."),
+            ("Finalidade", "Os dados são usados para autenticação, administração da conta, publicação dos anúncios, organização dos pedidos, contato entre as partes e confirmação dos pagamentos."),
+            ("Mercado Pago", "Quando o vendedor conecta sua conta, guardamos de forma criptografada apenas as credenciais técnicas necessárias para processar e conferir pagamentos. Dados de cartão não passam pelo Mercado Colatina."),
+            ("Proteção", "Senhas e credenciais de integração não são armazenadas em texto legível. O acesso administrativo deve ser restrito e monitorado."),
             ("Seus direitos", "O titular pode solicitar correção ou exclusão dos seus dados ao administrador do Mercado Colatina."),
         ],
     )
@@ -956,7 +1316,8 @@ def pagina_termos():
         secoes=[
             ("Responsabilidade do anunciante", "O anunciante deve fornecer informações verdadeiras, manter o anúncio atualizado e possuir legitimidade para vender o item ou serviço."),
             ("Conteúdo proibido", "Não são permitidos produtos ilegais, conteúdo enganoso, ofensivo, perigoso ou que viole direitos de terceiros."),
-            ("Pedidos entre usuários", "O pedido registra o interesse de compra e permite que o vendedor confirme a disponibilidade. Nesta etapa, pagamento, entrega, garantia e demais condições continuam sendo combinados diretamente entre comprador e vendedor."),
+            ("Pedidos entre usuários", "O pedido registra o interesse de compra e permite que o vendedor confirme a disponibilidade. Entrega, garantia e demais condições devem ser combinadas entre comprador e vendedor."),
+            ("Pagamentos", "Quando disponível, o pagamento é processado pelo Mercado Pago diretamente na conta conectada pelo vendedor. Taxas, análises, estornos e contestações seguem também as regras do Mercado Pago. O Mercado Colatina não recebe o valor do produto."),
             ("Moderação", "Anúncios e contas que violem estas regras podem ser ocultados ou desativados para proteger a comunidade."),
         ],
     )

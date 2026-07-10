@@ -164,6 +164,32 @@ def _init_sqlite():
     colunas = {linha[1] for linha in db.execute("PRAGMA table_info(anuncios)").fetchall()}
     if "foto_id" not in colunas:
         db.execute("ALTER TABLE anuncios ADD COLUMN foto_id TEXT")
+    colunas_usuarios = {
+        linha[1] for linha in db.execute("PRAGMA table_info(usuarios)").fetchall()
+    }
+    novas_colunas_usuarios = {
+        "mp_access_token": "TEXT",
+        "mp_refresh_token": "TEXT",
+        "mp_user_id": "TEXT",
+        "mp_token_expira": "TIMESTAMP",
+        "mp_conectado_em": "TIMESTAMP",
+    }
+    for nome, tipo in novas_colunas_usuarios.items():
+        if nome not in colunas_usuarios:
+            db.execute(f"ALTER TABLE usuarios ADD COLUMN {nome} {tipo}")
+    colunas_pedidos = {
+        linha[1] for linha in db.execute("PRAGMA table_info(pedidos)").fetchall()
+    }
+    novas_colunas_pedidos = {
+        "pagamento_status": "TEXT NOT NULL DEFAULT 'nao_iniciado'",
+        "mp_preference_id": "TEXT",
+        "mp_payment_id": "TEXT",
+        "mp_checkout_url": "TEXT",
+        "comissao": "TEXT NOT NULL DEFAULT '0.00'",
+    }
+    for nome, tipo in novas_colunas_pedidos.items():
+        if nome not in colunas_pedidos:
+            db.execute(f"ALTER TABLE pedidos ADD COLUMN {nome} {tipo}")
     _seed_admin(db)
     _hash_plain_passwords(db)
     db.commit()
@@ -268,6 +294,22 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status ON pedidos(anuncio_id, status)"
     )
+    for coluna, tipo in {
+        "mp_access_token": "TEXT",
+        "mp_refresh_token": "TEXT",
+        "mp_user_id": "TEXT",
+        "mp_token_expira": "TIMESTAMP",
+        "mp_conectado_em": "TIMESTAMP",
+    }.items():
+        db.execute(f"ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS {coluna} {tipo}")
+    for coluna, tipo in {
+        "pagamento_status": "TEXT NOT NULL DEFAULT 'nao_iniciado'",
+        "mp_preference_id": "TEXT",
+        "mp_payment_id": "TEXT",
+        "mp_checkout_url": "TEXT",
+        "comissao": "TEXT NOT NULL DEFAULT '0.00'",
+    }.items():
+        db.execute(f"ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS {coluna} {tipo}")
     _seed_admin(db)
     db.commit()
     db.close()
