@@ -480,7 +480,7 @@ def proteger_formularios():
 @app.route("/")
 def index():
     db = get_db()
-    busca = request.args.get("q", "")
+    busca = request.args.get("q", "").strip()[:100]
     categoria = request.args.get("categoria", "")
 
     if categoria and categoria not in CATEGORIA_ALIASES:
@@ -494,7 +494,10 @@ def index():
     )
     params = []
     if busca:
-        query += " AND (a.titulo LIKE ? OR a.descricao LIKE ?)"
+        query += (
+            " AND (LOWER(COALESCE(a.titulo, '')) LIKE LOWER(?) "
+            "OR LOWER(COALESCE(a.descricao, '')) LIKE LOWER(?))"
+        )
         params += [f"%{busca}%", f"%{busca}%"]
     if categoria:
         aliases = CATEGORIA_ALIASES[categoria]
