@@ -41,6 +41,11 @@
       <div class="hero-number">{{ anuncios|length }}</div>
       <h2>Anúncio{{ '' if anuncios|length == 1 else 's' }} disponíve{{ 'l' if anuncios|length == 1 else 'is' }}</h2>
       <p>Novas oportunidades podem aparecer a qualquer momento.</p>
+      <div class="access-counter" aria-label="{{ total_acessos_formatado }} visitas registradas no site">
+        <span class="access-counter-dot" aria-hidden="true"></span>
+        <strong>{{ total_acessos_formatado }}</strong>
+        <span>visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
+      </div>
     </div>
     <ul class="trust-list">
       <li>Contato direto pelo WhatsApp</li>

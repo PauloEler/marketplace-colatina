@@ -132,6 +132,12 @@ def _init_sqlite():
         );
         CREATE INDEX IF NOT EXISTS idx_pagamentos_usuario_status
             ON pagamentos(usuario_id, status);
+        CREATE TABLE IF NOT EXISTS estatisticas (
+            chave TEXT PRIMARY KEY,
+            valor INTEGER NOT NULL DEFAULT 0
+        );
+        INSERT OR IGNORE INTO estatisticas (chave, valor)
+            VALUES ('acessos_site', 0);
         """
     )
     colunas = {linha[1] for linha in db.execute("PRAGMA table_info(anuncios)").fetchall()}
@@ -200,6 +206,18 @@ def _init_pg():
     )
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_pagamentos_usuario_status ON pagamentos(usuario_id, status)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS estatisticas (
+            chave TEXT PRIMARY KEY,
+            valor INTEGER NOT NULL DEFAULT 0
+        )
+        """
+    )
+    db.execute(
+        "INSERT INTO estatisticas (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO NOTHING",
+        ("acessos_site", 0),
     )
     _seed_admin(db)
     db.commit()

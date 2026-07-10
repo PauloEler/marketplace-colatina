@@ -219,6 +219,58 @@ app.jinja_env.globals["foto_url"] = foto_url
 
 
 @app.before_request
+def registrar_acesso_publico():
+    """Conta uma visita por sessao, sem guardar IP ou identificar o visitante."""
+    endpoints_ignorados = {"static", "health", "robots", "sitemap"}
+    if (
+        request.method != "GET"
+        or request.endpoint in endpoints_ignorados
+        or session.get("_visita_registrada")
+    ):
+        return
+
+    user_agent = (request.user_agent.string or "").lower()
+    marcadores_de_robo = (
+        "bot",
+        "crawler",
+        "spider",
+        "slurp",
+        "facebookexternalhit",
+        "whatsapp",
+        "linkedinbot",
+        "twitterbot",
+    )
+    if any(marcador in user_agent for marcador in marcadores_de_robo):
+        return
+
+    db = get_db()
+    db.execute(
+        "UPDATE estatisticas SET valor = valor + 1 WHERE chave=?",
+        ("acessos_site",),
+    )
+    db.commit()
+    session["_visita_registrada"] = True
+
+
+@app.context_processor
+def fornecer_total_acessos():
+    try:
+        linha = get_db().execute(
+            "SELECT valor FROM estatisticas WHERE chave=?",
+            ("acessos_site",),
+        ).fetchone()
+        total = int(linha[0]) if linha else 0
+    except Exception:
+        app.logger.exception("Falha ao consultar o contador de acessos")
+        total = 0
+
+    return {
+        "total_acessos": total,
+        "total_acessos_formatado": f"{total:,}".replace(",", "."),
+    }
+
+
+@app.before_request
 def atualizar_usuario_da_sessao():
     usuario_id = session.get("usuario_id")
     if not usuario_id:
@@ -425,7 +477,10 @@ def login():
 
 @app.route("/logout", methods=["POST"])
 def logout():
+    visita_registrada = session.get("_visita_registrada")
     session.clear()
+    if visita_registrada:
+        session["_visita_registrada"] = True
     return redirect(url_for("index"))
 
 
