@@ -1,41 +1,55 @@
 {% extends 'base.html' %}
 {% block title %}{{ a.titulo }} | Mercado Colatina{% endblock %}
 
-{% block voltar %}<a href="/" class="voltar">Voltar aos anuncios</a>{% endblock %}
+{% block voltar %}<a href="/" class="voltar">← Voltar às ofertas</a>{% endblock %}
 
 {% block content %}
-<div class="detalhe">
-  <div>
-    {% if a.foto %}<img src="/uploads/{{ a.foto }}" alt="{{ a.titulo }}" class="detalhe-foto">
-    {% else %}<div class="sem-foto-grande">Sem foto</div>{% endif %}
-    <div class="detalhe-box">
-      <h1 style="font-size:1.4rem">{{ a.titulo }}</h1>
-      <div class="detalhe-preco">R$ {{ a.preco }}</div>
-      <div class="detalhe-info">{{ a.condicao }} | {{ a.categoria }} | {{ a.visualizacoes }} visualizacao(oes)</div>
-      <hr style="border:none;border-top:1px solid #eee">
+<div class="product-layout">
+  <section class="product-main" aria-labelledby="product-title">
+    <div class="product-photo-wrap">
+      {% if a.foto %}<img src="{{ foto_url(a.foto, 1400) }}" alt="{{ a.titulo }}" class="product-photo">
+      {% else %}<div class="product-photo-empty"><span>MC</span>Imagem não enviada</div>{% endif %}
+    </div>
+    <div class="product-content">
+      <div class="product-tags"><span>{{ a.condicao }}</span><span>{{ categoria_label(a.categoria) }}</span></div>
+      <h1 id="product-title">{{ a.titulo }}</h1>
+      <div class="product-price">R$ {{ a.preco }}</div>
+      <div class="product-meta"><span>Colatina, ES</span><span>{{ a.visualizacoes }} visualização(ões)</span></div>
+      <div class="product-divider"></div>
+      <h2>Descrição</h2>
       <div class="detalhe-desc">{{ a.descricao }}</div>
     </div>
-  </div>
-  <div>
-    <div class="vendedor-box">
-      <p style="font-size:.8rem;color:#888;margin-bottom:6px">VENDEDOR</p>
-      <div style="font-weight:700;font-size:1.05rem">{{ a.vendedor_nome }}</div>
-      <p style="font-size:.82rem;color:#888;margin-top:4px">Colatina, ES</p>
-      <a class="btn btn-wpp" target="_blank"
-         href="https://wa.me/55{{ a.whatsapp|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Ola!%20Vi%20seu%20anuncio%20{{ a.titulo|urlencode }}%20no%20Mercado%20Colatina.%20Ainda%20esta%20disponivel?">
-        Falar no WhatsApp
+  </section>
+
+  <aside class="product-sidebar">
+    <div class="seller-card">
+      <div class="seller-label">Vendedor</div>
+      <div class="seller-identity">
+        <div class="seller-avatar">{{ a.vendedor_nome[:1]|upper }}</div>
+        <div><strong>{{ a.vendedor_nome }}</strong><span>Colatina, ES</span></div>
+      </div>
+      <a class="btn btn-wpp" target="_blank" rel="noopener noreferrer"
+         href="https://wa.me/55{{ a.whatsapp|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Ol%C3%A1!%20Vi%20seu%20an%C3%BAncio%20{{ a.titulo|urlencode }}%20no%20Mercado%20Colatina.%20Ainda%20est%C3%A1%20dispon%C3%ADvel?">
+        Conversar no WhatsApp
       </a>
-      <p style="font-size:.76rem;color:#888;margin-top:10px;text-align:center">Negocie direto com o vendedor.</p>
+      <p class="seller-note">Combine pagamento e entrega diretamente com o vendedor.</p>
     </div>
+
+    <div class="safety-card">
+      <div class="safety-icon">!</div>
+      <div><strong>Negocie com segurança</strong><p>Não compartilhe senhas ou códigos. Prefira locais públicos para a entrega.</p><a href="/seguranca">Ver orientações</a></div>
+    </div>
+
     {% if session.get('usuario_id') == a.usuario_id or session.get('is_admin') %}
-    <div class="vendedor-box">
-      <p style="font-size:.86rem;font-weight:600;margin-bottom:10px">Gerenciar</p>
-      <form method="POST" action="/deletar/{{ a.id }}" onsubmit="return confirm('Remover este anuncio?')">
+    <div class="owner-card">
+      <div class="seller-label">Gerenciar anúncio</div>
+      <a href="/editar/{{ a.id }}" class="btn btn-verde">Editar informações</a>
+      <form method="POST" action="/meus-anuncios/{{ a.id }}/status">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-perigo" style="width:100%">Remover anuncio</button>
+        <button class="btn btn-cinza" type="submit">Pausar anúncio</button>
       </form>
     </div>
     {% endif %}
-  </div>
+  </aside>
 </div>
 {% endblock %}

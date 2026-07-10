@@ -1,6 +1,7 @@
 import os
 import sqlite3
 
+from flask import g, has_app_context
 from werkzeug.security import generate_password_hash
 
 BASE_DIR = os.path.dirname(__file__)
@@ -53,7 +54,7 @@ class _PgConn:
         self._c.close()
 
 
-def get_db():
+def _abrir_conexao():
     if USE_PG:
         import psycopg2
         conn = psycopg2.connect(DATABASE_URL)
@@ -61,6 +62,22 @@ def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def get_db():
+    if not has_app_context():
+        return _abrir_conexao()
+    if "database_connection" not in g:
+        g.database_connection = _abrir_conexao()
+    return g.database_connection
+
+
+def close_db(_error=None):
+    if not has_app_context():
+        return
+    db = g.pop("database_connection", None)
+    if db is not None:
+        db.close()
 
 
 def init_db():
@@ -95,14 +112,31 @@ def _init_sqlite():
             categoria TEXT NOT NULL,
             condicao TEXT NOT NULL DEFAULT 'Usado',
             foto TEXT,
+            foto_id TEXT,
             ativo INTEGER DEFAULT 1,
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         );
+        CREATE TABLE IF NOT EXISTS pagamentos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER NOT NULL,
+            valor TEXT NOT NULL,
+            metodo TEXT NOT NULL DEFAULT 'PIX',
+            status TEXT NOT NULL DEFAULT 'pendente',
+            referencia TEXT,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_pagamentos_usuario_status
+            ON pagamentos(usuario_id, status);
         """
     )
+    colunas = {linha[1] for linha in db.execute("PRAGMA table_info(anuncios)").fetchall()}
+    if "foto_id" not in colunas:
+        db.execute("ALTER TABLE anuncios ADD COLUMN foto_id TEXT")
     _seed_admin(db)
     _hash_plain_passwords(db)
     db.commit()
@@ -139,6 +173,7 @@ def _init_pg():
             categoria TEXT NOT NULL,
             condicao TEXT NOT NULL DEFAULT 'Usado',
             foto TEXT,
+            foto_id TEXT,
             ativo INTEGER DEFAULT 1,
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
@@ -146,6 +181,25 @@ def _init_pg():
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         )
         """
+    )
+    db.execute("ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS foto_id TEXT")
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pagamentos (
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL,
+            valor TEXT NOT NULL,
+            metodo TEXT NOT NULL DEFAULT 'PIX',
+            status TEXT NOT NULL DEFAULT 'pendente',
+            referencia TEXT,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pagamentos_usuario_status ON pagamentos(usuario_id, status)"
     )
     _seed_admin(db)
     db.commit()

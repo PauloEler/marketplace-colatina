@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">← Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<article class="info-page">
+  <div class="section-kicker">Mercado Colatina</div>
+  <h1>{{ titulo }}</h1>
+  <p class="info-lead">{{ resumo }}</p>
+  <div class="info-sections">
+    {% for subtitulo, texto in secoes %}
+    <section><h2>{{ subtitulo }}</h2><p>{{ texto }}</p></section>
+    {% endfor %}
+  </div>
+</article>
+{% endblock %}

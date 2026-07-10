@@ -1,11 +1,11 @@
 services:
   - type: web
     name: mercado-colatina
-    env: python
-    region: ohio
-    plan: free
+    runtime: python
+    region: virginia
+    plan: starter
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"
+    startCommand: "gunicorn app:app --workers 2 --threads 4 --timeout 60"
     healthCheckPath: /health
     autoDeployTrigger: commit
     envVars:
@@ -27,9 +27,22 @@ services:
         fromDatabase:
           name: mercado-colatina-db
           property: connectionString
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: PLAN_PRICE
+        value: "10.00"
+      - key: PLAN_PRICE_DISPLAY
+        value: "R$ 10,00"
+      - key: PIX_KEY
+        value: "27998984840"
+      - key: PIX_RECEIVER_NAME
+        value: Mercado Colatina
+      - key: PAYMENT_WHATSAPP
+        value: "27998984840"
 
 databases:
   - name: mercado-colatina-db
+    region: virginia
     databaseName: mercado_colatina
     user: mercado_colatina
-    plan: free
+    plan: basic-256mb

@@ -1,93 +1,41 @@
 # Mercado Colatina
 
-Marketplace local em Flask para compra e venda na regiao de Colatina.
+Marketplace local em Flask para compra e venda em Colatina e região.
 
-## Pronto para publicacao
+## Estrutura de produção
 
-O projeto agora inclui:
+- Flask e Gunicorn para a aplicação.
+- PostgreSQL para contas, anúncios e planos.
+- Cloudinary para armazenamento permanente e otimização das fotos.
+- Render para hospedagem, HTTPS, banco e domínio personalizado.
+- PIX direto para o responsável, com solicitação registrada e aprovação pelo painel administrativo.
 
-- senhas com hash
-- validacao de formularios
-- protecao CSRF nos `POST`
-- cookies de sessao endurecidos para producao
-- rota de health check em `/health`
-- `Procfile` com `gunicorn`
-- variaveis de ambiente documentadas
+## Executar localmente
 
-## Requisitos
+1. Crie um ambiente virtual.
+2. Instale as dependências com `pip install -r requirements.txt`.
+3. Copie `.env.example` para `.env` e preencha os valores locais.
+4. Defina `FLASK_ENV=development`.
+5. Execute `python app.py`.
 
-- Python 3.11
-- `pip`
+Sem `DATABASE_URL`, o projeto usa SQLite. Sem `CLOUDINARY_URL`, as imagens são salvas na pasta local de uploads.
 
-## Instalar
+## Publicar no Render
 
-```bash
-pip install -r requirements.txt
-```
+O arquivo `render.yaml` cria um serviço web e um PostgreSQL permanente na região da Virgínia. Durante a criação:
 
-## Variaveis de ambiente
+1. Conecte o repositório ao Render.
+2. Crie o Blueprint usando `render.yaml`.
+3. Informe a variável secreta `CLOUDINARY_URL`.
+4. Aguarde o health check em `/health` ficar disponível.
+5. Depois dos testes, conecte o domínio personalizado.
 
-Copie `.env.example` e configure:
+Nunca salve senhas, chaves do banco ou a credencial do Cloudinary no repositório.
 
-- `SECRET_KEY`: obrigatoria em producao
-- `FLASK_ENV`: use `production` em deploy
-- `PORT`: porta do servidor
-- `DATABASE_PATH`: caminho do arquivo SQLite
-- `UPLOAD_FOLDER`: pasta onde as imagens enviadas serao salvas
+## Antes do lançamento
 
-## Rodar localmente
-
-```bash
-python app.py
-```
-
-Abra:
-
-- pagina inicial: `http://localhost:5000`
-- admin: `http://localhost:5000/admin`
-
-## Deploy
-
-### Render / Railway / Heroku-like
-
-Use:
-
-- Build command: `pip install -r requirements.txt`
-- Start command: `gunicorn app:app`
-
-Defina pelo menos:
-
-- `SECRET_KEY`
-- `FLASK_ENV=production`
-- `DATABASE_PATH`
-- `UPLOAD_FOLDER`
-- `ADMIN_PASSWORD`
-
-### Render com Blueprint
-
-Este repositorio ja inclui `render.yaml`, entao voce pode criar a infra direto pelo Render Blueprint.
-
-Link de deploy:
-
-`https://render.com/deploy?repo=https://github.com/PauloEler/marketplace-colatina`
-
-## Persistencia
-
-Se publicar em uma plataforma com filesystem temporario, configure volume/disco persistente para:
-
-- banco SQLite
-- pasta de uploads
-
-Sem isso, imagens e banco podem ser perdidos a cada novo deploy.
-
-No Render Free, o Postgres fica persistente, mas a pasta de uploads continua efemera. Isso significa que fotos enviadas podem sumir em restart ou redeploy. Para uso real em producao, o ideal e:
-
-- usar um plano pago com persistent disk
-- ou mover uploads para armazenamento externo
-
-## Observacoes
-
-- O usuario `admin` e criado automaticamente se ainda nao existir.
-- Em producao, o admin inicial depende de `ADMIN_USERNAME` e `ADMIN_PASSWORD`.
-- O banco SQLite e inicializado na subida da aplicacao.
-- Arquivos acima de 5 MB sao rejeitados.
+- Revisar Termos de Uso e Privacidade.
+- Trocar a chave PIX e os dados administrativos pelos dados oficiais.
+- Testar cadastro, login, edição, pausa e reativação de anúncios.
+- Configurar backups e monitoramento.
+- Integrar o pagamento automático quando as credenciais do Mercado Pago estiverem disponíveis.

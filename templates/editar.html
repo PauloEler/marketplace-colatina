@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Editar Anúncio | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/meus-anuncios" class="voltar">← Voltar aos meus anúncios</a>{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="section-kicker">Atualizar publicação</div>
+  <h1>Editar anúncio</h1>
+  <p class="form-intro">Mantenha as informações claras e atualizadas para aumentar suas chances de venda.</p>
+  <div class="form-box">
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-grupo"><label for="editar-titulo">Título do produto</label><input id="editar-titulo" type="text" name="titulo" required minlength="4" maxlength="120" value="{{ a.titulo }}"></div>
+      <div class="form-grupo"><label for="editar-preco">Preço</label><input id="editar-preco" type="text" name="preco" required maxlength="20" inputmode="decimal" value="{{ a.preco }}"></div>
+      <div class="form-row">
+        <div class="form-grupo"><label for="editar-categoria">Categoria</label><select id="editar-categoria" name="categoria" required>{% for c in categorias %}<option value="{{ c }}" {% if categoria_label(a.categoria) == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+        <div class="form-grupo"><label for="editar-condicao">Condição</label><select id="editar-condicao" name="condicao" required>{% for item in ['Novo','Seminovo','Usado'] %}<option {% if a.condicao == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
+      </div>
+      <div class="form-grupo"><label for="editar-descricao">Descrição</label><textarea id="editar-descricao" name="descricao" required minlength="10" maxlength="2000">{{ a.descricao }}</textarea></div>
+      <div class="form-grupo"><label for="editar-foto">Substituir foto</label><input id="editar-foto" type="file" name="foto" accept=".jpg,.jpeg,.png,.webp"><small>Deixe em branco para manter a imagem atual.</small></div>
+      <button class="btn btn-verde full-button" type="submit">Salvar alterações</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

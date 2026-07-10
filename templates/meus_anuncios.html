@@ -1,43 +1,43 @@
 {% extends 'base.html' %}
-{% block title %}Meus Anuncios | Mercado Colatina{% endblock %}
+{% block title %}Meus Anúncios | Mercado Colatina{% endblock %}
 
-{% block voltar %}<a href="/" class="voltar">Voltar ao inicio</a>{% endblock %}
+{% block voltar %}<a href="/" class="voltar">← Voltar ao início</a>{% endblock %}
 
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px">
-  <h2>Meus anuncios</h2>
-  <a href="/criar" class="btn btn-verde">+ Criar anuncio</a>
+<div class="dashboard-heading">
+  <div><div class="section-kicker">Sua vitrine</div><h1>Meus anúncios</h1><p>Edite, pause ou acompanhe suas publicações.</p></div>
+  <a href="/criar" class="btn btn-verde">+ Criar anúncio</a>
 </div>
 
 {% if anuncios %}
-<div class="grid">
+<div class="owner-grid">
   {% for a in anuncios %}
-  <div class="card" style="display:block">
-    {% if a.foto %}<img src="/uploads/{{ a.foto }}" alt="{{ a.titulo }}">
-    {% else %}<div class="card-sem-foto">Foto</div>{% endif %}
-    <div class="card-body">
-      <div class="card-titulo">{{ a.titulo }}</div>
-      <div class="card-preco">R$ {{ a.preco }}</div>
-      <div style="margin-top:8px">
-        {% if a.ativo %}<span class="badge badge-verde">Ativo</span>
-        {% else %}<span class="badge badge-cinza">Inativo</span>{% endif %}
-        <span style="font-size:.76rem;color:#888;margin-left:8px">{{ a.visualizacoes }} visita(s)</span>
+  <article class="owner-listing">
+    <div class="owner-listing-media">
+      {% if a.foto %}<img src="{{ foto_url(a.foto, 600) }}" alt="{{ a.titulo }}">
+      {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
+    </div>
+    <div class="owner-listing-body">
+      <div class="owner-status-row">
+        <span class="badge {{ 'badge-verde' if a.ativo else 'badge-cinza' }}">{{ 'Ativo' if a.ativo else 'Pausado' }}</span>
+        <span>{{ a.visualizacoes }} visualização(ões)</span>
       </div>
-      <div style="margin-top:12px;display:flex;gap:8px">
-        <a href="/anuncio/{{ a.id }}" class="btn btn-cinza" style="font-size:.82rem;padding:7px 12px">Ver</a>
-        <form method="POST" action="/deletar/{{ a.id }}" onsubmit="return confirm('Remover este anuncio?')">
+      <div class="card-cat">{{ categoria_label(a.categoria) }}</div>
+      <h2>{{ a.titulo }}</h2>
+      <div class="card-preco">R$ {{ a.preco }}</div>
+      <div class="owner-actions">
+        {% if a.ativo %}<a href="/anuncio/{{ a.id }}" class="btn btn-cinza">Ver</a>{% endif %}
+        <a href="/editar/{{ a.id }}" class="btn btn-verde">Editar</a>
+        <form method="POST" action="/meus-anuncios/{{ a.id }}/status">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn btn-perigo" style="font-size:.82rem;padding:7px 12px">Remover</button>
+          <button class="btn {{ 'btn-cinza' if a.ativo else 'btn-verde' }}" type="submit">{{ 'Pausar' if a.ativo else 'Reativar' }}</button>
         </form>
       </div>
     </div>
-  </div>
+  </article>
   {% endfor %}
 </div>
 {% else %}
-<div style="text-align:center;padding:54px;color:#888;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)">
-  <p style="font-size:1.02rem">Voce ainda nao tem anuncios.</p>
-  <a href="/criar" class="btn btn-verde" style="margin-top:16px">Criar primeiro anuncio</a>
-</div>
+<div class="empty-state"><h3>Você ainda não tem anúncios</h3><p>Publique sua primeira oferta e comece a negociar na região.</p><a href="/criar" class="btn btn-verde">Criar primeiro anúncio</a></div>
 {% endif %}
 {% endblock %}

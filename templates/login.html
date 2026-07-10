@@ -10,12 +10,12 @@
     <form method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-grupo">
-        <label>Usuario</label>
-        <input type="text" name="username" required autofocus maxlength="24">
+        <label for="login-username">Usuário</label>
+        <input id="login-username" type="text" name="username" required autofocus maxlength="24" autocomplete="username">
       </div>
       <div class="form-grupo">
-        <label>Senha</label>
-        <input type="password" name="senha" required minlength="4">
+        <label for="login-senha">Senha</label>
+        <input id="login-senha" type="password" name="senha" required minlength="4" autocomplete="current-password">
       </div>
       <button class="btn btn-verde" type="submit" style="width:100%">Entrar</button>
     </form>

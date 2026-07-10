@@ -1,10 +1,13 @@
 {% extends 'base.html' %}
+{% block title %}Mercado Colatina | Compre e venda perto de você{% endblock %}
 
 {% block busca %}
 <div class="busca-bar">
-  <form class="busca-inner" method="GET" action="/">
-    <input type="text" name="q" placeholder="O que voce procura?" value="{{ busca }}">
-    <select name="categoria">
+  <form class="busca-inner" method="GET" action="/" role="search">
+    <label class="sr-only" for="busca">Buscar produtos e serviços</label>
+    <input id="busca" type="search" name="q" placeholder="O que você procura em Colatina?" value="{{ busca }}">
+    <label class="sr-only" for="categoria">Categoria</label>
+    <select id="categoria" name="categoria">
       <option value="">Todas as categorias</option>
       {% for c in categorias %}
         <option value="{{ c }}" {% if c == cat_sel %}selected{% endif %}>{{ c }}</option>
@@ -17,109 +20,120 @@
 
 {% block content %}
 {% if not busca and not cat_sel %}
-<section style="background:linear-gradient(135deg,#1a6b3c,#2d9e5f);border-radius:18px;padding:38px 28px;color:#fff;margin-bottom:28px;text-align:center;box-shadow:0 12px 28px rgba(26,107,60,.18)">
-  <h1 style="font-size:1.9rem;font-weight:800;margin-bottom:10px">Compre e venda em Colatina</h1>
-  <p style="font-size:1rem;opacity:.92;margin-bottom:24px">Um marketplace local para negociar com quem esta perto de voce.</p>
-  {% if not session.get('usuario_id') %}
-  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-    <a href="/cadastro" style="background:#f5c842;color:#1a1a1a;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none">Cadastrar gratis</a>
-    <a href="/login" style="background:rgba(255,255,255,.14);color:#fff;padding:12px 24px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.35)">Entrar</a>
+<section class="hero-marketplace" aria-labelledby="hero-title">
+  <div class="hero-main">
+    <div class="eyebrow">Marketplace de Colatina</div>
+    <h1 id="hero-title">Boas oportunidades, bem perto de você.</h1>
+    <p>Compre e venda produtos e serviços com pessoas da sua região. Contato direto, negociação simples e sem intermediários.</p>
+    <div class="hero-actions">
+      {% if session.get('usuario_id') %}
+      <a href="/criar" class="btn btn-amarelo">Publicar um anúncio</a>
+      <a href="/meus-anuncios" class="btn btn-ghost">Ver meus anúncios</a>
+      {% else %}
+      <a href="/cadastro" class="btn btn-amarelo">Anunciar gratuitamente</a>
+      <a href="#ofertas" class="btn btn-ghost">Explorar ofertas</a>
+      {% endif %}
+    </div>
   </div>
-  {% else %}
-  <a href="/criar" style="background:#f5c842;color:#1a1a1a;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;display:inline-block">+ Criar anuncio</a>
-  {% endif %}
+  <aside class="hero-panel" aria-label="Resumo do marketplace">
+    <div>
+      <div class="hero-panel-label">Agora na região</div>
+      <div class="hero-number">{{ anuncios|length }}</div>
+      <h2>Anúncio{{ '' if anuncios|length == 1 else 's' }} disponíve{{ 'l' if anuncios|length == 1 else 'is' }}</h2>
+      <p>Novas oportunidades podem aparecer a qualquer momento.</p>
+    </div>
+    <ul class="trust-list">
+      <li>Contato direto pelo WhatsApp</li>
+      <li>Cadastro rápido e gratuito</li>
+      <li>Negociação local</li>
+    </ul>
+  </aside>
 </section>
+{% endif %}
+
+<nav class="category-strip" aria-label="Categorias de anúncios">
+  <a class="category-chip {{ 'active' if not cat_sel else '' }}" href="/">Todos</a>
+  {% for c in categorias %}
+  <a class="category-chip {{ 'active' if c == cat_sel else '' }}" href="{{ url_for('index', categoria=c) }}">{{ c }}</a>
+  {% endfor %}
+</nav>
 
 {% if info_plano %}
   {% if info_plano.restam > 0 %}
-  <div style="background:#fff8e1;border:1px solid #f5c842;border-radius:12px;padding:14px 18px;margin-bottom:22px">
-    <strong>Plano gratuito:</strong> voce ainda tem <strong>{{ info_plano.restam }} anuncio(s)</strong> disponivel(is).
-    <a href="/assinar" style="color:#1a6b3c;margin-left:8px;font-size:.9rem">Ver plano pago</a>
+  <div class="plan-notice free"><strong>Plano gratuito:</strong> você ainda tem <strong>{{ info_plano.restam }} anúncio(s)</strong> disponível(is). <a href="/assinar">Conhecer o plano ilimitado</a></div>
+  {% else %}
+  <div class="plan-notice limit"><strong>Seu limite foi atingido.</strong> Assine por <strong>{{ valor_plano }}/mês</strong> para continuar anunciando. <a href="/assinar">Ver plano</a></div>
+  {% endif %}
+{% endif %}
+
+<section id="ofertas" class="listing-section" aria-labelledby="ofertas-title">
+  <div class="section-head">
+    <div>
+      <div class="section-kicker">Vitrine local</div>
+      <h2 id="ofertas-title">{% if busca or cat_sel %}Resultados da busca{% else %}Ofertas perto de você{% endif %}</h2>
+    </div>
+    <div>
+      <span class="result-count">{{ anuncios|length }} resultado{{ '' if anuncios|length == 1 else 's' }}</span>
+      {% if busca or cat_sel %}<span aria-hidden="true"> · </span><a href="/" class="clear-link">Limpar filtros</a>{% endif %}
+    </div>
+  </div>
+
+  {% if anuncios %}
+  <div class="grid">
+    {% for a in anuncios %}
+    <a href="/anuncio/{{ a.id }}" class="card" aria-label="Ver anúncio: {{ a.titulo }} por R$ {{ a.preco }}">
+      <div class="card-media">
+        {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy">
+        {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
+        <span class="card-condition">{{ a.condicao }}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-cat">{{ categoria_label(a.categoria) }}</div>
+        <div class="card-titulo">{{ a.titulo }}</div>
+        <div class="card-preco">R$ {{ a.preco }}</div>
+        <div class="card-meta">
+          <span>Colatina, ES</span>
+          <span>{{ a.vendedor_nome }}</span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
   </div>
   {% else %}
-  <div style="background:#fdecea;border:1px solid #e57373;border-radius:12px;padding:14px 18px;margin-bottom:22px">
-    <strong>Limite atingido.</strong> Assine por <strong>{{ valor_plano }}/mes</strong> para continuar anunciando.
-    <a href="/assinar" style="color:#1a6b3c;margin-left:8px;font-weight:700">Assinar agora</a>
+  <div class="empty-state">
+    <h3>Nenhum anúncio encontrado</h3>
+    <p>Tente outro termo ou explore todas as categorias.</p>
+    {% if session.get('usuario_id') %}<a href="/criar" class="btn btn-verde">Publicar um anúncio</a>{% else %}<a href="/" class="btn btn-verde">Ver todos os anúncios</a>{% endif %}
   </div>
   {% endif %}
-{% endif %}
+</section>
 
-<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px">
-  <div style="background:#fff;border-radius:14px;padding:20px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.06)">
-    <div style="font-size:2rem;margin-bottom:8px">1</div>
-    <strong style="font-size:.95rem">Crie sua conta</strong>
-    <p style="font-size:.84rem;color:#777;margin-top:4px">Cadastro rapido e gratuito</p>
+{% if not busca and not cat_sel %}
+<section id="como-funciona" class="content-block" aria-labelledby="como-title">
+  <div class="section-head">
+    <div><div class="section-kicker">Simples e direto</div><h2 id="como-title">Como funciona</h2></div>
   </div>
-  <div style="background:#fff;border-radius:14px;padding:20px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.06)">
-    <div style="font-size:2rem;margin-bottom:8px">2</div>
-    <strong style="font-size:.95rem">Publique seu anuncio</strong>
-    <p style="font-size:.84rem;color:#777;margin-top:4px">Foto, preco e descricao</p>
-  </div>
-  <div style="background:#fff;border-radius:14px;padding:20px;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.06)">
-    <div style="font-size:2rem;margin-bottom:8px">3</div>
-    <strong style="font-size:.95rem">Feche pelo WhatsApp</strong>
-    <p style="font-size:.84rem;color:#777;margin-top:4px">Contato direto com o vendedor</p>
+  <div class="steps-grid">
+    <article class="step-card"><div class="step-number">01</div><h3>Crie sua conta</h3><p>Cadastre-se gratuitamente com seus dados de contato.</p></article>
+    <article class="step-card"><div class="step-number">02</div><h3>Publique seu anúncio</h3><p>Adicione foto, preço e uma descrição clara do produto.</p></article>
+    <article class="step-card"><div class="step-number">03</div><h3>Converse e negocie</h3><p>Comprador e vendedor combinam tudo diretamente pelo WhatsApp.</p></article>
   </div>
 </section>
 
-<section style="background:#fff;border-radius:14px;padding:24px;margin-bottom:28px;box-shadow:0 6px 18px rgba(0,0,0,.06)">
-  <h3 style="margin-bottom:16px;font-size:1.05rem;text-align:center">Planos</h3>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
-    <div style="border:2px solid #e0e0e0;border-radius:12px;padding:16px;text-align:center">
-      <div style="font-weight:700;font-size:1rem;margin-bottom:4px">Gratuito</div>
-      <div style="font-size:1.5rem;font-weight:700;color:#1a6b3c">R$ 0</div>
-      <ul style="list-style:none;margin-top:10px;font-size:.84rem;color:#555;line-height:2">
-        <li>Ate 3 anuncios</li>
-        <li>Contato por WhatsApp</li>
-        <li>Todas as categorias</li>
-      </ul>
-      {% if not session.get('usuario_id') %}
-      <a href="/cadastro" style="display:block;margin-top:12px;background:#e8f5e9;color:#1a6b3c;padding:9px;border-radius:8px;font-weight:600;text-decoration:none;font-size:.86rem">Comecar gratis</a>
-      {% endif %}
-    </div>
-    <div style="border:2px solid #1a6b3c;border-radius:12px;padding:16px;text-align:center;background:#f0faf4">
-      <div style="font-weight:700;font-size:1rem;margin-bottom:4px">Mensal</div>
-      <div style="font-size:1.5rem;font-weight:700;color:#1a6b3c">{{ valor_plano }}<span style="font-size:.86rem;font-weight:400">/mes</span></div>
-      <ul style="list-style:none;margin-top:10px;font-size:.84rem;color:#555;line-height:2">
-        <li>Anuncios ilimitados</li>
-        <li>Contato por WhatsApp</li>
-        <li>Todas as categorias</li>
-      </ul>
-      <a href="/assinar" style="display:block;margin-top:12px;background:#1a6b3c;color:#fff;padding:9px;border-radius:8px;font-weight:600;text-decoration:none;font-size:.86rem">Assinar agora</a>
-    </div>
+<section id="planos" class="content-block" aria-labelledby="planos-title">
+  <div class="section-head"><div><div class="section-kicker">Para cada momento</div><h2 id="planos-title">Planos para anunciar</h2></div></div>
+  <div class="plans-wrap">
+    <article class="plan-card">
+      <div class="plan-name">Gratuito</div><div class="plan-price">R$ 0</div>
+      <ul><li>Até 3 anúncios ativos</li><li>Contato direto por WhatsApp</li><li>Presença em todas as categorias</li></ul>
+      {% if not session.get('usuario_id') %}<a href="/cadastro" class="btn btn-verde">Começar gratuitamente</a>{% else %}<a href="/criar" class="btn btn-verde">Criar anúncio</a>{% endif %}
+    </article>
+    <article class="plan-card featured">
+      <div class="plan-name">Plano mensal</div><div class="plan-price">{{ valor_plano }}<span>/mês</span></div>
+      <ul><li>Anúncios ilimitados</li><li>Contato direto por WhatsApp</li><li>Mais liberdade para vender</li></ul>
+      <a href="/assinar" class="btn btn-verde">Conhecer o plano</a>
+    </article>
   </div>
 </section>
-{% endif %}
-
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
-  <h2 style="font-size:1rem;color:#555">
-    {% if busca or cat_sel %}{{ anuncios|length }} resultado(s)
-    {% else %}{{ anuncios|length }} anuncios disponiveis{% endif %}
-  </h2>
-  {% if busca or cat_sel %}<a href="/" style="font-size:.9rem;color:#1a6b3c">Limpar filtros</a>{% endif %}
-</div>
-
-{% if anuncios %}
-<div class="grid">
-  {% for a in anuncios %}
-  <a href="/anuncio/{{ a.id }}" class="card">
-    {% if a.foto %}<img src="/uploads/{{ a.foto }}" alt="{{ a.titulo }}">
-    {% else %}<div class="card-sem-foto">Foto</div>{% endif %}
-    <div class="card-body">
-      <div class="card-titulo">{{ a.titulo }}</div>
-      <div class="card-preco">R$ {{ a.preco }}</div>
-      <div class="card-cat">{{ a.categoria }}</div>
-      <span class="card-cond">{{ a.condicao }}</span>
-    </div>
-  </a>
-  {% endfor %}
-</div>
-{% else %}
-<div style="text-align:center;padding:44px;color:#888;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)">
-  <p style="font-size:1.05rem">Nenhum anuncio encontrado.</p>
-  {% if session.get('usuario_id') %}
-  <a href="/criar" class="btn btn-verde" style="margin-top:16px;display:inline-block">Criar primeiro anuncio</a>
-  {% endif %}
-</div>
 {% endif %}
 {% endblock %}
