@@ -107,7 +107,7 @@
   {% for p in pedidos %}
   <tr>
     <td>#{{ p.id }}</td>
-    <td><a href="/anuncio/{{ p.anuncio_id }}" style="color:#315d73">{{ p.titulo[:38] }}</a></td>
+    <td><a href="/anuncio/{{ p.anuncio_id }}" style="color:#1a6b3c">{{ p.titulo[:38] }}</a></td>
     <td>{{ p.comprador_nome }}</td>
     <td>{{ p.vendedor_nome }}</td>
     <td>R$ {{ p.valor }}</td>
@@ -130,7 +130,7 @@
   <tbody>
   {% for a in anuncios %}
   <tr>
-    <td><a href="/anuncio/{{ a.id }}" style="color:#315d73">{{ a.titulo[:38] }}</a></td>
+    <td><a href="/anuncio/{{ a.id }}" style="color:#1a6b3c">{{ a.titulo[:38] }}</a></td>
     <td>{{ a.vendedor_nome }}</td>
     <td>R$ {{ a.preco }}</td>
     <td>{{ categoria_label(a.categoria) }}</td>
