@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Confirmar pedido | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/anuncio/{{ a.id }}" class="voltar">← Voltar ao anúncio</a>{% endblock %}
+
+{% block content %}
+<div class="checkout-page">
+  <div class="section-kicker">Pedido seguro local</div>
+  <h1>Confirmar pedido</h1>
+  <p class="checkout-lead">O vendedor receberá sua solicitação e poderá confirmar a disponibilidade.</p>
+
+  <div class="checkout-layout">
+    <section class="checkout-product" aria-label="Resumo do produto">
+      <div class="checkout-product-media">
+        {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}">
+        {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
+      </div>
+      <div class="checkout-product-body">
+        <span class="badge badge-verde">{{ a.condicao }}</span>
+        <h2>{{ a.titulo }}</h2>
+        <div class="product-price">R$ {{ a.preco }}</div>
+        <p>Vendido por <strong>{{ a.vendedor_nome }}</strong></p>
+      </div>
+    </section>
+
+    <section class="checkout-form-card" aria-labelledby="pedido-detalhes">
+      <h2 id="pedido-detalhes">Como você prefere receber?</h2>
+      <form method="POST" action="/comprar/{{ a.id }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="delivery-option">
+          <input type="radio" name="entrega" value="retirada" checked>
+          <span><strong>Retirada combinada</strong><small>Combine um local seguro em Colatina.</small></span>
+        </label>
+        <label class="delivery-option">
+          <input type="radio" name="entrega" value="entrega_combinada">
+          <span><strong>Entrega combinada</strong><small>Converse com o vendedor sobre local, prazo e possível custo.</small></span>
+        </label>
+
+        <div class="form-grupo checkout-note">
+          <label for="observacao">Mensagem para o vendedor <span>(opcional)</span></label>
+          <textarea id="observacao" name="observacao" maxlength="300" placeholder="Ex.: Posso retirar amanhã à tarde?"></textarea>
+          <small>Máximo de 300 caracteres.</small>
+        </div>
+
+        <div class="order-total"><span>Total anunciado</span><strong>R$ {{ a.preco }}</strong></div>
+        <button class="btn btn-amarelo full-button" type="submit">Enviar pedido ao vendedor</button>
+        <p class="checkout-disclaimer">Nenhum pagamento será cobrado agora. Pagamento e entrega continuam sendo combinados com o vendedor.</p>
+      </form>
+    </section>
+  </div>
+</div>
+{% endblock %}

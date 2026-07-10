@@ -138,6 +138,27 @@ def _init_sqlite():
         );
         INSERT OR IGNORE INTO estatisticas (chave, valor)
             VALUES ('acessos_site', 0);
+        CREATE TABLE IF NOT EXISTS pedidos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            anuncio_id INTEGER NOT NULL,
+            comprador_id INTEGER NOT NULL,
+            vendedor_id INTEGER NOT NULL,
+            valor TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'aguardando',
+            entrega TEXT NOT NULL DEFAULT 'retirada',
+            observacao TEXT NOT NULL DEFAULT '',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id),
+            FOREIGN KEY (comprador_id) REFERENCES usuarios(id),
+            FOREIGN KEY (vendedor_id) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_pedidos_comprador
+            ON pedidos(comprador_id, criado_em);
+        CREATE INDEX IF NOT EXISTS idx_pedidos_vendedor
+            ON pedidos(vendedor_id, criado_em);
+        CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status
+            ON pedidos(anuncio_id, status);
         """
     )
     colunas = {linha[1] for linha in db.execute("PRAGMA table_info(anuncios)").fetchall()}
@@ -218,6 +239,34 @@ def _init_pg():
     db.execute(
         "INSERT INTO estatisticas (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO NOTHING",
         ("acessos_site", 0),
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pedidos (
+            id SERIAL PRIMARY KEY,
+            anuncio_id INTEGER NOT NULL,
+            comprador_id INTEGER NOT NULL,
+            vendedor_id INTEGER NOT NULL,
+            valor TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'aguardando',
+            entrega TEXT NOT NULL DEFAULT 'retirada',
+            observacao TEXT NOT NULL DEFAULT '',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id),
+            FOREIGN KEY (comprador_id) REFERENCES usuarios(id),
+            FOREIGN KEY (vendedor_id) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pedidos_comprador ON pedidos(comprador_id, criado_em)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pedidos_vendedor ON pedidos(vendedor_id, criado_em)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status ON pedidos(anuncio_id, status)"
     )
     _seed_admin(db)
     db.commit()

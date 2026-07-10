@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Pedidos | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">← Voltar ao início</a>{% endblock %}
+
+{% macro pedido_card(p, tipo) %}
+<article class="order-card">
+  <div class="order-media">
+    {% if p.foto %}<img src="{{ foto_url(p.foto, 500) }}" alt="{{ p.titulo }}">
+    {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
+  </div>
+  <div class="order-body">
+    <div class="order-topline">
+      <span class="badge order-status status-{{ p.status }}">{{ pedido_status_label(p.status) }}</span>
+      <span>Pedido #{{ p.id }}</span>
+    </div>
+    <h3>{% if p.anuncio_ativo %}<a href="/anuncio/{{ p.anuncio_id }}">{{ p.titulo }}</a>{% else %}{{ p.titulo }}{% endif %}</h3>
+    <div class="order-price">R$ {{ p.valor }}</div>
+    <div class="order-details">
+      {% if tipo == 'compra' %}<span>Vendedor: <strong>{{ p.vendedor_nome }}</strong></span>
+      {% else %}<span>Comprador: <strong>{{ p.comprador_nome }}</strong></span>{% endif %}
+      <span>{{ pedido_entrega_label(p.entrega) }}</span>
+      <span>Solicitado em {{ p.criado_em }}</span>
+    </div>
+    {% if p.observacao %}<p class="order-note">“{{ p.observacao }}”</p>{% endif %}
+
+    <div class="order-actions">
+      {% if tipo == 'venda' and p.status == 'aguardando' %}
+        <form method="POST" action="/pedido/{{ p.id }}/confirmar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-verde" type="submit">Confirmar pedido</button>
+        </form>
+        <form method="POST" action="/pedido/{{ p.id }}/recusar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-cinza" type="submit">Recusar</button>
+        </form>
+      {% endif %}
+
+      {% if tipo == 'compra' and p.status == 'aguardando' %}
+        <form method="POST" action="/pedido/{{ p.id }}/cancelar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-cinza" type="submit">Cancelar pedido</button>
+        </form>
+      {% endif %}
+
+      {% if p.status == 'confirmado' %}
+        {% set contato = p.vendedor_whatsapp if tipo == 'compra' else p.comprador_whatsapp %}
+        <a class="btn btn-wpp order-wpp" target="_blank" rel="noopener noreferrer"
+           href="https://wa.me/55{{ contato|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Olá!%20Estou%20falando%20sobre%20o%20pedido%20{{ p.id }}%20do%20Mercado%20Colatina.">
+          Conversar no WhatsApp
+        </a>
+        {% if tipo == 'compra' %}
+          <form method="POST" action="/pedido/{{ p.id }}/concluir">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-verde" type="submit">Recebi o produto</button>
+          </form>
+          <form method="POST" action="/pedido/{{ p.id }}/cancelar">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-cinza" type="submit">Cancelar</button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</article>
+{% endmacro %}
+
+{% block content %}
+<div class="dashboard-heading orders-heading">
+  <div><div class="section-kicker">Negociações organizadas</div><h1>Meus pedidos</h1><p>Acompanhe suas compras e os pedidos recebidos nos seus anúncios.</p></div>
+</div>
+
+<section class="orders-section" aria-labelledby="compras-title">
+  <div class="section-head"><div><div class="section-kicker">Como comprador</div><h2 id="compras-title">Minhas compras</h2></div><span class="result-count">{{ compras|length }} pedido{{ '' if compras|length == 1 else 's' }}</span></div>
+  {% if compras %}<div class="orders-grid">{% for p in compras %}{{ pedido_card(p, 'compra') }}{% endfor %}</div>
+  {% else %}<div class="empty-state compact"><h3>Nenhuma compra iniciada</h3><p>Ao encontrar um produto, clique em Comprar para enviar seu pedido.</p><a href="/" class="btn btn-verde">Explorar ofertas</a></div>{% endif %}
+</section>
+
+<section class="orders-section" aria-labelledby="vendas-title">
+  <div class="section-head"><div><div class="section-kicker">Como vendedor</div><h2 id="vendas-title">Pedidos recebidos</h2></div><span class="result-count">{{ vendas|length }} pedido{{ '' if vendas|length == 1 else 's' }}</span></div>
+  {% if vendas %}<div class="orders-grid">{% for p in vendas %}{{ pedido_card(p, 'venda') }}{% endfor %}</div>
+  {% else %}<div class="empty-state compact"><h3>Nenhum pedido recebido</h3><p>Os pedidos feitos nos seus anúncios aparecerão aqui.</p><a href="/meus-anuncios" class="btn btn-verde">Ver meus anúncios</a></div>{% endif %}
+</section>
+{% endblock %}

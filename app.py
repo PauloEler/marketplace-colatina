@@ -62,6 +62,17 @@ PAGAMENTO_WHATSAPP = os.environ.get(
     "PAYMENT_WHATSAPP", os.environ.get("ADMIN_WHATSAPP", PIX_CHAVE)
 )
 USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,24}$")
+PEDIDO_STATUS = {
+    "aguardando": "Aguardando vendedor",
+    "confirmado": "Pedido confirmado",
+    "concluido": "Compra concluída",
+    "cancelado": "Pedido cancelado",
+    "recusado": "Pedido recusado",
+}
+PEDIDO_ENTREGA = {
+    "retirada": "Retirada combinada",
+    "entrega_combinada": "Entrega combinada",
+}
 
 
 def limpar_whatsapp(valor):
@@ -70,6 +81,14 @@ def limpar_whatsapp(valor):
 
 def categoria_label(valor):
     return CATEGORIA_CANONICA.get(valor, valor)
+
+
+def pedido_status_label(valor):
+    return PEDIDO_STATUS.get(valor, valor)
+
+
+def pedido_entrega_label(valor):
+    return PEDIDO_ENTREGA.get(valor, valor)
 
 
 def foto_url(foto, largura=1200):
@@ -216,6 +235,8 @@ app.jinja_env.globals["csrf_token"] = csrf_token
 app.jinja_env.globals["categoria_label"] = categoria_label
 app.jinja_env.globals["plano_valido"] = plano_valido
 app.jinja_env.globals["foto_url"] = foto_url
+app.jinja_env.globals["pedido_status_label"] = pedido_status_label
+app.jinja_env.globals["pedido_entrega_label"] = pedido_entrega_label
 
 
 @app.before_request
@@ -740,6 +761,162 @@ def meus_anuncios():
     return render_template("meus_anuncios.html", anuncios=anuncios)
 
 
+@app.route("/comprar/<int:anuncio_id>", methods=["GET", "POST"])
+def comprar(anuncio_id):
+    if not logado():
+        flash("Entre na sua conta para fazer um pedido.", "erro")
+        return redirect(url_for("login"))
+
+    db = get_db()
+    anuncio_item = db.execute(
+        "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp "
+        "FROM anuncios a JOIN usuarios u ON a.usuario_id=u.id "
+        "WHERE a.id=? AND a.ativo=1",
+        (anuncio_id,),
+    ).fetchone()
+    if not anuncio_item:
+        flash("Este anuncio nao esta mais disponivel.", "erro")
+        return redirect(url_for("index"))
+    if anuncio_item["usuario_id"] == session["usuario_id"]:
+        flash("Voce nao pode comprar o proprio anuncio.", "erro")
+        return redirect(url_for("anuncio", anuncio_id=anuncio_id))
+
+    pedido_existente = db.execute(
+        "SELECT id FROM pedidos WHERE anuncio_id=? AND comprador_id=? "
+        "AND status IN ('aguardando','confirmado') ORDER BY criado_em DESC LIMIT 1",
+        (anuncio_id, session["usuario_id"]),
+    ).fetchone()
+    if pedido_existente:
+        flash("Voce ja possui um pedido ativo para este anuncio.", "erro")
+        return redirect(url_for("pedidos"))
+
+    if request.method == "POST":
+        entrega = request.form.get("entrega", "retirada")
+        observacao = request.form.get("observacao", "").strip()
+        if entrega not in PEDIDO_ENTREGA:
+            flash("Escolha uma forma de entrega valida.", "erro")
+            return render_template("comprar.html", a=anuncio_item)
+        if len(observacao) > 300:
+            flash("A observacao deve ter no maximo 300 caracteres.", "erro")
+            return render_template("comprar.html", a=anuncio_item)
+
+        db.execute(
+            "INSERT INTO pedidos (anuncio_id, comprador_id, vendedor_id, valor, status, entrega, observacao) "
+            "VALUES (?,?,?,?,?,?,?)",
+            (
+                anuncio_id,
+                session["usuario_id"],
+                anuncio_item["usuario_id"],
+                anuncio_item["preco"],
+                "aguardando",
+                entrega,
+                observacao,
+            ),
+        )
+        db.commit()
+        flash("Pedido enviado! Aguarde a confirmacao do vendedor.", "ok")
+        return redirect(url_for("pedidos"))
+
+    return render_template("comprar.html", a=anuncio_item)
+
+
+@app.route("/pedidos")
+def pedidos():
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    campos = (
+        "SELECT p.*, a.titulo, a.foto, a.condicao, a.ativo AS anuncio_ativo, "
+        "comprador.nome AS comprador_nome, comprador.whatsapp AS comprador_whatsapp, "
+        "vendedor.nome AS vendedor_nome, vendedor.whatsapp AS vendedor_whatsapp "
+        "FROM pedidos p "
+        "JOIN anuncios a ON a.id=p.anuncio_id "
+        "JOIN usuarios comprador ON comprador.id=p.comprador_id "
+        "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
+    )
+    compras = db.execute(
+        campos + "WHERE p.comprador_id=? ORDER BY p.criado_em DESC",
+        (session["usuario_id"],),
+    ).fetchall()
+    vendas = db.execute(
+        campos + "WHERE p.vendedor_id=? ORDER BY p.criado_em DESC",
+        (session["usuario_id"],),
+    ).fetchall()
+    return render_template("pedidos.html", compras=compras, vendas=vendas)
+
+
+@app.route("/pedido/<int:pedido_id>/<acao>", methods=["POST"])
+def atualizar_pedido(pedido_id, acao):
+    if not logado():
+        return redirect(url_for("login"))
+    if acao not in {"confirmar", "recusar", "cancelar", "concluir"}:
+        abort(404)
+
+    db = get_db()
+    pedido = db.execute("SELECT * FROM pedidos WHERE id=?", (pedido_id,)).fetchone()
+    if not pedido:
+        abort(404)
+
+    usuario_id = session["usuario_id"]
+    e_admin = admin()
+    if acao in {"confirmar", "recusar"}:
+        autorizado = pedido["vendedor_id"] == usuario_id or e_admin
+        status_permitido = pedido["status"] == "aguardando"
+    elif acao == "cancelar":
+        autorizado = pedido["comprador_id"] == usuario_id or e_admin
+        status_permitido = pedido["status"] in {"aguardando", "confirmado"}
+    else:
+        autorizado = pedido["comprador_id"] == usuario_id or e_admin
+        status_permitido = pedido["status"] == "confirmado"
+
+    if not autorizado:
+        abort(403)
+    if not status_permitido:
+        flash("Este pedido nao permite mais essa acao.", "erro")
+        return redirect(url_for("pedidos"))
+
+    if acao == "confirmar":
+        db.execute(
+            "UPDATE pedidos SET status='confirmado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+            (pedido_id,),
+        )
+        db.execute("UPDATE anuncios SET ativo=0 WHERE id=?", (pedido["anuncio_id"],))
+        db.execute(
+            "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
+            "WHERE anuncio_id=? AND id<>? AND status='aguardando'",
+            (pedido["anuncio_id"], pedido_id),
+        )
+        mensagem = "Pedido confirmado e anuncio reservado."
+    elif acao == "recusar":
+        db.execute(
+            "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+            (pedido_id,),
+        )
+        mensagem = "Pedido recusado."
+    elif acao == "cancelar":
+        estava_confirmado = pedido["status"] == "confirmado"
+        db.execute(
+            "UPDATE pedidos SET status='cancelado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+            (pedido_id,),
+        )
+        if estava_confirmado:
+            db.execute(
+                "UPDATE anuncios SET ativo=1 WHERE id=?",
+                (pedido["anuncio_id"],),
+            )
+        mensagem = "Pedido cancelado."
+    else:
+        db.execute(
+            "UPDATE pedidos SET status='concluido', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+            (pedido_id,),
+        )
+        mensagem = "Compra concluida com sucesso."
+
+    db.commit()
+    flash(mensagem, "ok")
+    return redirect(url_for("pedidos"))
+
+
 @app.route("/seguranca")
 def pagina_seguranca():
     return render_template(
@@ -762,8 +939,8 @@ def pagina_privacidade():
         titulo="Privacidade",
         resumo="Tratamos apenas os dados necessários para manter sua conta e permitir o contato entre compradores e vendedores.",
         secoes=[
-            ("Dados utilizados", "Nome, nome de usuário, senha protegida, WhatsApp e informações dos anúncios publicados."),
-            ("Finalidade", "Os dados são usados para autenticação, administração da conta, publicação dos anúncios e contato entre as partes."),
+            ("Dados utilizados", "Nome, nome de usuário, senha protegida, WhatsApp, informações dos anúncios e histórico dos pedidos realizados."),
+            ("Finalidade", "Os dados são usados para autenticação, administração da conta, publicação dos anúncios, organização dos pedidos e contato entre as partes."),
             ("Proteção", "Senhas não são armazenadas em texto legível. O acesso administrativo deve ser restrito e monitorado."),
             ("Seus direitos", "O titular pode solicitar correção ou exclusão dos seus dados ao administrador do Mercado Colatina."),
         ],
@@ -779,7 +956,7 @@ def pagina_termos():
         secoes=[
             ("Responsabilidade do anunciante", "O anunciante deve fornecer informações verdadeiras, manter o anúncio atualizado e possuir legitimidade para vender o item ou serviço."),
             ("Conteúdo proibido", "Não são permitidos produtos ilegais, conteúdo enganoso, ofensivo, perigoso ou que viole direitos de terceiros."),
-            ("Negociação entre usuários", "Pagamento, entrega, garantia e demais condições são combinados diretamente entre comprador e vendedor."),
+            ("Pedidos entre usuários", "O pedido registra o interesse de compra e permite que o vendedor confirme a disponibilidade. Nesta etapa, pagamento, entrega, garantia e demais condições continuam sendo combinados diretamente entre comprador e vendedor."),
             ("Moderação", "Anúncios e contas que violem estas regras podem ser ocultados ou desativados para proteger a comunidade."),
         ],
     )
@@ -818,8 +995,20 @@ def painel_admin():
         "FROM pagamentos p JOIN usuarios u ON p.usuario_id=u.id "
         "ORDER BY p.criado_em DESC"
     ).fetchall()
+    pedidos_admin = db.execute(
+        "SELECT p.*, a.titulo, comprador.nome AS comprador_nome, vendedor.nome AS vendedor_nome "
+        "FROM pedidos p "
+        "JOIN anuncios a ON a.id=p.anuncio_id "
+        "JOIN usuarios comprador ON comprador.id=p.comprador_id "
+        "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
+        "ORDER BY p.criado_em DESC"
+    ).fetchall()
     return render_template(
-        "admin.html", usuarios=usuarios, anuncios=anuncios, pagamentos=pagamentos
+        "admin.html",
+        usuarios=usuarios,
+        anuncios=anuncios,
+        pagamentos=pagamentos,
+        pedidos=pedidos_admin,
     )
 
 

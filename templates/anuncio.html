@@ -28,11 +28,14 @@
         <div class="seller-avatar">{{ a.vendedor_nome[:1]|upper }}</div>
         <div><strong>{{ a.vendedor_nome }}</strong><span>Colatina, ES</span></div>
       </div>
+      {% if session.get('usuario_id') != a.usuario_id %}
+      <a class="btn btn-comprar" href="/comprar/{{ a.id }}">Comprar</a>
+      {% endif %}
       <a class="btn btn-wpp" target="_blank" rel="noopener noreferrer"
          href="https://wa.me/55{{ a.whatsapp|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Ol%C3%A1!%20Vi%20seu%20an%C3%BAncio%20{{ a.titulo|urlencode }}%20no%20Mercado%20Colatina.%20Ainda%20est%C3%A1%20dispon%C3%ADvel?">
         Conversar no WhatsApp
       </a>
-      <p class="seller-note">Combine pagamento e entrega diretamente com o vendedor.</p>
+      <p class="seller-note">O pedido organiza a negociação. Nenhum pagamento é cobrado automaticamente nesta etapa.</p>
     </div>
 
     <div class="safety-card">

@@ -24,6 +24,7 @@
       {% if session.get('usuario_id') %}
         <a href="/criar" class="btn-anunciar">+ Anunciar</a>
         <a href="/meus-anuncios">Meus anúncios</a>
+        <a href="/pedidos">Pedidos</a>
         <a href="/minha-conta">Conta</a>
         {% if session.get('is_admin') %}<a href="/admin" class="admin-link">Admin</a>{% endif %}
         <form method="POST" action="/logout" class="nav-logout">
