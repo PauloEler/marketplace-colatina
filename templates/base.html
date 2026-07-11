@@ -20,7 +20,7 @@
       <span class="logo-mark">MC</span>
       <span class="logo-name">Mercado<strong>Colatina</strong></span>
     </a>
-    <nav aria-label="Navegação principal">
+    <nav class="desktop-nav" aria-label="Navegação principal">
       {% if session.get('usuario_id') %}
         <a href="/criar" class="btn-anunciar">+ Anunciar</a>
         <a href="/meus-anuncios">Meus anúncios</a>
@@ -37,6 +37,26 @@
         <a href="/cadastro" class="btn-anunciar">+ Anunciar</a>
       {% endif %}
     </nav>
+    <details class="mobile-nav">
+      <summary aria-label="Abrir menu principal">Menu</summary>
+      <div class="mobile-nav-panel" aria-label="Menu principal do celular">
+        {% if session.get('usuario_id') %}
+          <a href="/criar" class="mobile-primary">+ Anunciar</a>
+          <a href="/meus-anuncios">Meus anúncios</a>
+          <a href="/pedidos">Pedidos</a>
+          <a href="/minha-conta">Minha conta</a>
+          {% if session.get('is_admin') %}<a href="/admin" class="mobile-admin">Painel Admin</a>{% endif %}
+          <form method="POST" action="/logout" class="mobile-logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">Sair da conta</button>
+          </form>
+        {% else %}
+          <a href="/login">Entrar</a>
+          <a href="/cadastro">Criar conta</a>
+          <a href="/cadastro" class="mobile-primary">+ Anunciar</a>
+        {% endif %}
+      </div>
+    </details>
   </div>
 </header>
 
