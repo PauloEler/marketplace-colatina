@@ -6,52 +6,6 @@
 {% block content %}
 <h2 style="margin-bottom:22px">Painel admin</h2>
 
-<section class="admin-affiliate-section" aria-labelledby="admin-affiliate-title">
-  <div class="form-box admin-affiliate-form">
-    <div class="admin-section-heading">
-      <div>
-        <div class="section-kicker">Mercado Livre Afiliados</div>
-        <h3 id="admin-affiliate-title">Compartilhar uma publicação</h3>
-      </div>
-      <span class="affiliate-label">{{ ofertas_afiliadas|length }} cadastrada{{ '' if ofertas_afiliadas|length == 1 else 's' }}</span>
-    </div>
-    <p class="admin-helper">No Mercado Livre, abra a publicação, escolha <strong>Compartilhar</strong> e copie seu link de afiliado. Cole abaixo; foto, nome e preço serão buscados automaticamente.</p>
-    <form method="POST" action="/admin/oferta-afiliada">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="form-grupo"><label for="oferta-link">Link da publicação</label><input id="oferta-link" type="url" name="link_afiliado" required maxlength="2000" placeholder="Cole aqui o link copiado no Mercado Livre" inputmode="url"></div>
-      <div class="admin-form-actions">
-        <label class="admin-check"><input type="checkbox" name="destaque"> Mostrar como destaque</label>
-        <button class="btn btn-verde" type="submit">Compartilhar no site</button>
-      </div>
-    </form>
-  </div>
-
-  {% if ofertas_afiliadas %}
-  <div class="admin-affiliate-list">
-    {% for oferta in ofertas_afiliadas %}
-    <article class="admin-affiliate-item">
-      {% if oferta.imagem_url %}<img src="{{ oferta.imagem_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<div class="admin-affiliate-placeholder">ML</div>{% endif %}
-      <div class="admin-affiliate-info">
-        <strong>{{ oferta.titulo }}</strong>
-        <span>{% if oferta.preco == 'Consultar no Mercado Livre' %}{{ oferta.preco }}{% else %}R$ {{ oferta.preco }}{% endif %} · {{ oferta.cliques }} clique{{ '' if oferta.cliques == 1 else 's' }}</span>
-        <div><span class="badge {{ 'badge-verde' if oferta.ativo else 'badge-cinza' }}">{{ 'Publicada' if oferta.ativo else 'Oculta' }}</span>{% if oferta.destaque %} <span class="badge badge-destaque">Destaque</span>{% endif %}</div>
-      </div>
-      <div class="admin-affiliate-actions">
-        <form method="POST" action="/admin/oferta-afiliada/{{ oferta.id }}/destaque">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn btn-cinza" type="submit">{{ 'Tirar destaque' if oferta.destaque else 'Destacar' }}</button>
-        </form>
-        <form method="POST" action="/admin/oferta-afiliada/{{ oferta.id }}/toggle">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn {{ 'btn-cinza' if oferta.ativo else 'btn-verde' }}" type="submit">{{ 'Ocultar' if oferta.ativo else 'Publicar' }}</button>
-        </form>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
-  {% endif %}
-</section>
-
 <div class="form-box" style="margin-bottom:28px">
   <h3 style="margin-bottom:14px">Cadastrar novo usuario</h3>
   <form method="POST" action="/admin/usuario">

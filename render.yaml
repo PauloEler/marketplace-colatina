@@ -39,6 +39,8 @@ services:
         value: Mercado Colatina
       - key: PAYMENT_WHATSAPP
         value: "27998984840"
+      - key: MERCADO_LIVRE_AFILIADO_URL
+        value: https://meli.la/1yyfAoN
       - key: MP_CLIENT_ID
         value: "3630928256298103"
       - key: MP_CLIENT_SECRET

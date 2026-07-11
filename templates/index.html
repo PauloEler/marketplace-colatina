@@ -71,53 +71,17 @@
   {% endif %}
 {% endif %}
 
-{% if ofertas_afiliadas and not busca and not cat_sel %}
-<section id="achados" class="affiliate-section" aria-labelledby="achados-title">
-  <div class="section-head">
-    <div>
-      <div class="section-kicker">Seleção do Mercado Colatina</div>
-      <h2 id="achados-title">Achados e boas ofertas</h2>
-    </div>
-    <span class="affiliate-label">Links de afiliado</span>
+{% if not busca and not cat_sel %}
+<section id="achados" class="affiliate-profile" aria-labelledby="achados-title">
+  <div class="affiliate-profile-mark" aria-hidden="true">%</div>
+  <div class="affiliate-profile-content">
+    <div class="section-kicker">Perfil de afiliado</div>
+    <h2 id="achados-title">Promoções verificadas por Paulo Eler</h2>
+    <p>Acesse minha seleção atualizada de produtos e ofertas diretamente no Mercado Livre.</p>
+    <small>Este é um link de afiliado. O Mercado Colatina pode receber uma comissão, sem custo adicional para você.</small>
   </div>
-  <p class="affiliate-intro">Produtos selecionados no Mercado Livre para facilitar sua pesquisa.</p>
-  <div class="affiliate-grid">
-    {% for oferta in ofertas_afiliadas %}
-    <article class="affiliate-card">
-      <div class="affiliate-media">
-        {% if oferta.imagem_url %}
-        <img src="{{ oferta.imagem_url }}" alt="{{ oferta.titulo }}" loading="lazy" referrerpolicy="no-referrer">
-        {% else %}
-        <div class="affiliate-no-image">Oferta selecionada</div>
-        {% endif %}
-        {% if oferta.destaque %}<span class="affiliate-featured">Destaque</span>{% endif %}
-      </div>
-      <div class="affiliate-body">
-        <div class="affiliate-store">Mercado Livre</div>
-        <h3>{{ oferta.titulo }}</h3>
-        {% if oferta.descricao %}<p>{{ oferta.descricao }}</p>{% endif %}
-        <div class="affiliate-price-row">
-          {% if oferta.preco_anterior %}<del>R$ {{ oferta.preco_anterior }}</del>{% endif %}
-          <strong>{% if oferta.preco == 'Consultar no Mercado Livre' %}{{ oferta.preco }}{% else %}R$ {{ oferta.preco }}{% endif %}</strong>
-        </div>
-        <a class="btn btn-verde affiliate-button" href="{{ oferta.link_afiliado }}" data-click-url="{{ url_for('registrar_clique_afiliado', oferta_id=oferta.id) }}" rel="sponsored nofollow">
-          Ver oferta no Mercado Livre
-        </a>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
-  <p class="affiliate-disclosure">Aviso: ao comprar por estes links, o Mercado Colatina pode receber uma comissão, sem custo adicional para você. Preço e disponibilidade são confirmados no Mercado Livre.</p>
+  <a class="btn btn-verde affiliate-profile-button" href="{{ mercado_livre_afiliado_url }}" rel="sponsored nofollow">Ver promoções no Mercado Livre</a>
 </section>
-<script>
-document.querySelectorAll('.affiliate-button[data-click-url]').forEach(function (link) {
-  link.addEventListener('click', function () {
-    var trackingUrl = link.getAttribute('data-click-url');
-    if (navigator.sendBeacon) navigator.sendBeacon(trackingUrl);
-    else fetch(trackingUrl, {method: 'POST', keepalive: true});
-  });
-});
-</script>
 {% endif %}
 
 <section id="ofertas" class="listing-section" aria-labelledby="ofertas-title">

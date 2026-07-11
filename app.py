@@ -5,7 +5,7 @@ import base64
 import hashlib
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
-from urllib.parse import quote, urlparse
+from urllib.parse import quote
 
 from flask import Flask, Response, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
 from dotenv import load_dotenv
@@ -28,7 +28,6 @@ from mercadopago_service import (
     trocar_codigo_por_token,
     webhook_valido,
 )
-from mercadolivre_service import MercadoLivreError, buscar_publicacao
 from storage import excluir_imagem, salvar_imagem
 
 app = Flask(__name__)
@@ -77,6 +76,9 @@ PIX_CHAVE = os.environ.get("PIX_KEY", "27998984840")
 PIX_TITULAR = os.environ.get("PIX_RECEIVER_NAME", "Mercado Colatina")
 PAGAMENTO_WHATSAPP = os.environ.get(
     "PAYMENT_WHATSAPP", os.environ.get("ADMIN_WHATSAPP", PIX_CHAVE)
+)
+MERCADO_LIVRE_AFILIADO_URL = os.environ.get(
+    "MERCADO_LIVRE_AFILIADO_URL", "https://meli.la/1yyfAoN"
 )
 try:
     MARKETPLACE_FEE_PERCENT = Decimal(
@@ -188,22 +190,6 @@ def normalizar_preco(valor):
     inteiro, centavos = f"{numero:.2f}".split(".")
     inteiro = f"{int(inteiro):,}".replace(",", ".")
     return f"{inteiro},{centavos}"
-
-
-def url_https_valida(valor):
-    try:
-        url = urlparse((valor or "").strip())
-    except ValueError:
-        return False
-    return url.scheme == "https" and bool(url.hostname) and not url.username
-
-
-def link_mercado_livre_valido(valor):
-    if not url_https_valida(valor):
-        return False
-    host = (urlparse(valor).hostname or "").lower()
-    dominios = ("mercadolivre.com.br", "mercadolivre.com", "meli.la")
-    return any(host == dominio or host.endswith(f".{dominio}") for dominio in dominios)
 
 
 def preco_decimal(valor):
@@ -487,8 +473,7 @@ def adicionar_cabecalhos_seguranca(response):
 
 @app.before_request
 def proteger_formularios():
-    endpoints_sem_csrf = {"mercadopago_webhook", "registrar_clique_afiliado"}
-    if request.method == "POST" and request.endpoint not in endpoints_sem_csrf:
+    if request.method == "POST" and request.endpoint != "mercadopago_webhook":
         token_sessao = session.get("_csrf_token")
         token_form = request.form.get("csrf_token")
         if not token_sessao or not token_form or token_sessao != token_form:
@@ -502,13 +487,6 @@ def index():
     categoria = request.args.get("categoria", "")
     if categoria and categoria not in CATEGORIA_ALIASES:
         categoria = ""
-
-    ofertas_afiliadas = []
-    if not busca and not categoria:
-        ofertas_afiliadas = db.execute(
-            "SELECT * FROM ofertas_afiliadas WHERE ativo=1 "
-            "ORDER BY destaque DESC, criado_em DESC LIMIT 8"
-        ).fetchall()
 
     query = (
         "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp "
@@ -553,24 +531,8 @@ def index():
         cat_sel=categoria,
         info_plano=info_plano,
         valor_plano=VALOR_PLANO,
-        ofertas_afiliadas=ofertas_afiliadas,
+        mercado_livre_afiliado_url=MERCADO_LIVRE_AFILIADO_URL,
     )
-
-
-@app.route("/oferta/<int:oferta_id>/clique", methods=["POST"])
-def registrar_clique_afiliado(oferta_id):
-    db = get_db()
-    oferta = db.execute(
-        "SELECT id FROM ofertas_afiliadas WHERE id=? AND ativo=1",
-        (oferta_id,),
-    ).fetchone()
-    if oferta:
-        db.execute(
-            "UPDATE ofertas_afiliadas SET cliques=cliques+1 WHERE id=?",
-            (oferta_id,),
-        )
-        db.commit()
-    return "", 204
 
 
 @app.route("/health")
@@ -1408,99 +1370,13 @@ def painel_admin():
         "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
         "ORDER BY p.criado_em DESC"
     ).fetchall()
-    ofertas_afiliadas = db.execute(
-        "SELECT * FROM ofertas_afiliadas ORDER BY criado_em DESC"
-    ).fetchall()
     return render_template(
         "admin.html",
         usuarios=usuarios,
         anuncios=anuncios,
         pagamentos=pagamentos,
         pedidos=pedidos_admin,
-        ofertas_afiliadas=ofertas_afiliadas,
     )
-
-
-@app.route("/admin/oferta-afiliada", methods=["POST"])
-def admin_criar_oferta_afiliada():
-    if not admin():
-        return redirect(url_for("index"))
-
-    link_afiliado = request.form.get("link_afiliado", "").strip()
-    destaque = 1 if request.form.get("destaque") else 0
-
-    if len(link_afiliado) > 2000 or not link_mercado_livre_valido(link_afiliado):
-        flash("Cole um link de afiliado válido gerado pelo Mercado Livre.", "erro")
-    else:
-        db = get_db()
-        existente = db.execute(
-            "SELECT id FROM ofertas_afiliadas WHERE link_afiliado=?", (link_afiliado,)
-        ).fetchone()
-        if existente:
-            flash("Essa publicação já foi compartilhada no site.", "erro")
-            return redirect(url_for("painel_admin"))
-        token = os.environ.get("ML_ACCESS_TOKEN", "")
-        if not token and session.get("usuario_id"):
-            try:
-                token = obter_token_vendedor(session["usuario_id"])
-            except MercadoPagoError:
-                token = ""
-        try:
-            publicacao = buscar_publicacao(link_afiliado, token or None)
-        except MercadoLivreError as exc:
-            flash(str(exc), "erro")
-        else:
-            db.execute(
-                "INSERT INTO ofertas_afiliadas "
-                "(titulo, descricao, preco, preco_anterior, imagem_url, link_afiliado, destaque) "
-                "VALUES (?,?,?,?,?,?,?)",
-                (
-                    publicacao["titulo"],
-                    publicacao["descricao"],
-                    publicacao["preco"],
-                    publicacao["preco_anterior"],
-                    publicacao["imagem_url"],
-                    publicacao["link_afiliado"],
-                    destaque,
-                ),
-            )
-            db.commit()
-            flash("Publicação compartilhada na página inicial.", "ok")
-    return redirect(url_for("painel_admin"))
-
-
-@app.route("/admin/oferta-afiliada/<int:oferta_id>/toggle", methods=["POST"])
-def admin_toggle_oferta_afiliada(oferta_id):
-    if not admin():
-        return redirect(url_for("index"))
-    db = get_db()
-    oferta = db.execute(
-        "SELECT ativo FROM ofertas_afiliadas WHERE id=?", (oferta_id,)
-    ).fetchone()
-    if oferta:
-        db.execute(
-            "UPDATE ofertas_afiliadas SET ativo=?, atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-            (0 if oferta["ativo"] else 1, oferta_id),
-        )
-        db.commit()
-    return redirect(url_for("painel_admin"))
-
-
-@app.route("/admin/oferta-afiliada/<int:oferta_id>/destaque", methods=["POST"])
-def admin_destacar_oferta_afiliada(oferta_id):
-    if not admin():
-        return redirect(url_for("index"))
-    db = get_db()
-    oferta = db.execute(
-        "SELECT destaque FROM ofertas_afiliadas WHERE id=?", (oferta_id,)
-    ).fetchone()
-    if oferta:
-        db.execute(
-            "UPDATE ofertas_afiliadas SET destaque=?, atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-            (0 if oferta["destaque"] else 1, oferta_id),
-        )
-        db.commit()
-    return redirect(url_for("painel_admin"))
 
 
 @app.route("/admin/pagamento/<int:pagamento_id>/<acao>", methods=["POST"])

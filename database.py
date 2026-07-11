@@ -159,22 +159,6 @@ def _init_sqlite():
             ON pedidos(vendedor_id, criado_em);
         CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status
             ON pedidos(anuncio_id, status);
-        CREATE TABLE IF NOT EXISTS ofertas_afiliadas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            titulo TEXT NOT NULL,
-            descricao TEXT NOT NULL DEFAULT '',
-            preco TEXT NOT NULL,
-            preco_anterior TEXT,
-            imagem_url TEXT NOT NULL DEFAULT '',
-            link_afiliado TEXT NOT NULL,
-            ativo INTEGER NOT NULL DEFAULT 1,
-            destaque INTEGER NOT NULL DEFAULT 0,
-            cliques INTEGER NOT NULL DEFAULT 0,
-            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS idx_ofertas_afiliadas_vitrine
-            ON ofertas_afiliadas(ativo, destaque, criado_em);
         """
     )
     colunas = {linha[1] for linha in db.execute("PRAGMA table_info(anuncios)").fetchall()}
@@ -309,27 +293,6 @@ def _init_pg():
     )
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status ON pedidos(anuncio_id, status)"
-    )
-    db.execute(
-        """
-        CREATE TABLE IF NOT EXISTS ofertas_afiliadas (
-            id SERIAL PRIMARY KEY,
-            titulo TEXT NOT NULL,
-            descricao TEXT NOT NULL DEFAULT '',
-            preco TEXT NOT NULL,
-            preco_anterior TEXT,
-            imagem_url TEXT NOT NULL DEFAULT '',
-            link_afiliado TEXT NOT NULL,
-            ativo INTEGER NOT NULL DEFAULT 1,
-            destaque INTEGER NOT NULL DEFAULT 0,
-            cliques INTEGER NOT NULL DEFAULT 0,
-            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
-    db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_ofertas_afiliadas_vitrine ON ofertas_afiliadas(ativo, destaque, criado_em)"
     )
     for coluna, tipo in {
         "mp_access_token": "TEXT",
