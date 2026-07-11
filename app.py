@@ -28,6 +28,7 @@ from mercadopago_service import (
     trocar_codigo_por_token,
     webhook_valido,
 )
+from mercadolivre_service import MercadoLivreError, buscar_publicacao
 from storage import excluir_imagem, salvar_imagem
 
 app = Flask(__name__)
@@ -1425,37 +1426,46 @@ def admin_criar_oferta_afiliada():
     if not admin():
         return redirect(url_for("index"))
 
-    titulo = request.form.get("titulo", "").strip()
-    descricao = request.form.get("descricao", "").strip()
-    preco = normalizar_preco(request.form.get("preco", ""))
-    preco_anterior_bruto = request.form.get("preco_anterior", "").strip()
-    preco_anterior = normalizar_preco(preco_anterior_bruto) if preco_anterior_bruto else None
-    imagem_url = request.form.get("imagem_url", "").strip()
     link_afiliado = request.form.get("link_afiliado", "").strip()
     destaque = 1 if request.form.get("destaque") else 0
 
-    if len(titulo) < 5 or len(titulo) > 120:
-        flash("Informe um título de 5 a 120 caracteres.", "erro")
-    elif len(descricao) > 240:
-        flash("A descrição pode ter no máximo 240 caracteres.", "erro")
-    elif not preco:
-        flash("Informe um preço válido para a oferta.", "erro")
-    elif preco_anterior_bruto and not preco_anterior:
-        flash("Informe um preço anterior válido ou deixe o campo vazio.", "erro")
-    elif imagem_url and (len(imagem_url) > 1000 or not url_https_valida(imagem_url)):
-        flash("A imagem precisa ter um endereço HTTPS válido.", "erro")
-    elif len(link_afiliado) > 2000 or not link_mercado_livre_valido(link_afiliado):
+    if len(link_afiliado) > 2000 or not link_mercado_livre_valido(link_afiliado):
         flash("Cole um link de afiliado válido gerado pelo Mercado Livre.", "erro")
     else:
         db = get_db()
-        db.execute(
-            "INSERT INTO ofertas_afiliadas "
-            "(titulo, descricao, preco, preco_anterior, imagem_url, link_afiliado, destaque) "
-            "VALUES (?,?,?,?,?,?,?)",
-            (titulo, descricao, preco, preco_anterior, imagem_url, link_afiliado, destaque),
-        )
-        db.commit()
-        flash("Oferta afiliada publicada na página inicial.", "ok")
+        existente = db.execute(
+            "SELECT id FROM ofertas_afiliadas WHERE link_afiliado=?", (link_afiliado,)
+        ).fetchone()
+        if existente:
+            flash("Essa publicação já foi compartilhada no site.", "erro")
+            return redirect(url_for("painel_admin"))
+        token = os.environ.get("ML_ACCESS_TOKEN", "")
+        if not token and session.get("usuario_id"):
+            try:
+                token = obter_token_vendedor(session["usuario_id"])
+            except MercadoPagoError:
+                token = ""
+        try:
+            publicacao = buscar_publicacao(link_afiliado, token or None)
+        except MercadoLivreError as exc:
+            flash(str(exc), "erro")
+        else:
+            db.execute(
+                "INSERT INTO ofertas_afiliadas "
+                "(titulo, descricao, preco, preco_anterior, imagem_url, link_afiliado, destaque) "
+                "VALUES (?,?,?,?,?,?,?)",
+                (
+                    publicacao["titulo"],
+                    publicacao["descricao"],
+                    publicacao["preco"],
+                    publicacao["preco_anterior"],
+                    publicacao["imagem_url"],
+                    publicacao["link_afiliado"],
+                    destaque,
+                ),
+            )
+            db.commit()
+            flash("Publicação compartilhada na página inicial.", "ok")
     return redirect(url_for("painel_admin"))
 
 

@@ -11,24 +11,17 @@
     <div class="admin-section-heading">
       <div>
         <div class="section-kicker">Mercado Livre Afiliados</div>
-        <h3 id="admin-affiliate-title">Publicar uma oferta</h3>
+        <h3 id="admin-affiliate-title">Compartilhar uma publicação</h3>
       </div>
       <span class="affiliate-label">{{ ofertas_afiliadas|length }} cadastrada{{ '' if ofertas_afiliadas|length == 1 else 's' }}</span>
     </div>
-    <p class="admin-helper">Use somente o link criado na Central de Afiliados. Antes de divulgar, cadastre o endereço deste site no seu perfil do programa.</p>
+    <p class="admin-helper">No Mercado Livre, abra a publicação, escolha <strong>Compartilhar</strong> e copie seu link de afiliado. Cole abaixo; foto, nome e preço serão buscados automaticamente.</p>
     <form method="POST" action="/admin/oferta-afiliada">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="admin-affiliate-fields">
-        <div class="form-grupo"><label for="oferta-titulo">Título da oferta</label><input id="oferta-titulo" type="text" name="titulo" required minlength="5" maxlength="120" placeholder="Ex.: Furadeira de impacto 650W"></div>
-        <div class="form-grupo"><label for="oferta-preco">Preço atual</label><input id="oferta-preco" type="text" name="preco" required maxlength="20" inputmode="decimal" placeholder="Ex.: 199,90"></div>
-        <div class="form-grupo"><label for="oferta-preco-anterior">Preço anterior (opcional)</label><input id="oferta-preco-anterior" type="text" name="preco_anterior" maxlength="20" inputmode="decimal" placeholder="Ex.: 249,90"></div>
-        <div class="form-grupo admin-field-wide"><label for="oferta-descricao">Descrição curta (opcional)</label><input id="oferta-descricao" type="text" name="descricao" maxlength="240" placeholder="Um motivo curto para recomendar este produto"></div>
-        <div class="form-grupo admin-field-wide"><label for="oferta-imagem">Endereço da imagem (opcional)</label><input id="oferta-imagem" type="url" name="imagem_url" maxlength="1000" placeholder="https://..." inputmode="url"></div>
-        <div class="form-grupo admin-field-wide"><label for="oferta-link">Seu link de afiliado do Mercado Livre</label><input id="oferta-link" type="url" name="link_afiliado" required maxlength="2000" placeholder="https://mercadolivre.com/sec/..." inputmode="url"></div>
-      </div>
+      <div class="form-grupo"><label for="oferta-link">Link da publicação</label><input id="oferta-link" type="url" name="link_afiliado" required maxlength="2000" placeholder="Cole aqui o link copiado no Mercado Livre" inputmode="url"></div>
       <div class="admin-form-actions">
         <label class="admin-check"><input type="checkbox" name="destaque"> Mostrar como destaque</label>
-        <button class="btn btn-verde" type="submit">Publicar oferta</button>
+        <button class="btn btn-verde" type="submit">Compartilhar no site</button>
       </div>
     </form>
   </div>
@@ -40,7 +33,7 @@
       {% if oferta.imagem_url %}<img src="{{ oferta.imagem_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">{% else %}<div class="admin-affiliate-placeholder">ML</div>{% endif %}
       <div class="admin-affiliate-info">
         <strong>{{ oferta.titulo }}</strong>
-        <span>R$ {{ oferta.preco }} · {{ oferta.cliques }} clique{{ '' if oferta.cliques == 1 else 's' }}</span>
+        <span>{% if oferta.preco == 'Consultar no Mercado Livre' %}{{ oferta.preco }}{% else %}R$ {{ oferta.preco }}{% endif %} · {{ oferta.cliques }} clique{{ '' if oferta.cliques == 1 else 's' }}</span>
         <div><span class="badge {{ 'badge-verde' if oferta.ativo else 'badge-cinza' }}">{{ 'Publicada' if oferta.ativo else 'Oculta' }}</span>{% if oferta.destaque %} <span class="badge badge-destaque">Destaque</span>{% endif %}</div>
       </div>
       <div class="admin-affiliate-actions">

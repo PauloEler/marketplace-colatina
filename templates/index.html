@@ -98,7 +98,7 @@
         {% if oferta.descricao %}<p>{{ oferta.descricao }}</p>{% endif %}
         <div class="affiliate-price-row">
           {% if oferta.preco_anterior %}<del>R$ {{ oferta.preco_anterior }}</del>{% endif %}
-          <strong>R$ {{ oferta.preco }}</strong>
+          <strong>{% if oferta.preco == 'Consultar no Mercado Livre' %}{{ oferta.preco }}{% else %}R$ {{ oferta.preco }}{% endif %}</strong>
         </div>
         <a class="btn btn-verde affiliate-button" href="{{ oferta.link_afiliado }}" data-click-url="{{ url_for('registrar_clique_afiliado', oferta_id=oferta.id) }}" rel="sponsored nofollow">
           Ver oferta no Mercado Livre
