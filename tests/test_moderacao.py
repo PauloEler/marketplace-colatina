@@ -17,7 +17,7 @@ os.environ["SECRET_KEY"] = "test-secret-key"
 
 import app as app_module  # noqa: E402
 from app import app  # noqa: E402
-from database import USE_PG, get_db, init_db  # noqa: E402
+from database import USE_PG, _backfill_fundadores, get_db, init_db  # noqa: E402
 
 
 if USE_PG:
@@ -213,6 +213,164 @@ class ModeracaoTestCase(unittest.TestCase):
                 .fetchone()
             )
             self.assertIsNotNone(usuario["termos_aceitos_em"])
+
+    def test_cadastro_concede_selo_de_fundador_automaticamente(self):
+        with self.client.session_transaction() as sessao:
+            sessao["_csrf_token"] = "token-teste"
+        resposta = self.client.post(
+            "/cadastro",
+            data={
+                "csrf_token": "token-teste",
+                "nome": "Fundadora Automática",
+                "username": "fundadora_auto",
+                "senha": "senha-segura",
+                "whatsapp": "27999999994",
+                "aceite_termos": "1",
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        with app.app_context():
+            usuario = get_db().execute(
+                "SELECT fundador, fundador_desde, fundador_origem, "
+                "fundador_beneficios FROM usuarios WHERE username=?",
+                ("fundadora_auto",),
+            ).fetchone()
+        self.assertEqual(usuario["fundador"], 1)
+        self.assertIsNotNone(usuario["fundador_desde"])
+        self.assertEqual(usuario["fundador_origem"], "automatico")
+        self.assertEqual(usuario["fundador_beneficios"], "{}")
+
+    def test_limite_impede_novos_selos_automaticos(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET fundador=1, fundador_desde=CURRENT_TIMESTAMP, "
+                "fundador_origem='automatico' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.commit()
+        with self.client.session_transaction() as sessao:
+            sessao["_csrf_token"] = "token-teste"
+
+        with patch.object(app_module, "LIMITE_FUNDADORES", 1):
+            resposta = self.client.post(
+                "/cadastro",
+                data={
+                    "csrf_token": "token-teste",
+                    "nome": "Pessoa sem Selo",
+                    "username": "sem_selo",
+                    "senha": "senha-segura",
+                    "whatsapp": "27999999995",
+                    "aceite_termos": "1",
+                },
+            )
+
+        self.assertEqual(resposta.status_code, 302)
+        with app.app_context():
+            usuario = get_db().execute(
+                "SELECT fundador, fundador_desde, fundador_origem, "
+                "fundador_removido_em FROM usuarios "
+                "WHERE username=?",
+                ("sem_selo",),
+            ).fetchone()
+        self.assertEqual(usuario["fundador"], 0)
+        self.assertIsNone(usuario["fundador_desde"])
+        self.assertIsNone(usuario["fundador_origem"])
+
+    def test_migracao_incorpora_primeiros_usuarios_sem_ultrapassar_limite(self):
+        with app.app_context(), patch.dict(
+            os.environ, {"FOUNDERS_LIMIT": "2"}, clear=False
+        ):
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET fundador=0, fundador_desde=NULL, "
+                "fundador_origem=NULL, fundador_removido_em=NULL"
+            )
+            _backfill_fundadores(db)
+            db.commit()
+            usuarios = db.execute(
+                "SELECT id, fundador, fundador_origem FROM usuarios "
+                "ORDER BY criado_em ASC, id ASC"
+            ).fetchall()
+
+        self.assertEqual([usuario["fundador"] for usuario in usuarios], [1, 1, 0])
+        self.assertEqual(usuarios[0]["fundador_origem"], "automatico")
+        self.assertEqual(usuarios[1]["fundador_origem"], "automatico")
+        self.assertIsNone(usuarios[2]["fundador_origem"])
+
+    def test_admin_concede_remove_lista_e_filtra_fundadores(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        conceder = self.client.post(
+            f"/admin/usuario/{self.vendedor_id}/fundador",
+            data={"csrf_token": "token-teste", "acao": "conceder"},
+        )
+        self.assertEqual(conceder.status_code, 302)
+        with app.app_context():
+            usuario = get_db().execute(
+                "SELECT fundador, fundador_origem, fundador_alterado_por "
+                "FROM usuarios WHERE id=?",
+                (self.vendedor_id,),
+            ).fetchone()
+        self.assertEqual(usuario["fundador"], 1)
+        self.assertEqual(usuario["fundador_origem"], "manual")
+        self.assertEqual(usuario["fundador_alterado_por"], self.admin_id)
+
+        painel = self.client.get("/admin?usuarios_filtro=fundadores")
+        self.assertIn("Fundadores do Mercado Colatina".encode(), painel.data)
+        self.assertIn(b'usuarios_filtro=fundadores', painel.data)
+        self.assertIn(b"Remover Fundador", painel.data)
+
+        remover = self.client.post(
+            f"/admin/usuario/{self.vendedor_id}/fundador",
+            data={"csrf_token": "token-teste", "acao": "remover"},
+        )
+        self.assertEqual(remover.status_code, 302)
+        with app.app_context():
+            usuario = get_db().execute(
+                "SELECT fundador, fundador_desde, fundador_origem, "
+                "fundador_removido_em FROM usuarios WHERE id=?",
+                (self.vendedor_id,),
+            ).fetchone()
+        self.assertEqual(usuario["fundador"], 0)
+        self.assertIsNotNone(usuario["fundador_desde"])
+        self.assertEqual(usuario["fundador_origem"], "manual")
+        self.assertIsNotNone(usuario["fundador_removido_em"])
+
+    def test_usuario_comum_nao_pode_alterar_selo_de_fundador(self):
+        self.autenticar_sessao(self.comprador_id)
+        resposta = self.client.post(
+            f"/admin/usuario/{self.vendedor_id}/fundador",
+            data={"csrf_token": "token-teste", "acao": "conceder"},
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertTrue(resposta.headers["Location"].endswith("/"))
+        with app.app_context():
+            fundador = get_db().execute(
+                "SELECT fundador FROM usuarios WHERE id=?", (self.vendedor_id,)
+            ).fetchone()[0]
+        self.assertEqual(fundador, 0)
+
+    def test_selo_de_fundador_aparece_na_loja_painel_e_perfil(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET fundador=1, fundador_desde=CURRENT_TIMESTAMP, "
+                "fundador_origem='automatico' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.commit()
+        caminho_loja = self.preparar_loja_publica()
+
+        pagina_loja = self.client.get(caminho_loja)
+        self.assertIn("🏅 Fundador do Mercado Colatina".encode(), pagina_loja.data)
+
+        self.autenticar_sessao(self.vendedor_id)
+        painel = self.client.get("/painel-vendedor")
+        conta = self.client.get("/minha-conta")
+        self.assertIn("🏅 Fundador do Mercado Colatina".encode(), painel.data)
+        self.assertIn("🏅 Fundador do Mercado Colatina".encode(), conta.data)
 
     def test_usuario_pode_atualizar_dados_pessoais(self):
         self.autenticar_sessao(self.comprador_id)

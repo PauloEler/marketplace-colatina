@@ -81,7 +81,7 @@
           <h3>{{ loja.nome_publico }}</h3>
           <p>{{ loja.bairro ~ ' · ' if loja.bairro else '' }}Colatina, ES</p>
         </div>
-        {% if loja.loja_verificada %}<span class="verified-store-badge">Verificada</span>{% endif %}
+        <div class="home-store-badges">{% if loja.fundador %}<span class="founder-badge compact">🏅 Fundador</span>{% endif %}{% if loja.loja_verificada %}<span class="verified-store-badge">Verificada</span>{% endif %}</div>
       </div>
       <dl class="home-store-metrics">
         <div><dt>Anúncios</dt><dd>{{ loja.total_anuncios }}</dd></div>

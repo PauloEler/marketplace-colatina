@@ -28,7 +28,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 
-from database import close_db, get_db, init_db  # noqa: E402
+from database import USE_PG, close_db, get_db, init_db  # noqa: E402
 from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
     configurado as mercadopago_configurado,
@@ -91,6 +91,11 @@ CATEGORIA_CANONICA = {
 }
 
 LIMITE_GRATIS = 10
+try:
+    LIMITE_FUNDADORES = int(os.environ.get("FOUNDERS_LIMIT", "100"))
+except ValueError:
+    LIMITE_FUNDADORES = 100
+LIMITE_FUNDADORES = max(0, min(LIMITE_FUNDADORES, 10000))
 VALOR_PLANO = os.environ.get("PLAN_PRICE_DISPLAY", "R$ 10,00")
 VALOR_PLANO_BANCO = os.environ.get("PLAN_PRICE", "10.00")
 PIX_CHAVE = os.environ.get("PIX_KEY", "27998984840")
@@ -290,6 +295,21 @@ def url_loja_publica_por_dados(usuario_id, loja_nome, nome):
     return url_loja_publica(
         {"id": usuario_id, "loja_nome": loja_nome, "nome": nome}
     )
+
+
+def reservar_selo_fundador(db):
+    if not LIMITE_FUNDADORES:
+        return 0, None
+    if USE_PG:
+        db.execute("LOCK TABLE usuarios IN SHARE ROW EXCLUSIVE MODE")
+    else:
+        db.execute("BEGIN IMMEDIATE")
+    total = db.execute(
+        "SELECT COUNT(*) FROM usuarios WHERE fundador_origem='automatico'"
+    ).fetchone()[0]
+    if total >= LIMITE_FUNDADORES:
+        return 0, None
+    return 1, "automatico"
 
 
 def plano_valido(usuario):
@@ -980,7 +1000,7 @@ def index():
         "SELECT vendedor_id, COUNT(*) AS vendas_concluidas FROM pedidos "
         "WHERE status='concluido' GROUP BY vendedor_id"
         ") SELECT u.id, u.nome, u.loja_nome, u.loja_bairro, "
-        "u.loja_verificada, u.criado_em, c.total_anuncios, "
+        "u.loja_verificada, u.fundador, u.criado_em, c.total_anuncios, "
         "c.total_visualizacoes, COALESCE(v.vendas_concluidas, 0) AS vendas_concluidas "
         "FROM usuarios u JOIN catalogo c ON c.usuario_id=u.id "
         "LEFT JOIN vendas v ON v.vendedor_id=u.id WHERE u.ativo=1 "
@@ -1003,6 +1023,7 @@ def index():
                 or "MC",
                 "bairro": loja["loja_bairro"],
                 "loja_verificada": loja["loja_verificada"],
+                "fundador": loja["fundador"],
                 "membro_desde": formatar_data_reputacao(loja["criado_em"]),
                 "total_anuncios": loja["total_anuncios"],
                 "total_visualizacoes": loja["total_visualizacoes"],
@@ -1100,7 +1121,7 @@ def loja_publica(loja_id, slug):
     db = get_db()
     loja = db.execute(
         "SELECT id, nome, loja_nome, loja_descricao, loja_bairro, loja_whatsapp, "
-        "criado_em, ultimo_acesso_em, loja_verificada "
+        "criado_em, ultimo_acesso_em, loja_verificada, fundador, fundador_desde "
         "FROM usuarios WHERE id=? AND ativo=1",
         (loja_id,),
     ).fetchone()
@@ -1398,15 +1419,30 @@ def cadastro():
             return render_template("cadastro.html")
         db = get_db()
         try:
+            fundador, fundador_origem = reservar_selo_fundador(db)
             db.execute(
-                "INSERT INTO usuarios (nome, username, senha, whatsapp, termos_aceitos_em) "
-                "VALUES (?,?,?,?,CURRENT_TIMESTAMP)",
-                (nome, username, generate_password_hash(senha), whatsapp),
+                "INSERT INTO usuarios (nome, username, senha, whatsapp, "
+                "termos_aceitos_em, fundador, fundador_desde, fundador_origem) "
+                "VALUES (?,?,?,?,CURRENT_TIMESTAMP,?,CASE WHEN ?=1 THEN "
+                "CURRENT_TIMESTAMP ELSE NULL END,?)",
+                (
+                    nome,
+                    username,
+                    generate_password_hash(senha),
+                    whatsapp,
+                    fundador,
+                    fundador,
+                    fundador_origem,
+                ),
             )
             db.commit()
-            flash("Conta criada! Faça login.", "ok")
+            mensagem = "Conta criada! Faça login."
+            if fundador:
+                mensagem += " Você agora é Fundador do Mercado Colatina!"
+            flash(mensagem, "ok")
             return redirect(url_for("login"))
         except Exception:
+            db.rollback()
             flash("Username ja em uso. Escolha outro.", "erro")
     return render_template("cadastro.html")
 
@@ -2047,7 +2083,8 @@ def painel_vendedor():
     usuario_id = session["usuario_id"]
     vendedor = db.execute(
         "SELECT id, nome, whatsapp, loja_nome, loja_descricao, loja_bairro, "
-        "loja_whatsapp, criado_em, ultimo_acesso_em, loja_verificada "
+        "loja_whatsapp, criado_em, ultimo_acesso_em, loja_verificada, "
+        "fundador, fundador_desde "
         "FROM usuarios WHERE id=? AND ativo=1",
         (usuario_id,),
     ).fetchone()
@@ -2913,7 +2950,14 @@ def painel_admin():
     if not admin():
         return redirect(url_for("index"))
     db = get_db()
-    usuarios = db.execute("SELECT * FROM usuarios ORDER BY criado_em DESC").fetchall()
+    usuarios_todos = db.execute(
+        "SELECT * FROM usuarios ORDER BY criado_em DESC"
+    ).fetchall()
+    usuarios_filtro = request.args.get("usuarios_filtro", "todos")
+    if usuarios_filtro not in {"todos", "fundadores"}:
+        usuarios_filtro = "todos"
+    fundadores = [usuario for usuario in usuarios_todos if usuario["fundador"]]
+    usuarios = fundadores if usuarios_filtro == "fundadores" else usuarios_todos
     anuncios = db.execute(
         "SELECT a.*, u.nome AS vendedor_nome "
         "FROM anuncios a "
@@ -2967,10 +3011,14 @@ def painel_admin():
         "denuncias_pendentes": db.execute(
             "SELECT COUNT(*) FROM denuncias WHERE status='pendente'"
         ).fetchone()[0],
+        "fundadores": len(fundadores),
     }
     return render_template(
         "admin.html",
         usuarios=usuarios,
+        fundadores=fundadores,
+        usuarios_filtro=usuarios_filtro,
+        limite_fundadores=LIMITE_FUNDADORES,
         anuncios=anuncios,
         pagamentos=pagamentos,
         pedidos=pedidos_admin,
@@ -2993,7 +3041,8 @@ def admin_reputacao_usuario(usuario_id):
         return redirect(url_for("index"))
     db = get_db()
     usuario = db.execute(
-        "SELECT id, nome, username, criado_em, ultimo_acesso_em, loja_verificada "
+        "SELECT id, nome, username, criado_em, ultimo_acesso_em, loja_verificada, "
+        "fundador, fundador_desde "
         "FROM usuarios WHERE id=?",
         (usuario_id,),
     ).fetchone()
@@ -3238,15 +3287,67 @@ def admin_criar_usuario():
         return redirect(url_for("painel_admin"))
     db = get_db()
     try:
+        fundador, fundador_origem = reservar_selo_fundador(db)
         db.execute(
-            "INSERT INTO usuarios (nome, username, senha, whatsapp, is_admin) VALUES (?,?,?,?,?)",
-            (nome, username, generate_password_hash(senha), whatsapp, is_admin),
+            "INSERT INTO usuarios (nome, username, senha, whatsapp, is_admin, "
+            "fundador, fundador_desde, fundador_origem) VALUES (?,?,?,?,?,?,"
+            "CASE WHEN ?=1 THEN CURRENT_TIMESTAMP ELSE NULL END,?)",
+            (
+                nome,
+                username,
+                generate_password_hash(senha),
+                whatsapp,
+                is_admin,
+                fundador,
+                fundador,
+                fundador_origem,
+            ),
         )
         db.commit()
-        flash(f"Usuario {nome} cadastrado.", "ok")
+        mensagem = f"Usuario {nome} cadastrado."
+        if fundador:
+            mensagem += " Selo de Fundador concedido automaticamente."
+        flash(mensagem, "ok")
     except Exception:
+        db.rollback()
         flash("Username ja existe.", "erro")
     return redirect(url_for("painel_admin"))
+
+
+@app.route("/admin/usuario/<int:usuario_id>/fundador", methods=["POST"])
+def admin_alterar_fundador(usuario_id):
+    if not admin():
+        return redirect(url_for("index"))
+
+    acao = request.form.get("acao", "")
+    if acao not in {"conceder", "remover"}:
+        abort(400)
+    db = get_db()
+    usuario = db.execute(
+        "SELECT id, nome, fundador FROM usuarios WHERE id=?", (usuario_id,)
+    ).fetchone()
+    if not usuario:
+        abort(404)
+
+    if acao == "conceder":
+        db.execute(
+            "UPDATE usuarios SET fundador=1, "
+            "fundador_desde=COALESCE(fundador_desde, CURRENT_TIMESTAMP), "
+            "fundador_origem=COALESCE(fundador_origem, 'manual'), "
+            "fundador_removido_em=NULL, fundador_alterado_por=? WHERE id=?",
+            (session["usuario_id"], usuario_id),
+        )
+        mensagem = f"Selo de Fundador concedido a {usuario['nome']}."
+    else:
+        db.execute(
+            "UPDATE usuarios SET fundador=0, fundador_removido_em=CURRENT_TIMESTAMP, "
+            "fundador_alterado_por=? WHERE id=?",
+            (session["usuario_id"], usuario_id),
+        )
+        mensagem = f"Selo de Fundador removido de {usuario['nome']}."
+    db.commit()
+    flash(mensagem, "ok")
+    return redirect(url_for("painel_admin", usuarios_filtro="fundadores"))
 
 
 @app.route("/admin/usuario/<int:usuario_id>/toggle", methods=["POST"])

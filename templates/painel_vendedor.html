@@ -9,6 +9,7 @@
     <div>
       <div class="section-kicker">Gestão da sua loja</div>
       <h1>{{ vendedor.loja_nome or vendedor.nome }}</h1>
+      {% if vendedor.fundador %}<span class="founder-badge">🏅 Fundador do Mercado Colatina</span>{% endif %}
       <p>{{ vendedor.loja_descricao or 'Acompanhe seus anúncios, estoque e vendas em um só lugar.' }}</p>
       {% if vendedor.loja_nome %}<small class="seller-store-owner">Responsável: {{ vendedor.nome }}</small>{% endif %}
       {% if vendedor.loja_bairro or vendedor.loja_whatsapp %}
