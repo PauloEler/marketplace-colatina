@@ -1685,6 +1685,49 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina_autenticada = self.client.get("/")
         self.assertNotIn(b'class="hero-signup-promo"', pagina_autenticada.data)
 
+    def test_home_exibe_secao_propria_com_as_lojas_ativas(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Pedal Colatina', loja_bairro='Centro' "
+                "WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.execute(
+                "UPDATE anuncios SET visualizacoes=12 WHERE id=?",
+                (self.anuncio_id,),
+            )
+            db.execute(
+                "INSERT INTO pedidos "
+                "(anuncio_id, comprador_id, vendedor_id, valor, status, entrega) "
+                "VALUES (?,?,?,?,?,?)",
+                (
+                    self.anuncio_id,
+                    self.comprador_id,
+                    self.vendedor_id,
+                    "1.200,00",
+                    "concluido",
+                    "retirada",
+                ),
+            )
+            db.commit()
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        pagina = self.client.get("/")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn('id="home-stores-title">Lojas do Mercado Colatina', html)
+        self.assertIn("Pedal Colatina", html)
+        self.assertIn("Centro · Colatina, ES", html)
+        self.assertIn("Anúncios</dt><dd>1", html)
+        self.assertIn("Vendas</dt><dd>1", html)
+        self.assertIn("Visualizações</dt><dd>12", html)
+        self.assertIn(
+            f'href="/loja/{self.vendedor_id}-pedal-colatina">Visitar loja</a>',
+            html,
+        )
+
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(

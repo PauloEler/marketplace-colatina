@@ -62,6 +62,42 @@
 </section>
 {% endif %}
 
+{% if not busca and not cat_sel and lojas_destaque %}
+<section class="home-stores" aria-labelledby="home-stores-title">
+  <div class="section-head">
+    <div>
+      <div class="section-kicker">Comércio local</div>
+      <h2 id="home-stores-title">Lojas do Mercado Colatina</h2>
+      <p class="home-stores-lead">Conheça os vendedores e visite suas vitrines antes de comprar.</p>
+    </div>
+    <span class="result-count">{{ lojas_destaque|length }} loja{{ '' if lojas_destaque|length == 1 else 's' }}</span>
+  </div>
+  <div class="home-stores-grid">
+    {% for loja in lojas_destaque %}
+    <article class="home-store-card">
+      <div class="home-store-header">
+        <div class="home-store-avatar" aria-hidden="true">{{ loja.logo_iniciais }}</div>
+        <div>
+          <h3>{{ loja.nome_publico }}</h3>
+          <p>{{ loja.bairro ~ ' · ' if loja.bairro else '' }}Colatina, ES</p>
+        </div>
+        {% if loja.loja_verificada %}<span class="verified-store-badge">Verificada</span>{% endif %}
+      </div>
+      <dl class="home-store-metrics">
+        <div><dt>Anúncios</dt><dd>{{ loja.total_anuncios }}</dd></div>
+        <div><dt>Vendas</dt><dd>{{ loja.vendas_concluidas }}</dd></div>
+        <div><dt>Visualizações</dt><dd>{{ loja.total_visualizacoes }}</dd></div>
+      </dl>
+      <div class="home-store-footer">
+        <small>Membro desde {{ loja.membro_desde }}</small>
+        <a class="btn btn-verde" href="{{ url_loja_publica(loja) }}">Visitar loja</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <nav class="category-strip" aria-label="Categorias de anúncios">
   <a class="category-chip {{ 'active' if not cat_sel else '' }}" href="/">Todos</a>
   {% for c in categorias %}
