@@ -477,6 +477,17 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b"admin-sales-alert", painel.data)
         self.assertIn(f"Pedido #{pedido_id}".encode(), painel.data)
 
+    def test_admin_exibe_texto_do_email_com_acentuacao_correta(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        with patch.dict(
+            os.environ, {"ADMIN_NOTIFICATION_EMAIL": "pelers@gmail.com"}
+        ):
+            painel = self.client.get("/admin")
+
+        self.assertIn("Nenhum pedido aguardando atenção.".encode(), painel.data)
+        self.assertIn("O serviço remetente ainda precisa ser ativado.".encode(), painel.data)
+        self.assertNotIn("atenÃ§Ã£o".encode(), painel.data)
+
     def test_cancelamento_nao_reativa_anuncio_retirado_pela_moderacao(self):
         pedido_id = self.criar_pedido_de_teste()
         self.autenticar_sessao(self.vendedor_id)
