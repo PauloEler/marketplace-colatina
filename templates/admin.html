@@ -1,13 +1,21 @@
 {% extends 'base.html' %}
 {% block title %}Admin | Mercado Colatina{% endblock %}
 
-{% block voltar %}<a href="/" class="voltar">Voltar ao inicio</a>{% endblock %}
+{% block voltar %}<a href="/" class="voltar">Voltar ao início</a>{% endblock %}
 
 {% block content %}
 <h2 style="margin-bottom:22px">Painel admin</h2>
 
+<section class="admin-metrics" aria-label="Indicadores do marketplace">
+  <article><span>Usuários ativos</span><strong>{{ metricas.usuarios_ativos }}</strong></article>
+  <article><span>Anúncios ativos</span><strong>{{ metricas.anuncios_ativos }}</strong></article>
+  <article><span>Contatos gerados</span><strong>{{ metricas.contatos }}</strong></article>
+  <article><span>Pedidos</span><strong>{{ metricas.pedidos }}</strong></article>
+  <article><span>Denúncias pendentes</span><strong>{{ metricas.denuncias_pendentes }}</strong></article>
+</section>
+
 <div class="form-box" style="margin-bottom:28px">
-  <h3 style="margin-bottom:14px">Cadastrar novo usuario</h3>
+  <h3 style="margin-bottom:14px">Cadastrar novo usuário</h3>
   <form method="POST" action="/admin/usuario">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
@@ -25,10 +33,10 @@
   </form>
 </div>
 
-<h3 style="margin-bottom:10px">Usuarios ({{ usuarios|length }})</h3>
+<h3 style="margin-bottom:10px">Usuários ({{ usuarios|length }})</h3>
 <div style="overflow-x:auto">
 <table>
-  <thead><tr><th>Nome</th><th>Username</th><th>WhatsApp</th><th>Admin</th><th>Plano</th><th>Expira</th><th>Status</th><th>Acoes</th></tr></thead>
+  <thead><tr><th>Nome</th><th>Usuário</th><th>WhatsApp</th><th>Admin</th><th>Plano</th><th>Expira</th><th>Status</th><th>Ações</th></tr></thead>
   <tbody>
   {% for u in usuarios %}
   <tr>
@@ -44,7 +52,7 @@
     <td>{{ u.plano_expira or '-' }}</td>
     <td><span class="badge {{ 'badge-verde' if u.ativo else 'badge-cinza' }}">{{ 'Ativo' if u.ativo else 'Inativo' }}</span></td>
     <td style="display:flex;gap:6px;flex-wrap:wrap">
-      {% if u.username != 'admin' %}
+      {% if u.id != session.get('usuario_id') %}
       <form method="POST" action="/admin/usuario/{{ u.id }}/toggle">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn {{ 'btn-cinza' if u.ativo else 'btn-verde' }}" style="font-size:.78rem;padding:4px 8px">
@@ -60,6 +68,44 @@
       {% endif %}
     </td>
   </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<div class="admin-section-heading">
+  <h3>Moderação ({{ denuncias|selectattr('status', 'equalto', 'pendente')|list|length }} pendente(s))</h3>
+  <span>Denúncias enviadas pela comunidade</span>
+</div>
+<div style="overflow-x:auto">
+<table>
+  <thead><tr><th>Anúncio</th><th>Vendedor</th><th>Denunciante</th><th>Motivo</th><th>Detalhes</th><th>Status</th><th>Ações</th></tr></thead>
+  <tbody>
+  {% for d in denuncias %}
+  <tr>
+    <td>{% if d.anuncio_ativo %}<a href="/anuncio/{{ d.anuncio_id }}" style="color:#1a6b3c">{{ d.titulo[:38] }}</a>{% else %}{{ d.titulo[:38] }}{% endif %}</td>
+    <td>{{ d.vendedor_nome }}</td>
+    <td>{{ d.denunciante_nome }}</td>
+    <td>{{ denuncia_motivos.get(d.motivo, d.motivo) }}</td>
+    <td>{{ d.detalhes or '-' }}</td>
+    <td><span class="badge {{ 'badge-warning' if d.status == 'pendente' else 'badge-cinza' }}">{{ d.status|capitalize }}</span></td>
+    <td>
+      {% if d.status == 'pendente' %}
+      <div class="admin-payment-actions">
+        <form method="POST" action="/admin/denuncia/{{ d.id }}/ocultar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-danger" type="submit">Ocultar anúncio</button>
+        </form>
+        <form method="POST" action="/admin/denuncia/{{ d.id }}/descartar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-cinza" type="submit">Descartar</button>
+        </form>
+      </div>
+      {% else %}-{% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">Nenhuma denúncia recebida.</td></tr>
   {% endfor %}
   </tbody>
 </table>
@@ -123,10 +169,10 @@
 </table>
 </div>
 
-<h3 style="margin-bottom:10px">Anuncios ({{ anuncios|length }})</h3>
+<h3 style="margin-bottom:10px">Anúncios ({{ anuncios|length }})</h3>
 <div style="overflow-x:auto">
 <table>
-  <thead><tr><th>Titulo</th><th>Vendedor</th><th>Preco</th><th>Categoria</th><th>Vistas</th><th>Status</th><th>Acao</th></tr></thead>
+  <thead><tr><th>Título</th><th>Vendedor</th><th>Preço</th><th>Categoria</th><th>Vistas</th><th>Contatos</th><th>Status</th><th>Ação</th></tr></thead>
   <tbody>
   {% for a in anuncios %}
   <tr>
@@ -135,6 +181,7 @@
     <td>R$ {{ a.preco }}</td>
     <td>{{ categoria_label(a.categoria) }}</td>
     <td>{{ a.visualizacoes }}</td>
+    <td>{{ a.contatos_whatsapp }}</td>
     <td><span class="badge {{ 'badge-verde' if a.ativo else 'badge-cinza' }}">{{ 'Ativo' if a.ativo else 'Inativo' }}</span></td>
     <td>
       <form method="POST" action="/admin/anuncio/{{ a.id }}/toggle">

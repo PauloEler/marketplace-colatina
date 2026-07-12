@@ -3,20 +3,32 @@ import re
 import secrets
 import base64
 import hashlib
+import hmac
+import time
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
 
-from flask import Flask, Response, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
+from flask import (
+    Flask,
+    Response,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    session,
+    url_for,
+)
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash, generate_password_hash
 
 load_dotenv()
 
-from database import close_db, get_db, init_db
-from mercadopago_service import (
+from database import close_db, get_db, init_db  # noqa: E402
+from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
-    REDIRECT_URI as MP_REDIRECT_URI,
     configurado as mercadopago_configurado,
     pagamentos_configurados as mercadopago_pagamentos_configurados,
     consultar_pagamento,
@@ -28,7 +40,8 @@ from mercadopago_service import (
     trocar_codigo_por_token,
     webhook_valido,
 )
-from storage import excluir_imagem, salvar_imagem
+from storage import excluir_imagem, salvar_imagem  # noqa: E402
+from neo_service import configurado as neo_configurado, gerar_rascunho  # noqa: E402
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -37,7 +50,7 @@ FLASK_ENV = os.environ.get("FLASK_ENV", "production")
 if not SECRET_KEY:
     if FLASK_ENV == "production":
         raise RuntimeError("SECRET_KEY precisa estar definida em producao.")
-    SECRET_KEY = "dev-secret-key"
+    SECRET_KEY = secrets.token_hex(32)
 
 app.secret_key = SECRET_KEY
 app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -77,13 +90,14 @@ PIX_TITULAR = os.environ.get("PIX_RECEIVER_NAME", "Mercado Colatina")
 PAGAMENTO_WHATSAPP = os.environ.get(
     "PAYMENT_WHATSAPP", os.environ.get("ADMIN_WHATSAPP", PIX_CHAVE)
 )
+SUPPORT_WHATSAPP = os.environ.get(
+    "SUPPORT_WHATSAPP", os.environ.get("ADMIN_WHATSAPP", PIX_CHAVE)
+)
 MERCADO_LIVRE_AFILIADO_URL = os.environ.get(
     "MERCADO_LIVRE_AFILIADO_URL", "https://meli.la/1yyfAoN"
 )
 try:
-    MARKETPLACE_FEE_PERCENT = Decimal(
-        os.environ.get("MARKETPLACE_FEE_PERCENT", "0")
-    )
+    MARKETPLACE_FEE_PERCENT = Decimal(os.environ.get("MARKETPLACE_FEE_PERCENT", "0"))
 except InvalidOperation:
     MARKETPLACE_FEE_PERCENT = Decimal("0")
 if MARKETPLACE_FEE_PERCENT < 0 or MARKETPLACE_FEE_PERCENT > 30:
@@ -109,10 +123,85 @@ PAGAMENTO_STATUS = {
     "cancelado": "Pagamento cancelado",
     "reembolsado": "Pagamento reembolsado",
 }
+DENUNCIA_MOTIVOS = {
+    "golpe": "Suspeita de golpe",
+    "proibido": "Produto ou serviço proibido",
+    "enganoso": "Informação enganosa",
+    "duplicado": "Anúncio duplicado",
+    "ofensivo": "Conteúdo ofensivo",
+    "outro": "Outro motivo",
+}
+LOGIN_MAX_FALHAS = 5
+LOGIN_JANELA_SEGUNDOS = 15 * 60
+
+
+def validar_configuracao_producao():
+    if FLASK_ENV != "production":
+        return
+    obrigatorias = (
+        "DATABASE_URL",
+        "CLOUDINARY_URL",
+        "ADMIN_PASSWORD",
+        "ADMIN_WHATSAPP",
+        "PIX_KEY",
+        "SUPPORT_WHATSAPP",
+    )
+    ausentes = [nome for nome in obrigatorias if not os.environ.get(nome, "").strip()]
+    if ausentes:
+        raise RuntimeError(
+            "Configuracao de producao incompleta. Defina: " + ", ".join(ausentes)
+        )
 
 
 def limpar_whatsapp(valor):
     return re.sub(r"\D", "", valor or "")
+
+
+def chave_tentativa_login(username):
+    origem = request.remote_addr or "desconhecida"
+    conteudo = f"{origem}|{(username or '').strip().lower()}".encode("utf-8")
+    return hmac.new(
+        app.secret_key.encode("utf-8"), conteudo, hashlib.sha256
+    ).hexdigest()
+
+
+def login_temporariamente_bloqueado(db, chave, agora=None):
+    agora = int(agora or time.time())
+    linha = db.execute(
+        "SELECT bloqueado_ate FROM tentativas_login WHERE chave=?", (chave,)
+    ).fetchone()
+    return bool(linha and int(linha["bloqueado_ate"] or 0) > agora)
+
+
+def registrar_falha_login(db, chave, agora=None):
+    agora = int(agora or time.time())
+    linha = db.execute(
+        "SELECT falhas, janela_inicio FROM tentativas_login WHERE chave=?", (chave,)
+    ).fetchone()
+    if not linha:
+        db.execute(
+            "INSERT INTO tentativas_login (chave, falhas, janela_inicio, bloqueado_ate) VALUES (?,?,?,0)",
+            (chave, 1, agora),
+        )
+    elif agora - int(linha["janela_inicio"]) >= LOGIN_JANELA_SEGUNDOS:
+        db.execute(
+            "UPDATE tentativas_login SET falhas=1, janela_inicio=?, bloqueado_ate=0 WHERE chave=?",
+            (agora, chave),
+        )
+    else:
+        falhas = int(linha["falhas"]) + 1
+        bloqueado_ate = (
+            agora + LOGIN_JANELA_SEGUNDOS if falhas >= LOGIN_MAX_FALHAS else 0
+        )
+        db.execute(
+            "UPDATE tentativas_login SET falhas=?, bloqueado_ate=? WHERE chave=?",
+            (falhas, bloqueado_ate, chave),
+        )
+    db.execute(
+        "DELETE FROM tentativas_login WHERE janela_inicio<? AND bloqueado_ate<?",
+        (agora - 86400, agora),
+    )
+    db.commit()
 
 
 def categoria_label(valor):
@@ -204,16 +293,16 @@ def validar_usuario(nome, username, senha, whatsapp):
     if len(nome) < 3:
         return "Informe um nome com pelo menos 3 caracteres."
     if not USERNAME_RE.fullmatch(username):
-        return "Username invalido. Use 3 a 24 caracteres com letras, numeros ou underscore."
+        return "Nome de usuário inválido. Use 3 a 24 caracteres com letras, números ou underscore."
     if len(senha) < 8:
         return "Use uma senha com pelo menos 8 caracteres."
     whatsapp_limpo = limpar_whatsapp(whatsapp)
     if len(whatsapp_limpo) not in {10, 11}:
-        return "WhatsApp invalido. Informe DDD + numero."
+        return "WhatsApp inválido. Informe DDD + número."
     return None
 
 
-def validar_anuncio(titulo, descricao, preco, categoria, condicao):
+def validar_anuncio(titulo, descricao, preco, categoria, condicao, bairro):
     if len(titulo) < 4:
         return "Titulo muito curto."
     if len(descricao) < 10:
@@ -224,6 +313,8 @@ def validar_anuncio(titulo, descricao, preco, categoria, condicao):
         return "Categoria invalida."
     if condicao not in {"Novo", "Seminovo", "Usado"}:
         return "Condicao invalida."
+    if len(bairro) < 2 or len(bairro) > 60 or any(ord(char) < 32 for char in bairro):
+        return "Informe um bairro válido em Colatina."
     return None
 
 
@@ -353,7 +444,7 @@ def pode_criar_anuncio(usuario_id):
     ).fetchone()[0]
     if total < LIMITE_GRATIS:
         restam = LIMITE_GRATIS - total
-        return True, f"Voce tem {restam} anuncio(s) gratuito(s) restante(s)."
+        return True, f"Você tem {restam} anúncio(s) gratuito(s) restante(s)."
     return False, "limite"
 
 
@@ -367,6 +458,9 @@ def logado():
 
 def admin():
     return session.get("is_admin", False)
+
+
+validar_configuracao_producao()
 
 
 with app.app_context():
@@ -383,7 +477,10 @@ app.jinja_env.globals["pedido_status_label"] = pedido_status_label
 app.jinja_env.globals["pedido_entrega_label"] = pedido_entrega_label
 app.jinja_env.globals["pagamento_status_label"] = pagamento_status_label
 app.jinja_env.globals["mercadopago_configurado"] = mercadopago_configurado
-app.jinja_env.globals["mercadopago_pagamentos_configurados"] = mercadopago_pagamentos_configurados
+app.jinja_env.globals["mercadopago_pagamentos_configurados"] = (
+    mercadopago_pagamentos_configurados
+)
+app.jinja_env.globals["neo_configurado"] = neo_configurado
 
 
 @app.before_request
@@ -423,10 +520,14 @@ def registrar_acesso_publico():
 @app.context_processor
 def fornecer_total_acessos():
     try:
-        linha = get_db().execute(
-            "SELECT valor FROM estatisticas WHERE chave=?",
-            ("acessos_site",),
-        ).fetchone()
+        linha = (
+            get_db()
+            .execute(
+                "SELECT valor FROM estatisticas WHERE chave=?",
+                ("acessos_site",),
+            )
+            .fetchone()
+        )
         total = int(linha[0]) if linha else 0
     except Exception:
         app.logger.exception("Falha ao consultar o contador de acessos")
@@ -443,10 +544,14 @@ def atualizar_usuario_da_sessao():
     usuario_id = session.get("usuario_id")
     if not usuario_id:
         return
-    usuario = get_db().execute(
-        "SELECT id, nome, username, is_admin, ativo FROM usuarios WHERE id=?",
-        (usuario_id,),
-    ).fetchone()
+    usuario = (
+        get_db()
+        .execute(
+            "SELECT id, nome, username, is_admin, ativo FROM usuarios WHERE id=?",
+            (usuario_id,),
+        )
+        .fetchone()
+    )
     if not usuario or not usuario["ativo"]:
         session.clear()
         return
@@ -460,14 +565,19 @@ def adicionar_cabecalhos_seguranca(response):
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("X-Frame-Options", "DENY")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    response.headers.setdefault(
+        "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+    )
     response.headers.setdefault(
         "Content-Security-Policy",
         "default-src 'self'; img-src 'self' data: https://res.cloudinary.com; style-src 'self' 'unsafe-inline'; "
-        "script-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'self'",
+        "script-src 'self' 'unsafe-inline'; object-src 'none'; frame-ancestors 'none'; "
+        "base-uri 'self'; form-action 'self'",
     )
     if request.is_secure:
-        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
     return response
 
 
@@ -476,7 +586,11 @@ def proteger_formularios():
     if request.method == "POST" and request.endpoint != "mercadopago_webhook":
         token_sessao = session.get("_csrf_token")
         token_form = request.form.get("csrf_token")
-        if not token_sessao or not token_form or token_sessao != token_form:
+        if (
+            not token_sessao
+            or not token_form
+            or not secrets.compare_digest(token_sessao, token_form)
+        ):
             abort(400)
 
 
@@ -498,9 +612,10 @@ def index():
     if busca:
         query += (
             " AND (LOWER(COALESCE(a.titulo, '')) LIKE LOWER(?) "
-            "OR LOWER(COALESCE(a.descricao, '')) LIKE LOWER(?))"
+            "OR LOWER(COALESCE(a.descricao, '')) LIKE LOWER(?) "
+            "OR LOWER(COALESCE(a.bairro, '')) LIKE LOWER(?))"
         )
-        params += [f"%{busca}%", f"%{busca}%"]
+        params += [f"%{busca}%", f"%{busca}%", f"%{busca}%"]
     if categoria:
         aliases = CATEGORIA_ALIASES[categoria]
         marcadores = ",".join("?" for _ in aliases)
@@ -547,7 +662,9 @@ def health():
 
 @app.route("/robots.txt")
 def robots():
-    conteudo = f"User-agent: *\nAllow: /\nSitemap: {url_for('sitemap', _external=True)}\n"
+    conteudo = (
+        f"User-agent: *\nAllow: /\nSitemap: {url_for('sitemap', _external=True)}\n"
+    )
     return Response(conteudo, mimetype="text/plain")
 
 
@@ -558,6 +675,7 @@ def sitemap():
         "cadastro",
         "login",
         "pagina_seguranca",
+        "pagina_ajuda",
         "pagina_privacidade",
         "pagina_termos",
     ]
@@ -580,7 +698,7 @@ def anuncio(anuncio_id):
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item:
-        flash("Anuncio nao encontrado.", "erro")
+        flash("Anúncio não encontrado.", "erro")
         return redirect(url_for("index"))
 
     if session.get("usuario_id") != anuncio_item["usuario_id"]:
@@ -589,7 +707,84 @@ def anuncio(anuncio_id):
             (anuncio_id,),
         )
         db.commit()
-    return render_template("anuncio.html", a=anuncio_item)
+    fotos = db.execute(
+        "SELECT * FROM anuncio_fotos WHERE anuncio_id=? ORDER BY ordem, id",
+        (anuncio_id,),
+    ).fetchall()
+    return render_template(
+        "anuncio.html",
+        a=anuncio_item,
+        fotos=fotos,
+        denuncia_motivos=DENUNCIA_MOTIVOS,
+    )
+
+
+@app.route("/anuncio/<int:anuncio_id>/contato")
+def contato_anuncio(anuncio_id):
+    db = get_db()
+    anuncio_item = db.execute(
+        "SELECT a.id, a.titulo, a.usuario_id, u.whatsapp FROM anuncios a "
+        "JOIN usuarios u ON u.id=a.usuario_id WHERE a.id=? AND a.ativo=1 AND u.ativo=1",
+        (anuncio_id,),
+    ).fetchone()
+    if not anuncio_item:
+        abort(404)
+    if session.get("usuario_id") != anuncio_item["usuario_id"]:
+        db.execute(
+            "UPDATE anuncios SET contatos_whatsapp=contatos_whatsapp+1 WHERE id=?",
+            (anuncio_id,),
+        )
+        db.commit()
+    numero = limpar_whatsapp(anuncio_item["whatsapp"])
+    if not numero.startswith("55"):
+        numero = f"55{numero}"
+    mensagem = quote(
+        f"Olá! Vi seu anúncio {anuncio_item['titulo']} no Mercado Colatina. Ainda está disponível?"
+    )
+    return redirect(f"https://wa.me/{numero}?text={mensagem}")
+
+
+@app.route("/anuncio/<int:anuncio_id>/denunciar", methods=["POST"])
+def denunciar_anuncio(anuncio_id):
+    if not logado():
+        flash("Entre na sua conta para denunciar um anúncio.", "erro")
+        return redirect(url_for("login"))
+
+    db = get_db()
+    anuncio_item = db.execute(
+        "SELECT id, usuario_id FROM anuncios WHERE id=? AND ativo=1",
+        (anuncio_id,),
+    ).fetchone()
+    if not anuncio_item:
+        abort(404)
+    if anuncio_item["usuario_id"] == session["usuario_id"]:
+        flash("Você não pode denunciar o próprio anúncio.", "erro")
+        return redirect(url_for("anuncio", anuncio_id=anuncio_id))
+
+    motivo = request.form.get("motivo", "")
+    detalhes = request.form.get("detalhes", "").strip()
+    if motivo not in DENUNCIA_MOTIVOS:
+        flash("Selecione um motivo valido para a denuncia.", "erro")
+        return redirect(url_for("anuncio", anuncio_id=anuncio_id))
+    if len(detalhes) > 500:
+        flash("Os detalhes devem ter no maximo 500 caracteres.", "erro")
+        return redirect(url_for("anuncio", anuncio_id=anuncio_id))
+
+    existente = db.execute(
+        "SELECT id FROM denuncias WHERE anuncio_id=? AND denunciante_id=? AND status='pendente'",
+        (anuncio_id, session["usuario_id"]),
+    ).fetchone()
+    if existente:
+        flash("Sua denuncia deste anuncio ja esta em analise.", "erro")
+        return redirect(url_for("anuncio", anuncio_id=anuncio_id))
+
+    db.execute(
+        "INSERT INTO denuncias (anuncio_id, denunciante_id, motivo, detalhes) VALUES (?,?,?,?)",
+        (anuncio_id, session["usuario_id"], motivo, detalhes),
+    )
+    db.commit()
+    flash("Denuncia recebida. Nossa equipe fara a analise.", "ok")
+    return redirect(url_for("anuncio", anuncio_id=anuncio_id))
 
 
 @app.route("/uploads/<filename>")
@@ -599,23 +794,32 @@ def uploaded_file(filename):
 
 @app.route("/cadastro", methods=["GET", "POST"])
 def cadastro():
+    if logado():
+        return redirect(url_for("index"))
     if request.method == "POST":
-        nome = request.form["nome"].strip()
-        username = request.form["username"].strip()
-        senha = request.form["senha"].strip()
-        whatsapp = limpar_whatsapp(request.form["whatsapp"].strip())
+        nome = request.form.get("nome", "").strip()
+        username = request.form.get("username", "").strip()
+        senha = request.form.get("senha", "").strip()
+        whatsapp = limpar_whatsapp(request.form.get("whatsapp", "").strip())
         erro = validar_usuario(nome, username, senha, whatsapp)
         if erro:
             flash(erro, "erro")
             return render_template("cadastro.html")
+        if request.form.get("aceite_termos") != "1":
+            flash(
+                "Para criar a conta, aceite os Termos de Uso e a Politica de Privacidade.",
+                "erro",
+            )
+            return render_template("cadastro.html")
         db = get_db()
         try:
             db.execute(
-                "INSERT INTO usuarios (nome, username, senha, whatsapp) VALUES (?,?,?,?)",
+                "INSERT INTO usuarios (nome, username, senha, whatsapp, termos_aceitos_em) "
+                "VALUES (?,?,?,?,CURRENT_TIMESTAMP)",
                 (nome, username, generate_password_hash(senha), whatsapp),
             )
             db.commit()
-            flash("Conta criada! Faca login.", "ok")
+            flash("Conta criada! Faça login.", "ok")
             return redirect(url_for("login"))
         except Exception:
             flash("Username ja em uso. Escolha outro.", "erro")
@@ -624,25 +828,41 @@ def cadastro():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if logado():
+        return redirect(url_for("index"))
     if request.method == "POST":
         username = request.form["username"].strip()
         senha = request.form["senha"].strip()
         if not username or not senha:
-            flash("Preencha usuario e senha.", "erro")
+            flash("Preencha usuário e senha.", "erro")
             return render_template("login.html")
         db = get_db()
+        chave_login = chave_tentativa_login(username)
+        if login_temporariamente_bloqueado(db, chave_login):
+            flash(
+                "Muitas tentativas seguidas. Aguarde 15 minutos e tente novamente.",
+                "erro",
+            )
+            return render_template("login.html"), 429
         usuario = db.execute(
             "SELECT * FROM usuarios WHERE username=? AND ativo=1",
             (username,),
         ).fetchone()
         if usuario and check_password_hash(usuario["senha"], senha):
+            db.execute("DELETE FROM tentativas_login WHERE chave=?", (chave_login,))
+            db.commit()
+            visita_registrada = session.get("_visita_registrada")
+            session.clear()
+            if visita_registrada:
+                session["_visita_registrada"] = True
             session["usuario_id"] = usuario["id"]
             session["usuario_nome"] = usuario["nome"]
             session["usuario_username"] = usuario["username"]
             session["is_admin"] = bool(usuario["is_admin"])
             flash(f"Bem-vindo, {usuario['nome']}!", "ok")
             return redirect(url_for("index"))
-        flash("Usuario ou senha incorretos.", "erro")
+        registrar_falha_login(db, chave_login)
+        flash("Usuário ou senha incorretos.", "erro")
     return render_template("login.html")
 
 
@@ -667,25 +887,104 @@ def minha_conta():
     ).fetchone()
 
     if request.method == "POST":
-        atual = request.form["senha_atual"].strip()
-        nova = request.form["nova_senha"].strip()
-        confirma = request.form["confirmar"].strip()
-
-        if not check_password_hash(usuario["senha"], atual):
-            flash("Senha atual incorreta.", "erro")
-        elif nova != confirma:
-            flash("Nova senha e confirmacao nao coincidem.", "erro")
-        elif len(nova) < 8:
-            flash("Use uma senha com pelo menos 8 caracteres.", "erro")
+        acao = request.form.get("acao", "senha")
+        if acao == "perfil":
+            nome = request.form.get("nome", "").strip()
+            whatsapp = limpar_whatsapp(request.form.get("whatsapp", ""))
+            if len(nome) < 3 or len(nome) > 80:
+                flash("Informe um nome com 3 a 80 caracteres.", "erro")
+            elif len(whatsapp) not in {10, 11}:
+                flash("WhatsApp invalido. Informe DDD + numero.", "erro")
+            else:
+                db.execute(
+                    "UPDATE usuarios SET nome=?, whatsapp=? WHERE id=?",
+                    (nome, whatsapp, session["usuario_id"]),
+                )
+                db.commit()
+                session["usuario_nome"] = nome
+                flash("Dados pessoais atualizados.", "ok")
         else:
-            db.execute(
-                "UPDATE usuarios SET senha=? WHERE id=?",
-                (generate_password_hash(nova), session["usuario_id"]),
-            )
-            db.commit()
-            flash("Senha alterada com sucesso!", "ok")
+            atual = request.form.get("senha_atual", "").strip()
+            nova = request.form.get("nova_senha", "").strip()
+            confirma = request.form.get("confirmar", "").strip()
+
+            if not check_password_hash(usuario["senha"], atual):
+                flash("Senha atual incorreta.", "erro")
+            elif nova != confirma:
+                flash("Nova senha e confirmação não coincidem.", "erro")
+            elif len(nova) < 8:
+                flash("Use uma senha com pelo menos 8 caracteres.", "erro")
+            else:
+                db.execute(
+                    "UPDATE usuarios SET senha=? WHERE id=?",
+                    (generate_password_hash(nova), session["usuario_id"]),
+                )
+                db.commit()
+                flash("Senha alterada com sucesso!", "ok")
+
+        usuario = db.execute(
+            "SELECT * FROM usuarios WHERE id=?",
+            (session["usuario_id"],),
+        ).fetchone()
 
     return render_template("minha_conta.html", usuario=usuario)
+
+
+@app.route("/recuperar-acesso", methods=["GET", "POST"])
+def recuperar_acesso():
+    if logado():
+        return redirect(url_for("minha_conta"))
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        if not USERNAME_RE.fullmatch(username):
+            flash("Informe o nome de usuario usado no cadastro.", "erro")
+            return render_template("recuperar_acesso.html")
+        numero = limpar_whatsapp(SUPPORT_WHATSAPP)
+        if not numero.startswith("55"):
+            numero = f"55{numero}"
+        mensagem = (
+            "Olá! Preciso recuperar meu acesso ao Mercado Colatina. "
+            f"Meu nome de usuário é @{username}."
+        )
+        return redirect(f"https://wa.me/{numero}?text={quote(mensagem)}")
+    return render_template("recuperar_acesso.html")
+
+
+@app.route("/minha-conta/desativar", methods=["POST"])
+def desativar_conta():
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    usuario = db.execute(
+        "SELECT senha FROM usuarios WHERE id=?", (session["usuario_id"],)
+    ).fetchone()
+    senha = request.form.get("senha", "")
+    if not usuario or not check_password_hash(usuario["senha"], senha):
+        flash("Senha incorreta. A conta não foi desativada.", "erro")
+        return redirect(url_for("minha_conta"))
+    pedido_aberto = db.execute(
+        "SELECT id FROM pedidos WHERE (comprador_id=? OR vendedor_id=?) "
+        "AND status IN ('aguardando','confirmado') LIMIT 1",
+        (session["usuario_id"], session["usuario_id"]),
+    ).fetchone()
+    if pedido_aberto:
+        flash(
+            "Conclua ou cancele seus pedidos em andamento antes de desativar a conta.",
+            "erro",
+        )
+        return redirect(url_for("minha_conta"))
+
+    usuario_id = session["usuario_id"]
+    db.execute("UPDATE anuncios SET ativo=0 WHERE usuario_id=?", (usuario_id,))
+    db.execute(
+        "UPDATE usuarios SET ativo=0, mp_access_token=NULL, mp_refresh_token=NULL, "
+        "mp_user_id=NULL, mp_token_expira=NULL, mp_conectado_em=NULL WHERE id=?",
+        (usuario_id,),
+    )
+    db.commit()
+    session.clear()
+    flash("Sua conta foi desativada e os anuncios foram ocultados.", "ok")
+    return redirect(url_for("index"))
 
 
 @app.route("/mercadopago/conectar")
@@ -698,9 +997,11 @@ def mercadopago_conectar():
 
     state = secrets.token_urlsafe(32)
     code_verifier = secrets.token_urlsafe(64)
-    code_challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(code_verifier.encode("ascii")).digest()
-    ).rstrip(b"=").decode("ascii")
+    code_challenge = (
+        base64.urlsafe_b64encode(hashlib.sha256(code_verifier.encode("ascii")).digest())
+        .rstrip(b"=")
+        .decode("ascii")
+    )
     session["mp_oauth_state"] = state
     session["mp_code_verifier"] = code_verifier
     return redirect(criar_url_autorizacao(state, code_challenge))
@@ -757,12 +1058,13 @@ def mercadopago_desconectar():
 @app.route("/criar", methods=["GET", "POST"])
 def criar_anuncio():
     if not logado():
-        flash("Faca login para anunciar.", "erro")
+        flash("Faça login para anunciar.", "erro")
         return redirect(url_for("login"))
 
     pode, aviso = pode_criar_anuncio(session["usuario_id"])
     if not pode:
         return redirect(url_for("assinar"))
+    rascunho_neo = session.pop("_neo_rascunho", {})
 
     if request.method == "POST":
         pode, _ = pode_criar_anuncio(session["usuario_id"])
@@ -774,43 +1076,112 @@ def criar_anuncio():
         preco = normalizar_preco(request.form["preco"])
         categoria = request.form["categoria"]
         condicao = request.form["condicao"]
-        erro = validar_anuncio(titulo, descricao, preco, categoria, condicao)
+        bairro = request.form.get("bairro", "").strip()
+        erro = validar_anuncio(titulo, descricao, preco, categoria, condicao, bairro)
         if erro:
             flash(erro, "erro")
             return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
-        foto = None
-        foto_id = None
+        arquivos = [
+            arquivo for arquivo in request.files.getlist("fotos") if arquivo.filename
+        ]
+        if len(arquivos) > 5:
+            flash("Envie no máximo cinco fotos por anúncio.", "erro")
+            return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
+        for arquivo in arquivos:
+            if not allowed_file(arquivo.filename):
+                flash("Formato de imagem inválido. Use JPG, JPEG, PNG ou WEBP.", "erro")
+                return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
+            extensao = arquivo.filename.rsplit(".", 1)[1].lower()
+            if not arquivo_e_imagem_valida(arquivo, extensao):
+                flash("Um dos arquivos enviados não é uma imagem válida.", "erro")
+                return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
 
-        if "foto" in request.files:
-            arquivo = request.files["foto"]
-            if arquivo and arquivo.filename:
-                if not allowed_file(arquivo.filename):
-                    flash("Formato de imagem invalido. Use JPG, JPEG, PNG ou WEBP.", "erro")
-                    return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
+        fotos_salvas = []
+        try:
+            for arquivo in arquivos:
                 extensao = arquivo.filename.rsplit(".", 1)[1].lower()
-                if not arquivo_e_imagem_valida(arquivo, extensao):
-                    flash("O arquivo enviado não é uma imagem válida.", "erro")
-                    return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
-                try:
-                    foto, foto_id = salvar_imagem(
-                        arquivo, extensao, app.config["UPLOAD_FOLDER"]
-                    )
-                except Exception:
-                    app.logger.exception("Falha ao armazenar imagem do anúncio")
-                    flash("Não foi possível enviar a imagem. Tente novamente.", "erro")
-                    return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
+                fotos_salvas.append(
+                    salvar_imagem(arquivo, extensao, app.config["UPLOAD_FOLDER"])
+                )
+        except Exception:
+            app.logger.exception("Falha ao armazenar imagens do anúncio")
+            for foto_salva, foto_id_salva in fotos_salvas:
+                excluir_imagem(foto_salva, foto_id_salva, app.config["UPLOAD_FOLDER"])
+            flash("Não foi possível enviar as imagens. Tente novamente.", "erro")
+            return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
+
+        foto, foto_id = fotos_salvas[0] if fotos_salvas else (None, None)
 
         db = get_db()
-        db.execute(
-            "INSERT INTO anuncios (usuario_id, titulo, descricao, preco, categoria, condicao, foto, foto_id) "
-            "VALUES (?,?,?,?,?,?,?,?)",
-            (session["usuario_id"], titulo, descricao, preco, categoria, condicao, foto, foto_id),
-        )
+        anuncio_id = db.execute(
+            "INSERT INTO anuncios (usuario_id, titulo, descricao, preco, categoria, condicao, bairro, foto, foto_id) "
+            "VALUES (?,?,?,?,?,?,?,?,?) RETURNING id",
+            (
+                session["usuario_id"],
+                titulo,
+                descricao,
+                preco,
+                categoria,
+                condicao,
+                bairro,
+                foto,
+                foto_id,
+            ),
+        ).fetchone()[0]
+        for ordem, (foto_salva, foto_id_salva) in enumerate(fotos_salvas):
+            db.execute(
+                "INSERT INTO anuncio_fotos (anuncio_id, foto, foto_id, ordem) VALUES (?,?,?,?)",
+                (anuncio_id, foto_salva, foto_id_salva, ordem),
+            )
         db.commit()
-        flash("Anuncio publicado!", "ok")
+        flash("Anúncio publicado!", "ok")
         return redirect(url_for("meus_anuncios"))
 
-    return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
+    return render_template(
+        "criar.html", categorias=CATEGORIAS, aviso=aviso, rascunho_neo=rascunho_neo
+    )
+
+
+@app.route("/neo/anuncio", methods=["POST"])
+def neo_criar_rascunho():
+    if not logado():
+        return redirect(url_for("login"))
+    if not neo_configurado():
+        flash("O Neo ainda está em configuração.", "erro")
+        return redirect(url_for("criar_anuncio"))
+    agora = int(time.time())
+    if agora - int(session.get("_neo_ultimo", 0)) < 30:
+        flash("Aguarde alguns segundos antes de pedir outro rascunho ao Neo.", "erro")
+        return redirect(url_for("criar_anuncio"))
+    relato = request.form.get("relato", "").strip()
+    if len(relato) < 10 or len(relato) > 800:
+        flash(
+            "Conte ao Neo o que deseja vender usando entre 10 e 800 caracteres.", "erro"
+        )
+        return redirect(url_for("criar_anuncio"))
+    session["_neo_ultimo"] = agora
+    try:
+        rascunho = gerar_rascunho(relato)
+    except Exception:
+        app.logger.exception("Falha ao gerar rascunho com o Neo")
+        flash(
+            "O Neo não conseguiu criar o rascunho agora. Preencha o anúncio manualmente.",
+            "erro",
+        )
+        return redirect(url_for("criar_anuncio"))
+    if rascunho.pop("requer_revisao", False):
+        flash(
+            rascunho.pop("alerta", "Este item precisa de revisão antes da publicação."),
+            "erro",
+        )
+        return redirect(url_for("criar_anuncio"))
+    rascunho.pop("alerta", None)
+    session["_neo_rascunho"] = rascunho
+    flash(
+        "O Neo preparou um rascunho. Revise todas as informações antes de publicar.",
+        "ok",
+    )
+    return redirect(url_for("criar_anuncio"))
 
 
 @app.route("/editar/<int:anuncio_id>", methods=["GET", "POST"])
@@ -827,6 +1198,10 @@ def editar_anuncio(anuncio_id):
         anuncio_item["usuario_id"] != session["usuario_id"] and not admin()
     ):
         abort(404)
+    fotos_atuais = db.execute(
+        "SELECT * FROM anuncio_fotos WHERE anuncio_id=? ORDER BY ordem, id",
+        (anuncio_id,),
+    ).fetchall()
 
     if request.method == "POST":
         titulo = request.form["titulo"].strip()
@@ -834,55 +1209,106 @@ def editar_anuncio(anuncio_id):
         preco = normalizar_preco(request.form["preco"])
         categoria = request.form["categoria"]
         condicao = request.form["condicao"]
-        erro = validar_anuncio(titulo, descricao, preco, categoria, condicao)
+        bairro = request.form.get("bairro", "").strip()
+        erro = validar_anuncio(titulo, descricao, preco, categoria, condicao, bairro)
         if erro:
             flash(erro, "erro")
             return render_template(
-                "editar.html", a=anuncio_item, categorias=CATEGORIAS
+                "editar.html", a=anuncio_item, fotos=fotos_atuais, categorias=CATEGORIAS
             )
 
         foto = anuncio_item["foto"]
         foto_id = anuncio_item["foto_id"]
-        foto_antiga = None
-        foto_antiga_id = None
-        arquivo = request.files.get("foto")
-        if arquivo and arquivo.filename:
+        arquivos = [
+            arquivo for arquivo in request.files.getlist("fotos") if arquivo.filename
+        ]
+        if len(arquivos) > 5:
+            flash("Envie no máximo cinco fotos por anúncio.", "erro")
+            return render_template(
+                "editar.html", a=anuncio_item, fotos=fotos_atuais, categorias=CATEGORIAS
+            )
+        for arquivo in arquivos:
             if not allowed_file(arquivo.filename):
                 flash("Formato de imagem inválido. Use JPG, JPEG, PNG ou WEBP.", "erro")
-                return render_template("editar.html", a=anuncio_item, categorias=CATEGORIAS)
+                return render_template(
+                    "editar.html",
+                    a=anuncio_item,
+                    fotos=fotos_atuais,
+                    categorias=CATEGORIAS,
+                )
             extensao = arquivo.filename.rsplit(".", 1)[1].lower()
             if not arquivo_e_imagem_valida(arquivo, extensao):
-                flash("O arquivo enviado não é uma imagem válida.", "erro")
-                return render_template("editar.html", a=anuncio_item, categorias=CATEGORIAS)
-            foto_antiga = foto
-            foto_antiga_id = foto_id
-            try:
-                foto, foto_id = salvar_imagem(
-                    arquivo, extensao, app.config["UPLOAD_FOLDER"]
+                flash("Um dos arquivos enviados não é uma imagem válida.", "erro")
+                return render_template(
+                    "editar.html",
+                    a=anuncio_item,
+                    fotos=fotos_atuais,
+                    categorias=CATEGORIAS,
                 )
+
+        novas_fotos = []
+        if arquivos:
+            try:
+                for arquivo in arquivos:
+                    extensao = arquivo.filename.rsplit(".", 1)[1].lower()
+                    novas_fotos.append(
+                        salvar_imagem(arquivo, extensao, app.config["UPLOAD_FOLDER"])
+                    )
             except Exception:
-                app.logger.exception("Falha ao substituir imagem do anúncio")
-                flash("Não foi possível enviar a nova imagem. Tente novamente.", "erro")
-                return render_template("editar.html", a=anuncio_item, categorias=CATEGORIAS)
+                app.logger.exception("Falha ao substituir imagens do anúncio")
+                for foto_nova, foto_id_nova in novas_fotos:
+                    excluir_imagem(foto_nova, foto_id_nova, app.config["UPLOAD_FOLDER"])
+                flash(
+                    "Não foi possível enviar as novas imagens. Tente novamente.", "erro"
+                )
+                return render_template(
+                    "editar.html",
+                    a=anuncio_item,
+                    fotos=fotos_atuais,
+                    categorias=CATEGORIAS,
+                )
+            foto, foto_id = novas_fotos[0]
 
         db.execute(
-            "UPDATE anuncios SET titulo=?, descricao=?, preco=?, categoria=?, condicao=?, foto=?, foto_id=? WHERE id=?",
-            (titulo, descricao, preco, categoria, condicao, foto, foto_id, anuncio_id),
+            "UPDATE anuncios SET titulo=?, descricao=?, preco=?, categoria=?, condicao=?, bairro=?, foto=?, foto_id=? WHERE id=?",
+            (
+                titulo,
+                descricao,
+                preco,
+                categoria,
+                condicao,
+                bairro,
+                foto,
+                foto_id,
+                anuncio_id,
+            ),
         )
+        if novas_fotos:
+            db.execute("DELETE FROM anuncio_fotos WHERE anuncio_id=?", (anuncio_id,))
+            for ordem, (foto_nova, foto_id_nova) in enumerate(novas_fotos):
+                db.execute(
+                    "INSERT INTO anuncio_fotos (anuncio_id, foto, foto_id, ordem) VALUES (?,?,?,?)",
+                    (anuncio_id, foto_nova, foto_id_nova, ordem),
+                )
         db.commit()
 
-        if foto_antiga:
-            try:
-                excluir_imagem(
-                    foto_antiga, foto_antiga_id, app.config["UPLOAD_FOLDER"]
-                )
-            except Exception:
-                app.logger.exception("Falha ao remover imagem antiga do anúncio")
+        if novas_fotos:
+            for foto_antiga in fotos_atuais:
+                try:
+                    excluir_imagem(
+                        foto_antiga["foto"],
+                        foto_antiga["foto_id"],
+                        app.config["UPLOAD_FOLDER"],
+                    )
+                except Exception:
+                    app.logger.exception("Falha ao remover imagem antiga do anúncio")
 
         flash("Anúncio atualizado com sucesso.", "ok")
         return redirect(url_for("meus_anuncios"))
 
-    return render_template("editar.html", a=anuncio_item, categorias=CATEGORIAS)
+    return render_template(
+        "editar.html", a=anuncio_item, fotos=fotos_atuais, categorias=CATEGORIAS
+    )
 
 
 @app.route("/meus-anuncios/<int:anuncio_id>/status", methods=["POST"])
@@ -992,10 +1418,10 @@ def comprar(anuncio_id):
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item:
-        flash("Este anuncio nao esta mais disponivel.", "erro")
+        flash("Este anúncio não está mais disponível.", "erro")
         return redirect(url_for("index"))
     if anuncio_item["usuario_id"] == session["usuario_id"]:
-        flash("Voce nao pode comprar o proprio anuncio.", "erro")
+        flash("Você não pode comprar o próprio anúncio.", "erro")
         return redirect(url_for("anuncio", anuncio_id=anuncio_id))
 
     pedido_existente = db.execute(
@@ -1004,7 +1430,7 @@ def comprar(anuncio_id):
         (anuncio_id, session["usuario_id"]),
     ).fetchone()
     if pedido_existente:
-        flash("Voce ja possui um pedido ativo para este anuncio.", "erro")
+        flash("Você já possui um pedido ativo para este anúncio.", "erro")
         return redirect(url_for("pedidos"))
 
     if request.method == "POST":
@@ -1031,7 +1457,7 @@ def comprar(anuncio_id):
             ),
         )
         db.commit()
-        flash("Pedido enviado! Aguarde a confirmacao do vendedor.", "ok")
+        flash("Pedido enviado! Aguarde a confirmação do vendedor.", "ok")
         return redirect(url_for("pedidos"))
 
     return render_template("comprar.html", a=anuncio_item)
@@ -1090,10 +1516,12 @@ def atualizar_pedido(pedido_id, acao):
     if not autorizado:
         abort(403)
     if not status_permitido:
-        flash("Este pedido nao permite mais essa acao.", "erro")
+        flash("Este pedido não permite mais essa ação.", "erro")
         return redirect(url_for("pedidos"))
     if acao == "cancelar" and pedido["pagamento_status"] == "aprovado":
-        flash("Um pedido pago precisa passar pelo atendimento para ser cancelado.", "erro")
+        flash(
+            "Um pedido pago precisa passar pelo atendimento para ser cancelado.", "erro"
+        )
         return redirect(url_for("pedidos"))
 
     if acao == "confirmar":
@@ -1107,7 +1535,7 @@ def atualizar_pedido(pedido_id, acao):
             "WHERE anuncio_id=? AND id<>? AND status='aguardando'",
             (pedido["anuncio_id"], pedido_id),
         )
-        mensagem = "Pedido confirmado e anuncio reservado."
+        mensagem = "Pedido confirmado e anúncio reservado."
     elif acao == "recusar":
         db.execute(
             "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
@@ -1121,11 +1549,29 @@ def atualizar_pedido(pedido_id, acao):
             (pedido_id,),
         )
         if estava_confirmado:
-            db.execute(
-                "UPDATE anuncios SET ativo=1 WHERE id=?",
+            anuncio_moderado = db.execute(
+                "SELECT id FROM denuncias WHERE anuncio_id=? AND status='resolvida' LIMIT 1",
                 (pedido["anuncio_id"],),
-            )
-        mensagem = "Pedido cancelado."
+            ).fetchone()
+            vendedor = db.execute(
+                "SELECT ativo FROM usuarios WHERE id=?", (pedido["vendedor_id"],)
+            ).fetchone()
+            pode_reativar, _ = pode_criar_anuncio(pedido["vendedor_id"])
+            if (
+                vendedor
+                and vendedor["ativo"]
+                and not anuncio_moderado
+                and pode_reativar
+            ):
+                db.execute(
+                    "UPDATE anuncios SET ativo=1 WHERE id=?",
+                    (pedido["anuncio_id"],),
+                )
+                mensagem = "Pedido cancelado e anúncio disponibilizado novamente."
+            else:
+                mensagem = "Pedido cancelado. O anúncio permaneceu pausado para revisão do vendedor."
+        else:
+            mensagem = "Pedido cancelado."
     else:
         db.execute(
             "UPDATE pedidos SET status='concluido', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
@@ -1192,9 +1638,7 @@ def pagar_mercadopago(pedido_id):
                 "failure": f"{retorno_base}&resultado=falha",
             },
             "auto_return": "approved",
-            "notification_url": url_for(
-                "mercadopago_webhook", _external=True
-            ),
+            "notification_url": url_for("mercadopago_webhook", _external=True),
             "statement_descriptor": "MERCADOCOLATINA",
             "metadata": {"pedido_id": pedido_id},
         }
@@ -1267,9 +1711,11 @@ def mercadopago_webhook():
         return "", 200
 
     mp_user_id = payload.get("user_id")
-    vendedor = get_db().execute(
-        "SELECT id FROM usuarios WHERE mp_user_id=?", (str(mp_user_id),)
-    ).fetchone()
+    vendedor = (
+        get_db()
+        .execute("SELECT id FROM usuarios WHERE mp_user_id=?", (str(mp_user_id),))
+        .fetchone()
+    )
     if not vendedor:
         return "", 200
     try:
@@ -1289,10 +1735,22 @@ def pagina_seguranca():
         titulo="Segurança nas negociações",
         resumo="Cuidados simples ajudam compradores e vendedores a negociar com mais tranquilidade.",
         secoes=[
-            ("Converse com clareza", "Confirme o estado do produto, o valor final, a forma de pagamento e o local de entrega antes de fechar o negócio."),
-            ("Prefira locais seguros", "Quando possível, encontre a outra pessoa em local público, movimentado e durante o dia. Avise alguém de confiança."),
-            ("Proteja seus dados", "Nunca compartilhe senhas, códigos recebidos por mensagem, dados bancários completos ou documentos sem necessidade."),
-            ("Desconfie de pressa ou vantagem excessiva", "Preços muito abaixo do mercado, cobranças antecipadas e pedidos para sair dos canais combinados podem indicar fraude."),
+            (
+                "Converse com clareza",
+                "Confirme o estado do produto, o valor final, a forma de pagamento e o local de entrega antes de fechar o negócio.",
+            ),
+            (
+                "Prefira locais seguros",
+                "Quando possível, encontre a outra pessoa em local público, movimentado e durante o dia. Avise alguém de confiança.",
+            ),
+            (
+                "Proteja seus dados",
+                "Nunca compartilhe senhas, códigos recebidos por mensagem, dados bancários completos ou documentos sem necessidade.",
+            ),
+            (
+                "Desconfie de pressa ou vantagem excessiva",
+                "Preços muito abaixo do mercado, cobranças antecipadas e pedidos para sair dos canais combinados podem indicar fraude.",
+            ),
         ],
     )
 
@@ -1304,11 +1762,30 @@ def pagina_privacidade():
         titulo="Privacidade",
         resumo="Tratamos apenas os dados necessários para manter sua conta e permitir o contato entre compradores e vendedores.",
         secoes=[
-            ("Dados utilizados", "Nome, nome de usuário, senha protegida, WhatsApp, informações dos anúncios, histórico dos pedidos e situação dos pagamentos realizados."),
-            ("Finalidade", "Os dados são usados para autenticação, administração da conta, publicação dos anúncios, organização dos pedidos, contato entre as partes e confirmação dos pagamentos."),
-            ("Mercado Pago", "Quando o vendedor conecta sua conta, guardamos de forma criptografada apenas as credenciais técnicas necessárias para processar e conferir pagamentos. Dados de cartão não passam pelo Mercado Colatina."),
-            ("Proteção", "Senhas e credenciais de integração não são armazenadas em texto legível. O acesso administrativo deve ser restrito e monitorado."),
-            ("Seus direitos", "O titular pode solicitar correção ou exclusão dos seus dados ao administrador do Mercado Colatina."),
+            (
+                "Dados utilizados",
+                "Nome, nome de usuário, senha protegida, WhatsApp, informações dos anúncios, histórico dos pedidos e situação dos pagamentos realizados.",
+            ),
+            (
+                "Finalidade",
+                "Os dados são usados para autenticação, administração da conta, publicação dos anúncios, organização dos pedidos, contato entre as partes e confirmação dos pagamentos.",
+            ),
+            (
+                "Mercado Pago",
+                "Quando o vendedor conecta sua conta, guardamos de forma criptografada apenas as credenciais técnicas necessárias para processar e conferir pagamentos. Dados de cartão não passam pelo Mercado Colatina.",
+            ),
+            (
+                "Assistente Neo",
+                "Quando o vendedor escolhe usar o Neo, o relato digitado é enviado ao provedor de inteligência artificial para gerar um rascunho. Não envie documentos, senhas, dados bancários ou informações pessoais de terceiros. O uso é opcional e o vendedor deve revisar o resultado.",
+            ),
+            (
+                "Proteção",
+                "Senhas e credenciais de integração não são armazenadas em texto legível. O acesso administrativo deve ser restrito e monitorado.",
+            ),
+            (
+                "Seus direitos",
+                "O titular pode solicitar correção ou exclusão dos seus dados ao administrador do Mercado Colatina.",
+            ),
         ],
     )
 
@@ -1320,11 +1797,30 @@ def pagina_termos():
         titulo="Termos de uso",
         resumo="O Mercado Colatina aproxima compradores e vendedores, mas não participa diretamente das negociações.",
         secoes=[
-            ("Responsabilidade do anunciante", "O anunciante deve fornecer informações verdadeiras, manter o anúncio atualizado e possuir legitimidade para vender o item ou serviço."),
-            ("Conteúdo proibido", "Não são permitidos produtos ilegais, conteúdo enganoso, ofensivo, perigoso ou que viole direitos de terceiros."),
-            ("Pedidos entre usuários", "O pedido registra o interesse de compra e permite que o vendedor confirme a disponibilidade. Entrega, garantia e demais condições devem ser combinadas entre comprador e vendedor."),
-            ("Pagamentos", "Quando disponível, o pagamento é processado pelo Mercado Pago diretamente na conta conectada pelo vendedor. Taxas, análises, estornos e contestações seguem também as regras do Mercado Pago. O Mercado Colatina não recebe o valor do produto."),
-            ("Moderação", "Anúncios e contas que violem estas regras podem ser ocultados ou desativados para proteger a comunidade."),
+            (
+                "Responsabilidade do anunciante",
+                "O anunciante deve fornecer informações verdadeiras, manter o anúncio atualizado e possuir legitimidade para vender o item ou serviço.",
+            ),
+            (
+                "Conteúdo proibido",
+                "Não são permitidos produtos ilegais, conteúdo enganoso, ofensivo, perigoso ou que viole direitos de terceiros.",
+            ),
+            (
+                "Pedidos entre usuários",
+                "O pedido registra o interesse de compra e permite que o vendedor confirme a disponibilidade. Entrega, garantia e demais condições devem ser combinadas entre comprador e vendedor.",
+            ),
+            (
+                "Pagamentos",
+                "Quando disponível, o pagamento é processado pelo Mercado Pago diretamente na conta conectada pelo vendedor. Taxas, análises, estornos e contestações seguem também as regras do Mercado Pago. O Mercado Colatina não recebe o valor do produto.",
+            ),
+            (
+                "Moderação",
+                "Anúncios e contas que violem estas regras podem ser ocultados ou desativados para proteger a comunidade.",
+            ),
+            (
+                "Conteúdo assistido por IA",
+                "O Neo apenas sugere um rascunho. O anunciante continua responsável por revisar a exatidão, completar informações ausentes e garantir que o conteúdo e o produto respeitem estes termos.",
+            ),
         ],
     )
 
@@ -1338,10 +1834,12 @@ def deletar_anuncio(anuncio_id):
         "SELECT * FROM anuncios WHERE id=?",
         (anuncio_id,),
     ).fetchone()
-    if anuncio_item and (anuncio_item["usuario_id"] == session["usuario_id"] or admin()):
+    if anuncio_item and (
+        anuncio_item["usuario_id"] == session["usuario_id"] or admin()
+    ):
         db.execute("UPDATE anuncios SET ativo=0 WHERE id=?", (anuncio_id,))
         db.commit()
-        flash("Anuncio removido.", "ok")
+        flash("Anúncio removido.", "ok")
     return redirect(url_for("meus_anuncios"))
 
 
@@ -1370,13 +1868,89 @@ def painel_admin():
         "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
         "ORDER BY p.criado_em DESC"
     ).fetchall()
+    denuncias = db.execute(
+        "SELECT d.*, a.titulo, a.ativo AS anuncio_ativo, "
+        "denunciante.nome AS denunciante_nome, vendedor.nome AS vendedor_nome "
+        "FROM denuncias d "
+        "JOIN anuncios a ON a.id=d.anuncio_id "
+        "JOIN usuarios denunciante ON denunciante.id=d.denunciante_id "
+        "JOIN usuarios vendedor ON vendedor.id=a.usuario_id "
+        "ORDER BY CASE WHEN d.status='pendente' THEN 0 ELSE 1 END, d.criado_em DESC"
+    ).fetchall()
+    metricas = {
+        "usuarios_ativos": db.execute(
+            "SELECT COUNT(*) FROM usuarios WHERE ativo=1"
+        ).fetchone()[0],
+        "anuncios_ativos": db.execute(
+            "SELECT COUNT(*) FROM anuncios WHERE ativo=1"
+        ).fetchone()[0],
+        "contatos": db.execute(
+            "SELECT COALESCE(SUM(contatos_whatsapp),0) FROM anuncios"
+        ).fetchone()[0],
+        "pedidos": db.execute("SELECT COUNT(*) FROM pedidos").fetchone()[0],
+        "denuncias_pendentes": db.execute(
+            "SELECT COUNT(*) FROM denuncias WHERE status='pendente'"
+        ).fetchone()[0],
+    }
     return render_template(
         "admin.html",
         usuarios=usuarios,
         anuncios=anuncios,
         pagamentos=pagamentos,
         pedidos=pedidos_admin,
+        denuncias=denuncias,
+        denuncia_motivos=DENUNCIA_MOTIVOS,
+        metricas=metricas,
     )
+
+
+@app.route("/ajuda")
+def pagina_ajuda():
+    numero = limpar_whatsapp(SUPPORT_WHATSAPP)
+    if not numero.startswith("55"):
+        numero = f"55{numero}"
+    mensagem = quote("Olá! Preciso de ajuda com o Mercado Colatina.")
+    return render_template(
+        "ajuda.html",
+        suporte_url=f"https://wa.me/{numero}?text={mensagem}",
+    )
+
+
+@app.route("/admin/denuncia/<int:denuncia_id>/<acao>", methods=["POST"])
+def admin_processar_denuncia(denuncia_id, acao):
+    if not admin():
+        return redirect(url_for("index"))
+    if acao not in {"ocultar", "descartar"}:
+        abort(404)
+
+    db = get_db()
+    denuncia = db.execute(
+        "SELECT id, anuncio_id, status FROM denuncias WHERE id=?",
+        (denuncia_id,),
+    ).fetchone()
+    if not denuncia:
+        abort(404)
+    if denuncia["status"] != "pendente":
+        flash("Esta denuncia ja foi analisada.", "erro")
+        return redirect(url_for("painel_admin"))
+
+    if acao == "ocultar":
+        db.execute("UPDATE anuncios SET ativo=0 WHERE id=?", (denuncia["anuncio_id"],))
+        db.execute(
+            "UPDATE denuncias SET status='resolvida', resolvido_em=CURRENT_TIMESTAMP, "
+            "resolvido_por=? WHERE anuncio_id=? AND status='pendente'",
+            (session["usuario_id"], denuncia["anuncio_id"]),
+        )
+        mensagem = "Anúncio ocultado e denúncia resolvida."
+    else:
+        mensagem = "Denuncia descartada. O anuncio foi mantido."
+        db.execute(
+            "UPDATE denuncias SET status=?, resolvido_em=CURRENT_TIMESTAMP, resolvido_por=? WHERE id=?",
+            ("descartada", session["usuario_id"], denuncia_id),
+        )
+    db.commit()
+    flash(mensagem, "ok")
+    return redirect(url_for("painel_admin"))
 
 
 @app.route("/admin/pagamento/<int:pagamento_id>/<acao>", methods=["POST"])
@@ -1461,6 +2035,12 @@ def admin_criar_usuario():
 def admin_toggle_usuario(usuario_id):
     if not admin():
         return redirect(url_for("index"))
+    if usuario_id == session["usuario_id"]:
+        flash(
+            "Por segurança, você não pode desativar sua própria conta administrativa.",
+            "erro",
+        )
+        return redirect(url_for("painel_admin"))
     db = get_db()
     usuario = db.execute(
         "SELECT ativo FROM usuarios WHERE id=?",
@@ -1522,18 +2102,26 @@ def erro_requisicao_invalida(_error):
 
 @app.errorhandler(404)
 def pagina_nao_encontrada(_error):
-    return render_template("erro.html", titulo="Pagina nao encontrada", mensagem="O link que voce tentou abrir nao existe ou foi removido."), 404
+    return render_template(
+        "erro.html",
+        titulo="Pagina nao encontrada",
+        mensagem="O link que voce tentou abrir nao existe ou foi removido.",
+    ), 404
 
 
 @app.errorhandler(413)
 def arquivo_muito_grande(_error):
     flash("Arquivo muito grande. O limite e de 5 MB.", "erro")
-    return redirect(request.referrer or url_for("criar_anuncio"))
+    return redirect(url_for("meus_anuncios"))
 
 
 @app.errorhandler(500)
 def erro_interno(_error):
-    return render_template("erro.html", titulo="Erro interno", mensagem="Ocorreu um erro inesperado. Tente novamente em instantes."), 500
+    return render_template(
+        "erro.html",
+        titulo="Erro interno",
+        mensagem="Ocorreu um erro inesperado. Tente novamente em instantes.",
+    ), 500
 
 
 if __name__ == "__main__":
@@ -1544,4 +2132,4 @@ if __name__ == "__main__":
         print("   Admin local padrao: admin / admin123\n")
     else:
         print("   Admin: criado via ADMIN_USERNAME / ADMIN_PASSWORD\n")
-    app.run(debug=debug, host="0.0.0.0", port=port)
+    app.run(debug=debug, host=os.environ.get("HOST", "127.0.0.1"), port=port)
