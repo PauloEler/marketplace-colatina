@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash
 
 TEST_DIR = tempfile.mkdtemp(prefix="mercado-colatina-tests-")
 os.environ.pop("DATABASE_URL", None)
+os.environ.pop("RESTORED_DATABASE_URL", None)
 os.environ["DATABASE_PATH"] = os.path.join(TEST_DIR, "test.db")
 os.environ["FLASK_ENV"] = "testing"
 os.environ["SECRET_KEY"] = "test-secret-key"
