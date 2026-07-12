@@ -762,6 +762,165 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("grid-auto-flow:column", css)
         self.assertIn("min-width:0;max-width:100%", css)
 
+    def preparar_dados_reputacao(self):
+        with app.app_context():
+            db = get_db()
+            pedidos = (
+                ("concluido", "2026-03-01 10:00:00", "2026-03-02 10:00:00", "2026-03-01 22:00:00"),
+                ("concluido", "2026-03-03 10:00:00", "2026-03-05 10:00:00", "2026-03-04 10:00:00"),
+                ("cancelado", "2026-03-06 10:00:00", "2026-03-06 12:00:00", None),
+                ("em_analise", "2026-03-07 10:00:00", "2026-03-07 13:00:00", None),
+            )
+            for status, criado_em, atualizado_em, comprador_em in pedidos:
+                db.execute(
+                    "INSERT INTO pedidos "
+                    "(anuncio_id, comprador_id, vendedor_id, valor, status, entrega, "
+                    "comprador_confirmou_em, criado_em, atualizado_em) "
+                    "VALUES (?,?,?,?,?,?,?,?,?)",
+                    (
+                        self.anuncio_id,
+                        self.comprador_id,
+                        self.vendedor_id,
+                        "1.200,00",
+                        status,
+                        "retirada",
+                        comprador_em,
+                        criado_em,
+                        atualizado_em,
+                    ),
+                )
+            db.execute(
+                "UPDATE usuarios SET criado_em='2025-01-15 09:00:00', "
+                "ultimo_acesso_em='2026-03-10 14:30:00' WHERE id IN (?,?)",
+                (self.vendedor_id, self.comprador_id),
+            )
+            db.commit()
+
+    def test_reputacao_calcula_vendedor_com_taxa_e_tempo_medio(self):
+        self.preparar_dados_reputacao()
+        with app.app_context():
+            db = get_db()
+            usuario = db.execute(
+                "SELECT * FROM usuarios WHERE id=?", (self.vendedor_id,)
+            ).fetchone()
+            reputacao = app_module.calcular_reputacao_usuario(db, usuario)["vendedor"]
+
+        self.assertEqual(reputacao["vendas_concluidas"], 2)
+        self.assertEqual(reputacao["pedidos_concluidos"], 2)
+        self.assertEqual(reputacao["pedidos_cancelados"], 1)
+        self.assertEqual(reputacao["pedidos_em_analise"], 1)
+        self.assertEqual(reputacao["taxa_conclusao"], 67)
+        self.assertEqual(reputacao["tempo_medio_conclusao"], "1 dia")
+
+    def test_reputacao_calcula_comprador_e_tempo_de_recebimento(self):
+        self.preparar_dados_reputacao()
+        with app.app_context():
+            db = get_db()
+            usuario = db.execute(
+                "SELECT * FROM usuarios WHERE id=?", (self.comprador_id,)
+            ).fetchone()
+            reputacao = app_module.calcular_reputacao_usuario(db, usuario)["comprador"]
+
+        self.assertEqual(reputacao["compras_concluidas"], 2)
+        self.assertEqual(reputacao["compras_canceladas"], 1)
+        self.assertEqual(reputacao["pedidos_em_analise"], 1)
+        self.assertEqual(reputacao["taxa_conclusao"], 67)
+        self.assertEqual(reputacao["tempo_medio_recebimento"], "18h 0min")
+
+    def test_usuario_visualiza_apenas_a_propria_reputacao_completa(self):
+        self.preparar_dados_reputacao()
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get("/minha-conta")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Minha reputação".encode(), pagina.data)
+        self.assertIn("Vendas concluídas".encode(), pagina.data)
+        self.assertIn(b">2</dd>", pagina.data)
+        self.assertNotIn(b"@comprador", pagina.data)
+        bloqueado = self.client.get(f"/admin/reputacao/{self.comprador_id}")
+        self.assertEqual(bloqueado.status_code, 302)
+        self.assertTrue(bloqueado.headers["Location"].endswith("/"))
+
+    def test_admin_visualiza_reputacao_completa_de_qualquer_usuario(self):
+        self.preparar_dados_reputacao()
+        self.autenticar_sessao(self.admin_id, admin=True)
+        pagina = self.client.get(f"/admin/reputacao/{self.comprador_id}")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn(b"@comprador", pagina.data)
+        self.assertIn("Compras concluídas".encode(), pagina.data)
+        self.assertIn("Último acesso".encode(), pagina.data)
+
+    def test_reputacao_publica_expoe_somente_indicadores_permitidos(self):
+        self.preparar_dados_reputacao()
+        pagina = self.client.get(f"/anuncio/{self.anuncio_id}")
+        html = pagina.data.decode("utf-8")
+        inicio = html.index('<div class="public-reputation"')
+        fim = html.index("</dl>", inicio)
+        reputacao_publica = html[inicio:fim]
+
+        self.assertIn("Membro desde", reputacao_publica)
+        self.assertIn("Vendas concluídas", reputacao_publica)
+        self.assertIn("Taxa de conclusão", reputacao_publica)
+        for privado in ("Último acesso", "Pedidos cancelados", "Pedidos em análise", "Tempo médio"):
+            self.assertNotIn(privado, reputacao_publica)
+
+    def test_usuario_nao_pode_editar_indicadores_de_reputacao(self):
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            "/minha-conta",
+            data={
+                "csrf_token": "token-teste",
+                "acao": "perfil",
+                "nome": "Vendedor Atualizado",
+                "whatsapp": "27999999991",
+                "loja_verificada": "1",
+                "vendas_concluidas": "999",
+            },
+        )
+        with app.app_context():
+            verificada = get_db().execute(
+                "SELECT loja_verificada FROM usuarios WHERE id=?", (self.vendedor_id,)
+            ).fetchone()[0]
+            pedidos = get_db().execute(
+                "SELECT COUNT(*) FROM pedidos WHERE vendedor_id=?", (self.vendedor_id,)
+            ).fetchone()[0]
+        self.assertEqual(verificada, 0)
+        self.assertEqual(pedidos, 0)
+
+    def test_login_bem_sucedido_registra_ultimo_acesso(self):
+        with self.client.session_transaction() as sessao:
+            sessao["_csrf_token"] = "token-teste"
+        falha = self.client.post(
+            "/login",
+            data={
+                "csrf_token": "token-teste",
+                "username": "vendedor",
+                "senha": "incorreta",
+            },
+        )
+        self.assertEqual(falha.status_code, 200)
+        with app.app_context():
+            antes = get_db().execute(
+                "SELECT ultimo_acesso_em FROM usuarios WHERE id=?", (self.vendedor_id,)
+            ).fetchone()[0]
+        self.assertIsNone(antes)
+
+        sucesso = self.client.post(
+            "/login",
+            data={
+                "csrf_token": "token-teste",
+                "username": "vendedor",
+                "senha": "senha-segura",
+            },
+        )
+        self.assertEqual(sucesso.status_code, 302)
+        with app.app_context():
+            depois = get_db().execute(
+                "SELECT ultimo_acesso_em FROM usuarios WHERE id=?", (self.vendedor_id,)
+            ).fetchone()[0]
+        self.assertIsNotNone(depois)
+
     def test_criacao_do_pedido_gera_evento_inicial(self):
         pedido_id = self.criar_pedido_de_teste()
         with app.app_context():

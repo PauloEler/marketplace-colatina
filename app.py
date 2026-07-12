@@ -380,6 +380,140 @@ def formatar_duracao_media(segundos):
     return f"{dias} dia{'s' if dias != 1 else ''}"
 
 
+def formatar_data_reputacao(valor, incluir_hora=False):
+    data = converter_data_hora(valor)
+    if not data:
+        return "Ainda não registrado" if incluir_hora else "Não informado"
+    formato = "%d/%m/%Y às %H:%M" if incluir_hora else "%d/%m/%Y"
+    return data.strftime(formato)
+
+
+def _duracao_em_segundos(inicio_valor, fim_valor):
+    inicio = converter_data_hora(inicio_valor)
+    fim = converter_data_hora(fim_valor)
+    if not inicio or not fim:
+        return None
+    if inicio.tzinfo is not None and fim.tzinfo is None:
+        inicio = inicio.replace(tzinfo=None)
+    elif fim.tzinfo is not None and inicio.tzinfo is None:
+        fim = fim.replace(tzinfo=None)
+    return max(0, (fim - inicio).total_seconds())
+
+
+def calcular_reputacoes_usuarios(db, usuarios):
+    """Calcula reputação em lote, sem armazenar contadores editáveis."""
+    usuarios = list(usuarios)
+    if not usuarios:
+        return {}
+
+    reputacoes = {}
+    for usuario in usuarios:
+        base = {
+            "membro_desde": formatar_data_reputacao(usuario["criado_em"]),
+            "ultimo_acesso": formatar_data_reputacao(
+                usuario["ultimo_acesso_em"], incluir_hora=True
+            ),
+            "loja_verificada": bool(usuario["loja_verificada"]),
+        }
+        reputacoes[usuario["id"]] = {
+            "vendedor": {
+                **base,
+                "vendas_concluidas": 0,
+                "pedidos_concluidos": 0,
+                "pedidos_cancelados": 0,
+                "pedidos_em_analise": 0,
+                "taxa_conclusao": 0,
+                "tempo_medio_conclusao": "Sem dados ainda",
+            },
+            "comprador": {
+                **base,
+                "compras_concluidas": 0,
+                "compras_canceladas": 0,
+                "pedidos_em_analise": 0,
+                "taxa_conclusao": 0,
+                "tempo_medio_recebimento": "Sem dados ainda",
+            },
+        }
+
+    ids = [usuario["id"] for usuario in usuarios]
+    marcadores = ",".join("?" for _ in ids)
+    pedidos = db.execute(
+        "SELECT p.vendedor_id, p.comprador_id, p.status, p.criado_em, "
+        "p.atualizado_em, p.comprador_confirmou_em, "
+        "COALESCE(conclusao.criado_em, p.atualizado_em) AS concluido_em "
+        "FROM pedidos p "
+        "LEFT JOIN pedido_eventos conclusao ON conclusao.pedido_id=p.id "
+        "AND conclusao.tipo='PEDIDO_CONCLUIDO' "
+        f"WHERE p.vendedor_id IN ({marcadores}) OR p.comprador_id IN ({marcadores})",
+        tuple(ids + ids),
+    ).fetchall()
+
+    duracoes_vendedor = {usuario_id: [] for usuario_id in ids}
+    duracoes_comprador = {usuario_id: [] for usuario_id in ids}
+    for pedido in pedidos:
+        vendedor_id = pedido["vendedor_id"]
+        comprador_id = pedido["comprador_id"]
+        status = pedido["status"]
+        if vendedor_id in reputacoes:
+            indicador = reputacoes[vendedor_id]["vendedor"]
+            if status == "concluido":
+                indicador["vendas_concluidas"] += 1
+                indicador["pedidos_concluidos"] += 1
+                duracao = _duracao_em_segundos(
+                    pedido["criado_em"], pedido["concluido_em"]
+                )
+                if duracao is not None:
+                    duracoes_vendedor[vendedor_id].append(duracao)
+            elif status in {"cancelado", "recusado"}:
+                indicador["pedidos_cancelados"] += 1
+            elif status == "em_analise":
+                indicador["pedidos_em_analise"] += 1
+
+        if comprador_id in reputacoes:
+            indicador = reputacoes[comprador_id]["comprador"]
+            if status == "concluido":
+                indicador["compras_concluidas"] += 1
+                duracao = _duracao_em_segundos(
+                    pedido["criado_em"], pedido["comprador_confirmou_em"]
+                )
+                if duracao is not None:
+                    duracoes_comprador[comprador_id].append(duracao)
+            elif status in {"cancelado", "recusado"}:
+                indicador["compras_canceladas"] += 1
+            elif status == "em_analise":
+                indicador["pedidos_em_analise"] += 1
+
+    for usuario_id, reputacao in reputacoes.items():
+        vendedor = reputacao["vendedor"]
+        finalizados = vendedor["pedidos_concluidos"] + vendedor["pedidos_cancelados"]
+        vendedor["taxa_conclusao"] = (
+            round(vendedor["pedidos_concluidos"] * 100 / finalizados)
+            if finalizados
+            else 0
+        )
+        duracoes = duracoes_vendedor[usuario_id]
+        vendedor["tempo_medio_conclusao"] = formatar_duracao_media(
+            sum(duracoes) / len(duracoes) if duracoes else None
+        )
+
+        comprador = reputacao["comprador"]
+        finalizados = comprador["compras_concluidas"] + comprador["compras_canceladas"]
+        comprador["taxa_conclusao"] = (
+            round(comprador["compras_concluidas"] * 100 / finalizados)
+            if finalizados
+            else 0
+        )
+        duracoes = duracoes_comprador[usuario_id]
+        comprador["tempo_medio_recebimento"] = formatar_duracao_media(
+            sum(duracoes) / len(duracoes) if duracoes else None
+        )
+    return reputacoes
+
+
+def calcular_reputacao_usuario(db, usuario):
+    return calcular_reputacoes_usuarios(db, [usuario])[usuario["id"]]
+
+
 def validar_perfil_loja(nome, descricao, bairro, whatsapp):
     if nome and (len(nome) < 3 or len(nome) > 60):
         return "O nome da loja deve ter entre 3 e 60 caracteres."
@@ -867,7 +1001,8 @@ def sitemap():
 def anuncio(anuncio_id):
     db = get_db()
     anuncio_item = db.execute(
-        "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp "
+        "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp, u.criado_em AS vendedor_criado_em, "
+        "u.ultimo_acesso_em, u.loja_verificada "
         "FROM anuncios a "
         "JOIN usuarios u ON a.usuario_id = u.id "
         "WHERE a.id=? AND a.ativo=1 AND a.estoque>0",
@@ -887,10 +1022,20 @@ def anuncio(anuncio_id):
         "SELECT * FROM anuncio_fotos WHERE anuncio_id=? ORDER BY ordem, id",
         (anuncio_id,),
     ).fetchall()
+    vendedor_reputacao = calcular_reputacao_usuario(
+        db,
+        {
+            "id": anuncio_item["usuario_id"],
+            "criado_em": anuncio_item["vendedor_criado_em"],
+            "ultimo_acesso_em": anuncio_item["ultimo_acesso_em"],
+            "loja_verificada": anuncio_item["loja_verificada"],
+        },
+    )["vendedor"]
     return render_template(
         "anuncio.html",
         a=anuncio_item,
         fotos=fotos,
+        vendedor_reputacao=vendedor_reputacao,
         denuncia_motivos=DENUNCIA_MOTIVOS,
     )
 
@@ -1026,6 +1171,10 @@ def login():
         ).fetchone()
         if usuario and check_password_hash(usuario["senha"], senha):
             db.execute("DELETE FROM tentativas_login WHERE chave=?", (chave_login,))
+            db.execute(
+                "UPDATE usuarios SET ultimo_acesso_em=CURRENT_TIMESTAMP WHERE id=?",
+                (usuario["id"],),
+            )
             db.commit()
             visita_registrada = session.get("_visita_registrada")
             session.clear()
@@ -1103,7 +1252,13 @@ def minha_conta():
             (session["usuario_id"],),
         ).fetchone()
 
-    return render_template("minha_conta.html", usuario=usuario)
+    reputacao = calcular_reputacao_usuario(db, usuario)
+    return render_template(
+        "minha_conta.html",
+        usuario=usuario,
+        reputacao_vendedor=reputacao["vendedor"],
+        reputacao_comprador=reputacao["comprador"],
+    )
 
 
 @app.route("/recuperar-acesso", methods=["GET", "POST"])
@@ -1628,7 +1783,8 @@ def painel_vendedor():
     usuario_id = session["usuario_id"]
     vendedor = db.execute(
         "SELECT id, nome, whatsapp, loja_nome, loja_descricao, loja_bairro, "
-        "loja_whatsapp, criado_em FROM usuarios WHERE id=? AND ativo=1",
+        "loja_whatsapp, criado_em, ultimo_acesso_em, loja_verificada "
+        "FROM usuarios WHERE id=? AND ativo=1",
         (usuario_id,),
     ).fetchone()
     if not vendedor:
@@ -1747,11 +1903,23 @@ def painel_vendedor():
         ("concluidos", "Concluídos", vendas_concluidas),
         ("cancelados", "Cancelados", pedidos_cancelados),
     )
+    total_finalizados_reputacao = len(vendas_concluidas) + len(pedidos_cancelados)
     reputacao = {
-        "membro_desde": str(vendedor["criado_em"])[:10],
+        "membro_desde": formatar_data_reputacao(vendedor["criado_em"]),
         "vendas_concluidas": len(vendas_concluidas),
+        "pedidos_concluidos": len(vendas_concluidas),
         "pedidos_cancelados": len(pedidos_cancelados),
         "pedidos_em_analise": len(pedidos_em_analise),
+        "taxa_conclusao": (
+            round(len(vendas_concluidas) * 100 / total_finalizados_reputacao)
+            if total_finalizados_reputacao
+            else 0
+        ),
+        "tempo_medio_conclusao": formatar_duracao_media(tempo_medio),
+        "ultimo_acesso": formatar_data_reputacao(
+            vendedor["ultimo_acesso_em"], incluir_hora=True
+        ),
+        "loja_verificada": bool(vendedor["loja_verificada"]),
     }
     return render_template(
         "painel_vendedor.html",
@@ -2552,6 +2720,27 @@ def painel_admin():
         comunicado_tipos=COMUNICADO_TIPOS,
         comunicados=comunicados,
         metricas=metricas,
+    )
+
+
+@app.route("/admin/reputacao/<int:usuario_id>")
+def admin_reputacao_usuario(usuario_id):
+    if not admin():
+        return redirect(url_for("index"))
+    db = get_db()
+    usuario = db.execute(
+        "SELECT id, nome, username, criado_em, ultimo_acesso_em, loja_verificada "
+        "FROM usuarios WHERE id=?",
+        (usuario_id,),
+    ).fetchone()
+    if not usuario:
+        abort(404)
+    reputacao = calcular_reputacao_usuario(db, usuario)
+    return render_template(
+        "reputacao_usuario.html",
+        usuario=usuario,
+        reputacao_vendedor=reputacao["vendedor"],
+        reputacao_comprador=reputacao["comprador"],
     )
 
 

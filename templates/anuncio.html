@@ -29,6 +29,14 @@
         <div class="seller-avatar">{{ a.vendedor_nome[:1]|upper }}</div>
         <div><strong>{{ a.vendedor_nome }}</strong><span>Colatina, ES</span></div>
       </div>
+      <div class="public-reputation" aria-label="Reputação pública do vendedor">
+        {% if vendedor_reputacao.loja_verificada %}<span class="verified-store-badge">Loja verificada</span>{% endif %}
+        <dl>
+          <div><dt>Membro desde</dt><dd>{{ vendedor_reputacao.membro_desde }}</dd></div>
+          <div><dt>Vendas concluídas</dt><dd>{{ vendedor_reputacao.vendas_concluidas }}</dd></div>
+          <div><dt>Taxa de conclusão</dt><dd>{{ vendedor_reputacao.taxa_conclusao }}%</dd></div>
+        </dl>
+      </div>
       {% if session.get('usuario_id') != a.usuario_id %}
       <a class="btn btn-comprar" href="/comprar/{{ a.id }}">Comprar</a>
       {% endif %}

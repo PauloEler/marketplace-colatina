@@ -118,6 +118,8 @@ def _init_sqlite():
             loja_descricao TEXT NOT NULL DEFAULT '',
             loja_bairro TEXT NOT NULL DEFAULT '',
             loja_whatsapp TEXT NOT NULL DEFAULT '',
+            ultimo_acesso_em TIMESTAMP,
+            loja_verificada INTEGER NOT NULL DEFAULT 0,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS anuncios (
@@ -279,6 +281,8 @@ def _init_sqlite():
         "loja_descricao": "TEXT NOT NULL DEFAULT ''",
         "loja_bairro": "TEXT NOT NULL DEFAULT ''",
         "loja_whatsapp": "TEXT NOT NULL DEFAULT ''",
+        "ultimo_acesso_em": "TIMESTAMP",
+        "loja_verificada": "INTEGER NOT NULL DEFAULT 0",
     }
     for nome, tipo in novas_colunas_usuarios.items():
         if nome not in colunas_usuarios:
@@ -343,6 +347,8 @@ def _init_pg():
             loja_descricao TEXT NOT NULL DEFAULT '',
             loja_bairro TEXT NOT NULL DEFAULT '',
             loja_whatsapp TEXT NOT NULL DEFAULT '',
+            ultimo_acesso_em TIMESTAMP,
+            loja_verificada INTEGER NOT NULL DEFAULT 0,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -546,6 +552,8 @@ def _init_pg():
         "loja_descricao": "TEXT NOT NULL DEFAULT ''",
         "loja_bairro": "TEXT NOT NULL DEFAULT ''",
         "loja_whatsapp": "TEXT NOT NULL DEFAULT ''",
+        "ultimo_acesso_em": "TIMESTAMP",
+        "loja_verificada": "INTEGER NOT NULL DEFAULT 0",
     }.items():
         db.execute(f"ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS {coluna} {tipo}")
     db.execute(

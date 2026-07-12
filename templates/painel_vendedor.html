@@ -160,8 +160,13 @@
       <dl>
         <div><dt>Membro desde</dt><dd>{{ reputacao.membro_desde }}</dd></div>
         <div><dt>Vendas concluídas</dt><dd>{{ reputacao.vendas_concluidas }}</dd></div>
+        <div><dt>Pedidos concluídos</dt><dd>{{ reputacao.pedidos_concluidos }}</dd></div>
         <div><dt>Pedidos cancelados</dt><dd>{{ reputacao.pedidos_cancelados }}</dd></div>
         <div><dt>Pedidos em análise</dt><dd>{{ reputacao.pedidos_em_analise }}</dd></div>
+        <div><dt>Taxa de conclusão</dt><dd>{{ reputacao.taxa_conclusao }}%</dd></div>
+        <div><dt>Tempo médio até concluir</dt><dd>{{ reputacao.tempo_medio_conclusao }}</dd></div>
+        <div><dt>Último acesso</dt><dd>{{ reputacao.ultimo_acesso }}</dd></div>
+        <div><dt>Loja verificada</dt><dd>{{ 'Sim' if reputacao.loja_verificada else 'Ainda não' }}</dd></div>
       </dl>
     </aside>
   </section>

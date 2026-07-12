@@ -1,0 +1,36 @@
+<section class="reputation-full" aria-labelledby="reputation-title">
+  <div class="reputation-heading">
+    <div><div class="section-kicker">Indicadores automáticos</div><h2 id="reputation-title">Minha reputação</h2></div>
+    <span class="reputation-readonly">Calculada pelo sistema</span>
+  </div>
+  <p class="reputation-explanation">Estes indicadores são gerados a partir do histórico de pedidos e não podem ser editados.</p>
+  <div class="reputation-role-grid">
+    <article class="reputation-role-card">
+      <h3>Como vendedor</h3>
+      {% if reputacao_vendedor.loja_verificada %}<span class="verified-store-badge">Loja verificada</span>{% endif %}
+      <dl>
+        <div><dt>Membro desde</dt><dd>{{ reputacao_vendedor.membro_desde }}</dd></div>
+        <div><dt>Vendas concluídas</dt><dd>{{ reputacao_vendedor.vendas_concluidas }}</dd></div>
+        <div><dt>Pedidos concluídos</dt><dd>{{ reputacao_vendedor.pedidos_concluidos }}</dd></div>
+        <div><dt>Pedidos cancelados</dt><dd>{{ reputacao_vendedor.pedidos_cancelados }}</dd></div>
+        <div><dt>Pedidos em análise</dt><dd>{{ reputacao_vendedor.pedidos_em_analise }}</dd></div>
+        <div><dt>Taxa de conclusão</dt><dd>{{ reputacao_vendedor.taxa_conclusao }}%</dd></div>
+        <div><dt>Tempo médio até concluir</dt><dd>{{ reputacao_vendedor.tempo_medio_conclusao }}</dd></div>
+        <div><dt>Último acesso</dt><dd>{{ reputacao_vendedor.ultimo_acesso }}</dd></div>
+        <div><dt>Loja verificada</dt><dd>{{ 'Sim' if reputacao_vendedor.loja_verificada else 'Ainda não' }}</dd></div>
+      </dl>
+    </article>
+    <article class="reputation-role-card">
+      <h3>Como comprador</h3>
+      <dl>
+        <div><dt>Membro desde</dt><dd>{{ reputacao_comprador.membro_desde }}</dd></div>
+        <div><dt>Compras concluídas</dt><dd>{{ reputacao_comprador.compras_concluidas }}</dd></div>
+        <div><dt>Compras canceladas</dt><dd>{{ reputacao_comprador.compras_canceladas }}</dd></div>
+        <div><dt>Pedidos em análise</dt><dd>{{ reputacao_comprador.pedidos_em_analise }}</dd></div>
+        <div><dt>Taxa de conclusão</dt><dd>{{ reputacao_comprador.taxa_conclusao }}%</dd></div>
+        <div><dt>Tempo médio para confirmar recebimento</dt><dd>{{ reputacao_comprador.tempo_medio_recebimento }}</dd></div>
+        <div><dt>Último acesso</dt><dd>{{ reputacao_comprador.ultimo_acesso }}</dd></div>
+      </dl>
+    </article>
+  </div>
+</section>
