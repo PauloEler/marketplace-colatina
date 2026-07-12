@@ -41,6 +41,10 @@ class _PgCursor:
     def fetchall(self):
         return [self._wrap(r) for r in self._c.fetchall()]
 
+    @property
+    def rowcount(self):
+        return self._c.rowcount
+
 
 class _PgConn:
     def __init__(self, conn):
@@ -53,6 +57,9 @@ class _PgConn:
 
     def commit(self):
         self._c.commit()
+
+    def rollback(self):
+        self._c.rollback()
 
     def close(self):
         self._c.close()
@@ -168,6 +175,23 @@ def _init_sqlite():
             ON pedidos(vendedor_id, criado_em);
         CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status
             ON pedidos(anuncio_id, status);
+        CREATE TABLE IF NOT EXISTS pedido_eventos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pedido_id INTEGER NOT NULL,
+            tipo TEXT NOT NULL,
+            usuario_id INTEGER,
+            papel_usuario TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            dados_adicionais TEXT NOT NULL DEFAULT '{}',
+            estado_anterior TEXT,
+            estado_posterior TEXT,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+            UNIQUE (pedido_id, tipo)
+        );
+        CREATE INDEX IF NOT EXISTS idx_pedido_eventos_pedido_data
+            ON pedido_eventos(pedido_id, criado_em, id);
         CREATE TABLE IF NOT EXISTS denuncias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             anuncio_id INTEGER NOT NULL,
@@ -264,10 +288,23 @@ def _init_sqlite():
         "admin_email_enviado_em": "TIMESTAMP",
         "vendedor_confirmou_em": "TIMESTAMP",
         "comprador_confirmou_em": "TIMESTAMP",
+        "problema_motivo": "TEXT",
+        "problema_descricao": "TEXT",
+        "problema_relator_id": "INTEGER",
+        "problema_relator_papel": "TEXT",
+        "problema_relatado_em": "TIMESTAMP",
     }
     for nome, tipo in novas_colunas_pedidos.items():
         if nome not in colunas_pedidos:
             db.execute(f"ALTER TABLE pedidos ADD COLUMN {nome} {tipo}")
+    db.execute(
+        "INSERT OR IGNORE INTO pedido_eventos "
+        "(pedido_id, tipo, usuario_id, papel_usuario, descricao, dados_adicionais, "
+        "estado_anterior, estado_posterior, criado_em) "
+        "SELECT p.id, 'PEDIDO_CRIADO', NULL, 'sistema', "
+        "'Pedido existente incorporado ao histórico', '{\"legado\":true}', "
+        "NULL, p.status, p.criado_em FROM pedidos p"
+    )
     _seed_admin(db)
     _hash_plain_passwords(db)
     db.commit()
@@ -386,6 +423,29 @@ def _init_pg():
     )
     db.execute(
         """
+        CREATE TABLE IF NOT EXISTS pedido_eventos (
+            id SERIAL PRIMARY KEY,
+            pedido_id INTEGER NOT NULL,
+            tipo TEXT NOT NULL,
+            usuario_id INTEGER,
+            papel_usuario TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            dados_adicionais TEXT NOT NULL DEFAULT '{}',
+            estado_anterior TEXT,
+            estado_posterior TEXT,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (pedido_id) REFERENCES pedidos(id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+            UNIQUE (pedido_id, tipo)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pedido_eventos_pedido_data "
+        "ON pedido_eventos(pedido_id, criado_em, id)"
+    )
+    db.execute(
+        """
         CREATE TABLE IF NOT EXISTS denuncias (
             id SERIAL PRIMARY KEY,
             anuncio_id INTEGER NOT NULL,
@@ -477,8 +537,22 @@ def _init_pg():
         "admin_email_enviado_em": "TIMESTAMP",
         "vendedor_confirmou_em": "TIMESTAMP",
         "comprador_confirmou_em": "TIMESTAMP",
+        "problema_motivo": "TEXT",
+        "problema_descricao": "TEXT",
+        "problema_relator_id": "INTEGER",
+        "problema_relator_papel": "TEXT",
+        "problema_relatado_em": "TIMESTAMP",
     }.items():
         db.execute(f"ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS {coluna} {tipo}")
+    db.execute(
+        "INSERT INTO pedido_eventos "
+        "(pedido_id, tipo, usuario_id, papel_usuario, descricao, dados_adicionais, "
+        "estado_anterior, estado_posterior, criado_em) "
+        "SELECT p.id, 'PEDIDO_CRIADO', NULL, 'sistema', "
+        "'Pedido existente incorporado ao histórico', '{\"legado\":true}', "
+        "NULL, p.status, p.criado_em FROM pedidos p "
+        "ON CONFLICT (pedido_id, tipo) DO NOTHING"
+    )
     _seed_admin(db)
     db.commit()
     db.close()

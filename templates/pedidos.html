@@ -99,14 +99,29 @@
             <a class="btn btn-mp" href="/minha-conta">Conectar Mercado Pago</a>
           {% endif %}
         {% endif %}
-        <form method="POST" action="/pedido/{{ p.id }}/problema">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn btn-cinza" type="submit">Relatar problema</button>
-        </form>
+        <details class="order-problem-form">
+          <summary>Relatar problema</summary>
+          <form method="POST" action="/pedido/{{ p.id }}/problema">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label>O que aconteceu?
+              <select name="motivo" required>
+                <option value="">Escolha um motivo</option>
+                {% for valor, rotulo in problema_motivos.items() %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}
+              </select>
+            </label>
+            <label>Descrição <span>(opcional, obrigatória para Outro)</span>
+              <textarea name="descricao" maxlength="1000" rows="3" placeholder="Explique de forma objetiva, sem informar senhas ou dados bancários."></textarea>
+            </label>
+            <button class="btn btn-cinza" type="submit">Enviar para análise</button>
+          </form>
+        </details>
       {% elif p.status == 'em_analise' %}
         <span class="payment-waiting-note">Pedido em analise pelo administrador</span>
+        {% if p.problema_motivo %}<span class="order-problem-reason">Motivo: {{ problema_motivos.get(p.problema_motivo, p.problema_motivo) }}</span>{% endif %}
       {% endif %}
     </div>
+    {% set eventos = eventos_por_pedido.get(p.id, []) %}
+    {% include '_pedido_timeline.html' %}
   </div>
 </article>
 {% endmacro %}
