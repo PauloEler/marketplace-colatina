@@ -453,6 +453,30 @@ class ModeracaoTestCase(unittest.TestCase):
             )
             self.assertEqual(status, "concluido")
 
+    def test_novo_pedido_dispara_email_administrativo_e_registra_envio(self):
+        with patch.object(
+            app_module, "enviar_alerta_novo_pedido", return_value="enviado"
+        ) as enviar:
+            pedido_id = self.criar_pedido_de_teste()
+
+        enviar.assert_called_once()
+        with app.app_context():
+            pedido = get_db().execute(
+                "SELECT admin_email_status, admin_email_enviado_em FROM pedidos WHERE id=?",
+                (pedido_id,),
+            ).fetchone()
+            self.assertEqual(pedido["admin_email_status"], "enviado")
+            self.assertIsNotNone(pedido["admin_email_enviado_em"])
+
+    def test_admin_recebe_alerta_grande_para_pedido_pendente(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.admin_id, admin=True)
+        painel = self.client.get("/admin")
+
+        self.assertEqual(painel.status_code, 200)
+        self.assertIn(b"admin-sales-alert", painel.data)
+        self.assertIn(f"Pedido #{pedido_id}".encode(), painel.data)
+
     def test_cancelamento_nao_reativa_anuncio_retirado_pela_moderacao(self):
         pedido_id = self.criar_pedido_de_teste()
         self.autenticar_sessao(self.vendedor_id)
