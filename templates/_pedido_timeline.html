@@ -1,0 +1,23 @@
+<details class="order-timeline">
+  <summary>Ver histórico do pedido ({{ eventos|length }})</summary>
+  <ol>
+    {% for evento in eventos %}
+    <li>
+      <span class="timeline-dot"></span>
+      <div>
+        <strong>{{ evento.descricao }}</strong>
+        <small>
+          {{ evento.criado_em }} ·
+          {% if evento.papel_usuario == 'sistema' %}Sistema
+          {% elif evento.papel_usuario == 'administrador' %}Administrador
+          {% elif evento.papel_usuario == 'comprador' %}Comprador
+          {% else %}Vendedor{% endif %}
+          {% if evento.usuario_nome %} — {{ evento.usuario_nome }}{% endif %}
+        </small>
+      </div>
+    </li>
+    {% else %}
+    <li><div><strong>Histórico ainda não disponível.</strong></div></li>
+    {% endfor %}
+  </ol>
+</details>

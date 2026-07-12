@@ -17,7 +17,7 @@ os.environ["SECRET_KEY"] = "test-secret-key"
 
 import app as app_module  # noqa: E402
 from app import app  # noqa: E402
-from database import USE_PG, get_db  # noqa: E402
+from database import USE_PG, get_db, init_db  # noqa: E402
 
 
 if USE_PG:
@@ -39,6 +39,7 @@ class ModeracaoTestCase(unittest.TestCase):
                 "tentativas_login",
                 "anuncio_fotos",
                 "denuncias",
+                "pedido_eventos",
                 "pedidos",
                 "pagamentos",
                 "anuncios",
@@ -476,6 +477,68 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIsNotNone(pedido["comprador_confirmou_em"])
             self.assertIsNotNone(pedido["vendedor_confirmou_em"])
 
+    def tipos_eventos(self, pedido_id):
+        with app.app_context():
+            return [
+                linha["tipo"]
+                for linha in get_db().execute(
+                    "SELECT tipo FROM pedido_eventos WHERE pedido_id=? ORDER BY id",
+                    (pedido_id,),
+                ).fetchall()
+            ]
+
+    def test_criacao_do_pedido_gera_evento_inicial(self):
+        pedido_id = self.criar_pedido_de_teste()
+        with app.app_context():
+            evento = get_db().execute(
+                "SELECT * FROM pedido_eventos WHERE pedido_id=? AND tipo='PEDIDO_CRIADO'",
+                (pedido_id,),
+            ).fetchone()
+            self.assertIsNotNone(evento)
+            self.assertEqual(evento["usuario_id"], self.comprador_id)
+            self.assertEqual(evento["papel_usuario"], "comprador")
+            self.assertEqual(evento["estado_posterior"], "aguardando")
+
+    def test_confirmacao_registra_vendedor_e_reserva_de_estoque(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
+        )
+        tipos = self.tipos_eventos(pedido_id)
+        self.assertIn("VENDEDOR_CONFIRMOU", tipos)
+        self.assertIn("ESTOQUE_RESERVADO", tipos)
+        with app.app_context():
+            evento_sistema = get_db().execute(
+                "SELECT papel_usuario FROM pedido_eventos "
+                "WHERE pedido_id=? AND tipo='ESTOQUE_RESERVADO'", (pedido_id,)
+            ).fetchone()
+            self.assertEqual(evento_sistema["papel_usuario"], "sistema")
+
+    def test_dupla_confirmacao_registra_eventos_e_conclusao(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
+        )
+        self.client.post(
+            f"/pedido/{pedido_id}/concluir", data={"csrf_token": "token-teste"}
+        )
+        self.autenticar_sessao(self.comprador_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/concluir", data={"csrf_token": "token-teste"}
+        )
+        tipos = self.tipos_eventos(pedido_id)
+        self.assertIn("VENDA_MARCADA_COMO_REALIZADA", tipos)
+        self.assertIn("COMPRADOR_CONFIRMOU_RECEBIMENTO", tipos)
+        self.assertIn("PEDIDO_CONCLUIDO", tipos)
+        with app.app_context():
+            conclusao = get_db().execute(
+                "SELECT papel_usuario FROM pedido_eventos "
+                "WHERE pedido_id=? AND tipo='PEDIDO_CONCLUIDO'", (pedido_id,)
+            ).fetchone()
+            self.assertEqual(conclusao["papel_usuario"], "sistema")
+
     def test_vendedor_sozinho_nao_conclui_pedido(self):
         pedido_id = self.criar_pedido_de_teste()
         self.autenticar_sessao(self.vendedor_id)
@@ -536,6 +599,9 @@ class ModeracaoTestCase(unittest.TestCase):
             ).fetchone()
             self.assertEqual(anuncio["estoque"], 1)
             self.assertEqual(anuncio["ativo"], 1)
+        tipos = self.tipos_eventos(pedido_id)
+        self.assertIn("PEDIDO_CANCELADO", tipos)
+        self.assertIn("ESTOQUE_DEVOLVIDO", tipos)
 
     def test_usuario_pode_enviar_pedido_confirmado_para_analise(self):
         pedido_id = self.criar_pedido_de_teste()
@@ -547,13 +613,162 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.comprador_id)
         self.client.post(
             f"/pedido/{pedido_id}/problema",
-            data={"csrf_token": "token-teste"},
+            data={
+                "csrf_token": "token-teste",
+                "motivo": "PRODUTO_NAO_ENTREGUE",
+                "descricao": "A entrega combinada não aconteceu.",
+            },
+        )
+        with app.app_context():
+            db = get_db()
+            pedido = db.execute(
+                "SELECT status, problema_motivo, problema_descricao, problema_relator_id "
+                "FROM pedidos WHERE id=?", (pedido_id,)
+            ).fetchone()
+            self.assertEqual(pedido["status"], "em_analise")
+            self.assertEqual(pedido["problema_motivo"], "PRODUTO_NAO_ENTREGUE")
+            self.assertEqual(pedido["problema_relator_id"], self.comprador_id)
+            self.assertIn("entrega", pedido["problema_descricao"])
+        tipos = self.tipos_eventos(pedido_id)
+        self.assertIn("PROBLEMA_RELATADO", tipos)
+        self.assertIn("PEDIDO_EM_ANALISE", tipos)
+        self.autenticar_sessao(self.comprador_id)
+        historico = self.client.get(f"/pedido/{pedido_id}/historico")
+        self.assertIn("Produto não entregue".encode(), historico.data)
+        self.assertNotIn("A entrega combinada não aconteceu.".encode(), historico.data)
+        self.autenticar_sessao(self.admin_id, admin=True)
+        painel = self.client.get("/admin")
+        self.assertIn("A entrega combinada não aconteceu.".encode(), painel.data)
+
+    def test_relatar_problema_exige_motivo_e_outro_exige_descricao(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
+        )
+        self.autenticar_sessao(self.comprador_id)
+        sem_motivo = self.client.post(
+            f"/pedido/{pedido_id}/problema", data={"csrf_token": "token-teste"}
+        )
+        outro_sem_descricao = self.client.post(
+            f"/pedido/{pedido_id}/problema",
+            data={"csrf_token": "token-teste", "motivo": "OUTRO"},
+        )
+        self.assertEqual(sem_motivo.status_code, 302)
+        self.assertEqual(outro_sem_descricao.status_code, 302)
+        with app.app_context():
+            pedido = get_db().execute(
+                "SELECT status, problema_motivo FROM pedidos WHERE id=?", (pedido_id,)
+            ).fetchone()
+            self.assertEqual(pedido["status"], "confirmado")
+            self.assertIsNone(pedido["problema_motivo"])
+        self.assertNotIn("PROBLEMA_RELATADO", self.tipos_eventos(pedido_id))
+
+    def test_relatar_problema_nao_altera_estoque(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
+        )
+        with app.app_context():
+            estoque_antes = get_db().execute(
+                "SELECT estoque FROM anuncios WHERE id=?", (self.anuncio_id,)
+            ).fetchone()[0]
+        self.autenticar_sessao(self.comprador_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/problema",
+            data={"csrf_token": "token-teste", "motivo": "VENDEDOR_NAO_RESPONDE"},
+        )
+        with app.app_context():
+            estoque_depois = get_db().execute(
+                "SELECT estoque FROM anuncios WHERE id=?", (self.anuncio_id,)
+            ).fetchone()[0]
+            self.assertEqual(estoque_depois, estoque_antes)
+
+    def test_historico_respeita_permissoes_de_comprador_vendedor_e_admin(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.comprador_id)
+        self.assertEqual(
+            self.client.get(f"/pedido/{pedido_id}/historico").status_code, 200
+        )
+        self.autenticar_sessao(self.vendedor_id)
+        self.assertEqual(
+            self.client.get(f"/pedido/{pedido_id}/historico").status_code, 200
+        )
+        self.autenticar_sessao(self.admin_id, admin=True)
+        self.assertEqual(
+            self.client.get(f"/pedido/{pedido_id}/historico").status_code, 200
+        )
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO usuarios (nome, username, senha, whatsapp) VALUES (?,?,?,?)",
+                ("Pessoa alheia", "alheio", generate_password_hash("senha-segura"), "27999999994"),
+            )
+            alheio_id = db.execute(
+                "SELECT id FROM usuarios WHERE username='alheio'"
+            ).fetchone()[0]
+            db.commit()
+        self.autenticar_sessao(alheio_id)
+        self.assertEqual(
+            self.client.get(f"/pedido/{pedido_id}/historico").status_code, 403
+        )
+
+    def test_eventos_nao_sao_duplicados_por_cliques_repetidos(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        for _ in range(2):
+            self.client.post(
+                f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
+            )
+        self.client.post(
+            f"/pedido/{pedido_id}/concluir", data={"csrf_token": "token-teste"}
+        )
+        self.client.post(
+            f"/pedido/{pedido_id}/concluir", data={"csrf_token": "token-teste"}
+        )
+        with app.app_context():
+            db = get_db()
+            for tipo in ("VENDEDOR_CONFIRMOU", "ESTOQUE_RESERVADO", "VENDA_MARCADA_COMO_REALIZADA"):
+                total = db.execute(
+                    "SELECT COUNT(*) FROM pedido_eventos WHERE pedido_id=? AND tipo=?",
+                    (pedido_id, tipo),
+                ).fetchone()[0]
+                self.assertEqual(total, 1)
+            estoque = db.execute(
+                "SELECT estoque FROM anuncios WHERE id=?", (self.anuncio_id,)
+            ).fetchone()[0]
+            self.assertEqual(estoque, 0)
+
+    def test_pedido_legado_recebe_marco_inicial_e_continua_funcionando(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO pedidos (anuncio_id, comprador_id, vendedor_id, valor, status) "
+                "VALUES (?,?,?,?,?)",
+                (self.anuncio_id, self.comprador_id, self.vendedor_id, "1.200,00", "aguardando"),
+            )
+            pedido_id = db.execute("SELECT MAX(id) FROM pedidos").fetchone()[0]
+            db.commit()
+        init_db()
+        self.assertEqual(self.tipos_eventos(pedido_id), ["PEDIDO_CRIADO"])
+        with app.app_context():
+            evento = get_db().execute(
+                "SELECT usuario_id, papel_usuario, dados_adicionais FROM pedido_eventos "
+                "WHERE pedido_id=?", (pedido_id,)
+            ).fetchone()
+            self.assertIsNone(evento["usuario_id"])
+            self.assertEqual(evento["papel_usuario"], "sistema")
+            self.assertIn('"legado":true', evento["dados_adicionais"])
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
         )
         with app.app_context():
             status = get_db().execute(
                 "SELECT status FROM pedidos WHERE id=?", (pedido_id,)
             ).fetchone()[0]
-            self.assertEqual(status, "em_analise")
+            self.assertEqual(status, "confirmado")
 
     def test_novo_pedido_dispara_email_administrativo_e_registra_envio(self):
         with patch.object(

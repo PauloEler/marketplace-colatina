@@ -250,7 +250,7 @@
 <h3 style="margin-bottom:10px">Central de pedidos ({{ pedidos|length }})</h3>
 <div style="overflow-x:auto">
 <table>
-  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>Conclusao</th><th>E-mail</th><th>Data</th><th>Acoes</th></tr></thead>
+  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>Conclusao</th><th>E-mail</th><th>Data</th><th>Rastreabilidade</th><th>Acoes</th></tr></thead>
   <tbody>
   {% for p in pedidos %}
   <tr id="pedido-{{ p.id }}" class="{{ 'admin-order-new' if p.status in ['aguardando', 'confirmado', 'em_analise'] else '' }}">
@@ -279,6 +279,14 @@
       {% if p.admin_email_enviado_em %}<br><span class="table-subtext">{{ p.admin_email_enviado_em }}</span>{% endif %}
     </td>
     <td>{{ p.criado_em }}</td>
+    <td class="admin-order-history">
+      {% if p.problema_motivo %}
+      <strong>{{ problema_motivos.get(p.problema_motivo, p.problema_motivo) }}</strong>
+      {% if p.problema_descricao %}<p>{{ p.problema_descricao }}</p>{% endif %}
+      <small>Relatado por: {{ p.problema_relator_papel }}</small>
+      {% endif %}
+      <a href="/pedido/{{ p.id }}/historico">Abrir histórico</a>
+    </td>
     <td>
       <form method="POST" action="/admin/pedido/{{ p.id }}/reenviar-email">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -287,7 +295,7 @@
     </td>
   </tr>
   {% else %}
-  <tr><td colspan="12">Nenhum pedido registrado.</td></tr>
+  <tr><td colspan="13">Nenhum pedido registrado.</td></tr>
   {% endfor %}
   </tbody>
 </table>

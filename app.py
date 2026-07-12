@@ -4,6 +4,7 @@ import secrets
 import base64
 import hashlib
 import hmac
+import json
 import time
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
@@ -142,6 +143,15 @@ COMUNICADO_TIPOS = {
     "informacao": "Informação",
     "atencao": "Atenção",
     "novidade": "Novidade",
+}
+PROBLEMA_MOTIVOS = {
+    "PRODUTO_NAO_ENTREGUE": "Produto não entregue",
+    "COMPRADOR_DESISTIU": "Comprador desistiu",
+    "PRODUTO_DIFERENTE_DO_ANUNCIADO": "Produto diferente do anunciado",
+    "PAGAMENTO_NAO_COMBINADO": "Pagamento não combinado",
+    "VENDEDOR_NAO_RESPONDE": "Vendedor não responde",
+    "COMPRADOR_NAO_RESPONDE": "Comprador não responde",
+    "OUTRO": "Outro",
 }
 LOGIN_MAX_FALHAS = 5
 LOGIN_JANELA_SEGUNDOS = 15 * 60
@@ -384,6 +394,66 @@ def registrar_status_email_pedido(db, pedido_id, email_status):
         "WHERE id=?",
         (email_status, email_status, pedido_id),
     )
+
+
+def papel_usuario_pedido(pedido, usuario_id, e_admin=False):
+    if e_admin:
+        return "administrador"
+    if pedido["comprador_id"] == usuario_id:
+        return "comprador"
+    if pedido["vendedor_id"] == usuario_id:
+        return "vendedor"
+    return "sistema"
+
+
+def registrar_evento_pedido(
+    db,
+    pedido_id,
+    tipo,
+    descricao,
+    usuario_id=None,
+    papel_usuario="sistema",
+    estado_anterior=None,
+    estado_posterior=None,
+    dados_adicionais=None,
+):
+    dados = json.dumps(
+        dados_adicionais or {}, ensure_ascii=False, separators=(",", ":")
+    )
+    return db.execute(
+        "INSERT INTO pedido_eventos "
+        "(pedido_id, tipo, usuario_id, papel_usuario, descricao, dados_adicionais, "
+        "estado_anterior, estado_posterior) VALUES (?,?,?,?,?,?,?,?) "
+        "ON CONFLICT (pedido_id, tipo) DO NOTHING",
+        (
+            pedido_id,
+            tipo,
+            usuario_id,
+            papel_usuario,
+            descricao,
+            dados,
+            estado_anterior,
+            estado_posterior,
+        ),
+    )
+
+
+def buscar_eventos_pedidos(db, pedidos_lista):
+    ids = [pedido["id"] for pedido in pedidos_lista]
+    eventos_por_pedido = {pedido_id: [] for pedido_id in ids}
+    if not ids:
+        return eventos_por_pedido
+    marcadores = ",".join("?" for _ in ids)
+    eventos = db.execute(
+        "SELECT e.*, u.nome AS usuario_nome FROM pedido_eventos e "
+        "LEFT JOIN usuarios u ON u.id=e.usuario_id "
+        f"WHERE e.pedido_id IN ({marcadores}) "
+        "ORDER BY e.criado_em ASC, e.id ASC",
+        tuple(ids),
+    ).fetchall()
+    for evento in eventos:
+        eventos_por_pedido[evento["pedido_id"]].append(evento)
+    return eventos_por_pedido
 
 
 def buscar_pedido_admin(db, pedido_id):
@@ -1563,7 +1633,6 @@ def comprar(anuncio_id):
                 observacao,
             ),
         )
-        db.commit()
         pedido_criado = db.execute(
             "SELECT p.*, a.titulo, comprador.nome AS comprador_nome, "
             "vendedor.nome AS vendedor_nome FROM pedidos p "
@@ -1574,6 +1643,17 @@ def comprar(anuncio_id):
             "ORDER BY p.id DESC LIMIT 1",
             (anuncio_id, session["usuario_id"]),
         ).fetchone()
+        registrar_evento_pedido(
+            db,
+            pedido_criado["id"],
+            "PEDIDO_CRIADO",
+            "Pedido criado",
+            session["usuario_id"],
+            "comprador",
+            estado_posterior="aguardando",
+            dados_adicionais={"entrega": entrega},
+        )
+        db.commit()
         try:
             email_status = enviar_alerta_novo_pedido(
                 pedido_criado, url_for("painel_admin", _external=True)
@@ -1612,7 +1692,43 @@ def pedidos():
         campos + "WHERE p.vendedor_id=? ORDER BY p.criado_em DESC",
         (session["usuario_id"],),
     ).fetchall()
-    return render_template("pedidos.html", compras=compras, vendas=vendas)
+    eventos_por_pedido = buscar_eventos_pedidos(db, list(compras) + list(vendas))
+    return render_template(
+        "pedidos.html",
+        compras=compras,
+        vendas=vendas,
+        eventos_por_pedido=eventos_por_pedido,
+        problema_motivos=PROBLEMA_MOTIVOS,
+    )
+
+
+@app.route("/pedido/<int:pedido_id>/historico")
+def historico_pedido(pedido_id):
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    pedido = db.execute(
+        "SELECT p.*, a.titulo, comprador.nome AS comprador_nome, "
+        "vendedor.nome AS vendedor_nome FROM pedidos p "
+        "JOIN anuncios a ON a.id=p.anuncio_id "
+        "JOIN usuarios comprador ON comprador.id=p.comprador_id "
+        "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id WHERE p.id=?",
+        (pedido_id,),
+    ).fetchone()
+    if not pedido:
+        abort(404)
+    if not admin() and session["usuario_id"] not in {
+        pedido["comprador_id"],
+        pedido["vendedor_id"],
+    }:
+        abort(403)
+    eventos = buscar_eventos_pedidos(db, [pedido])[pedido_id]
+    return render_template(
+        "historico_pedido.html",
+        p=pedido,
+        eventos=eventos,
+        problema_motivos=PROBLEMA_MOTIVOS,
+    )
 
 
 @app.route("/pedido/<int:pedido_id>/<acao>", methods=["POST"])
@@ -1664,126 +1780,211 @@ def atualizar_pedido(pedido_id, acao):
             "Um pedido pago precisa passar pelo atendimento para ser cancelado.", "erro"
         )
         return redirect(url_for("pedidos"))
-
-    if acao == "confirmar":
-        anuncio_estoque = db.execute(
-            "SELECT estoque FROM anuncios WHERE id=?",
-            (pedido["anuncio_id"],),
-        ).fetchone()
-        if not anuncio_estoque or anuncio_estoque["estoque"] <= 0:
-            db.execute(
-                "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-                (pedido_id,),
-            )
-            db.commit()
-            flash("Pedido recusado porque o estoque acabou.", "erro")
+    motivo = request.form.get("motivo", "").strip()
+    descricao_problema = request.form.get("descricao", "").strip()
+    if acao == "problema":
+        if motivo not in PROBLEMA_MOTIVOS:
+            flash("Escolha o motivo do problema.", "erro")
+            return redirect(url_for("pedidos"))
+        if motivo == "OUTRO" and not descricao_problema:
+            flash("Descreva o que aconteceu ao escolher Outro.", "erro")
+            return redirect(url_for("pedidos"))
+        if len(descricao_problema) > 1000:
+            flash("A descrição do problema deve ter no máximo 1000 caracteres.", "erro")
             return redirect(url_for("pedidos"))
 
-        db.execute(
-            "UPDATE pedidos SET status='confirmado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-            (pedido_id,),
-        )
-        db.execute(
-            "UPDATE anuncios SET estoque=estoque-1, "
-            "ativo=CASE WHEN estoque-1<=0 THEN 0 ELSE ativo END WHERE id=?",
-            (pedido["anuncio_id"],),
-        )
-        if anuncio_estoque["estoque"] <= 1:
-            db.execute(
-                "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
-                "WHERE anuncio_id=? AND id<>? AND status='aguardando'",
-                (pedido["anuncio_id"], pedido_id),
+    papel = papel_usuario_pedido(pedido, usuario_id, e_admin)
+    try:
+        if acao == "confirmar":
+            atualizacao = db.execute(
+                "UPDATE pedidos SET status='confirmado', atualizado_em=CURRENT_TIMESTAMP "
+                "WHERE id=? AND status='aguardando'",
+                (pedido_id,),
             )
-            mensagem = "Pedido confirmado. Ultima unidade reservada e anuncio pausado."
-        else:
-            mensagem = "Pedido confirmado e 1 unidade reservada."
-    elif acao == "recusar":
-        db.execute(
-            "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-            (pedido_id,),
-        )
-        mensagem = "Pedido recusado."
-    elif acao == "cancelar":
-        estava_confirmado = pedido["status"] in {"confirmado", "em_analise"}
-        db.execute(
-            "UPDATE pedidos SET status='cancelado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-            (pedido_id,),
-        )
-        if estava_confirmado:
-            db.execute(
-                "UPDATE anuncios SET estoque=estoque+1 WHERE id=?",
+            if atualizacao.rowcount != 1:
+                db.rollback()
+                flash("Este pedido já foi atualizado.", "erro")
+                return redirect(url_for("pedidos"))
+            reserva = db.execute(
+                "UPDATE anuncios SET estoque=estoque-1, "
+                "ativo=CASE WHEN estoque-1<=0 THEN 0 ELSE ativo END "
+                "WHERE id=? AND estoque>0",
                 (pedido["anuncio_id"],),
             )
-            anuncio_moderado = db.execute(
-                "SELECT id FROM denuncias WHERE anuncio_id=? AND status='resolvida' LIMIT 1",
-                (pedido["anuncio_id"],),
-            ).fetchone()
-            vendedor = db.execute(
-                "SELECT ativo FROM usuarios WHERE id=?", (pedido["vendedor_id"],)
-            ).fetchone()
-            pode_reativar, _ = pode_criar_anuncio(pedido["vendedor_id"])
-            if (
-                vendedor
-                and vendedor["ativo"]
-                and not anuncio_moderado
-                and pode_reativar
-            ):
+            if reserva.rowcount != 1:
+                db.rollback()
                 db.execute(
-                    "UPDATE anuncios SET ativo=1 WHERE id=?",
-                    (pedido["anuncio_id"],),
-                )
-                mensagem = "Pedido cancelado e anúncio disponibilizado novamente."
-            else:
-                mensagem = "Pedido cancelado. O anúncio permaneceu pausado para revisão do vendedor."
-        else:
-            mensagem = "Pedido cancelado."
-    elif acao == "problema":
-        db.execute(
-            "UPDATE pedidos SET status='em_analise', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-            (pedido_id,),
-        )
-        mensagem = "Pedido enviado para analise do administrador."
-    else:
-        if e_admin:
-            db.execute(
-                "UPDATE pedidos SET status='concluido', "
-                "vendedor_confirmou_em=COALESCE(vendedor_confirmou_em, CURRENT_TIMESTAMP), "
-                "comprador_confirmou_em=COALESCE(comprador_confirmou_em, CURRENT_TIMESTAMP), "
-                "atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-                (pedido_id,),
-            )
-            mensagem = "Pedido concluido pelo administrador."
-        else:
-            campo = (
-                "comprador_confirmou_em"
-                if pedido["comprador_id"] == usuario_id
-                else "vendedor_confirmou_em"
-            )
-            db.execute(
-                f"UPDATE pedidos SET {campo}=COALESCE({campo}, CURRENT_TIMESTAMP), "
-                "atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
-                (pedido_id,),
-            )
-            pedido_atualizado = db.execute(
-                "SELECT vendedor_confirmou_em, comprador_confirmou_em "
-                "FROM pedidos WHERE id=?",
-                (pedido_id,),
-            ).fetchone()
-            if (
-                pedido_atualizado["vendedor_confirmou_em"]
-                and pedido_atualizado["comprador_confirmou_em"]
-            ):
-                db.execute(
-                    "UPDATE pedidos SET status='concluido', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+                    "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
+                    "WHERE id=? AND status='aguardando'",
                     (pedido_id,),
                 )
-                mensagem = "Pedido concluido com confirmacao dos dois lados."
-            elif pedido["comprador_id"] == usuario_id:
-                mensagem = "Recebimento registrado. Aguardando confirmacao do vendedor."
+                db.commit()
+                flash("Pedido recusado porque o estoque acabou.", "erro")
+                return redirect(url_for("pedidos"))
+            estoque_atual = db.execute(
+                "SELECT estoque FROM anuncios WHERE id=?", (pedido["anuncio_id"],)
+            ).fetchone()["estoque"]
+            registrar_evento_pedido(
+                db, pedido_id, "VENDEDOR_CONFIRMOU", "Vendedor confirmou o pedido",
+                usuario_id, papel, "aguardando", "confirmado"
+            )
+            registrar_evento_pedido(
+                db, pedido_id, "ESTOQUE_RESERVADO",
+                "Uma unidade foi reservada no estoque", papel_usuario="sistema",
+                estado_anterior="confirmado", estado_posterior="confirmado",
+                dados_adicionais={"estoque_restante": estoque_atual},
+            )
+            if estoque_atual <= 0:
+                db.execute(
+                    "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
+                    "WHERE anuncio_id=? AND id<>? AND status='aguardando'",
+                    (pedido["anuncio_id"], pedido_id),
+                )
+                mensagem = "Pedido confirmado. Última unidade reservada e anúncio pausado."
             else:
-                mensagem = "Venda registrada. Aguardando confirmacao do comprador."
+                mensagem = "Pedido confirmado e 1 unidade reservada."
+        elif acao == "recusar":
+            recusa = db.execute(
+                "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
+                "WHERE id=? AND status='aguardando'", (pedido_id,)
+            )
+            if recusa.rowcount != 1:
+                db.rollback()
+                flash("Este pedido já foi atualizado.", "erro")
+                return redirect(url_for("pedidos"))
+            mensagem = "Pedido recusado."
+        elif acao == "cancelar":
+            estava_confirmado = pedido["status"] in {"confirmado", "em_analise"}
+            cancelamento = db.execute(
+                "UPDATE pedidos SET status='cancelado', atualizado_em=CURRENT_TIMESTAMP "
+                "WHERE id=? AND status=?", (pedido_id, pedido["status"])
+            )
+            if cancelamento.rowcount != 1:
+                db.rollback()
+                flash("Este pedido já foi atualizado.", "erro")
+                return redirect(url_for("pedidos"))
+            registrar_evento_pedido(
+                db, pedido_id, "PEDIDO_CANCELADO", "Pedido cancelado",
+                usuario_id, papel, pedido["status"], "cancelado"
+            )
+            if estava_confirmado:
+                db.execute(
+                    "UPDATE anuncios SET estoque=estoque+1 WHERE id=?",
+                    (pedido["anuncio_id"],),
+                )
+                registrar_evento_pedido(
+                    db, pedido_id, "ESTOQUE_DEVOLVIDO",
+                    "Uma unidade foi devolvida ao estoque", papel_usuario="sistema",
+                    estado_anterior="cancelado", estado_posterior="cancelado",
+                )
+                anuncio_moderado = db.execute(
+                    "SELECT id FROM denuncias WHERE anuncio_id=? AND status='resolvida' LIMIT 1",
+                    (pedido["anuncio_id"],),
+                ).fetchone()
+                vendedor = db.execute(
+                    "SELECT ativo FROM usuarios WHERE id=?", (pedido["vendedor_id"],)
+                ).fetchone()
+                pode_reativar, _ = pode_criar_anuncio(pedido["vendedor_id"])
+                if vendedor and vendedor["ativo"] and not anuncio_moderado and pode_reativar:
+                    db.execute("UPDATE anuncios SET ativo=1 WHERE id=?", (pedido["anuncio_id"],))
+                    mensagem = "Pedido cancelado e anúncio disponibilizado novamente."
+                else:
+                    mensagem = "Pedido cancelado. O anúncio permaneceu pausado para revisão do vendedor."
+            else:
+                mensagem = "Pedido cancelado."
+        elif acao == "problema":
+            relato = db.execute(
+                "UPDATE pedidos SET status='em_analise', problema_motivo=?, "
+                "problema_descricao=?, problema_relator_id=?, problema_relator_papel=?, "
+                "problema_relatado_em=CURRENT_TIMESTAMP, atualizado_em=CURRENT_TIMESTAMP "
+                "WHERE id=? AND status='confirmado'",
+                (motivo, descricao_problema, usuario_id, papel, pedido_id),
+            )
+            if relato.rowcount != 1:
+                db.rollback()
+                flash("Este pedido já foi atualizado.", "erro")
+                return redirect(url_for("pedidos"))
+            registrar_evento_pedido(
+                db, pedido_id, "PROBLEMA_RELATADO",
+                f"Problema relatado: {PROBLEMA_MOTIVOS[motivo]}",
+                usuario_id, papel, "confirmado", "em_analise",
+                dados_adicionais={"motivo": motivo},
+            )
+            registrar_evento_pedido(
+                db, pedido_id, "PEDIDO_EM_ANALISE",
+                "Pedido encaminhado para análise do administrador",
+                papel_usuario="sistema", estado_anterior="confirmado",
+                estado_posterior="em_analise",
+            )
+            mensagem = "Pedido enviado para análise do administrador."
+        else:
+            if e_admin:
+                db.execute(
+                    "UPDATE pedidos SET status='concluido', "
+                    "vendedor_confirmou_em=COALESCE(vendedor_confirmou_em, CURRENT_TIMESTAMP), "
+                    "comprador_confirmou_em=COALESCE(comprador_confirmou_em, CURRENT_TIMESTAMP), "
+                    "atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND status='confirmado'",
+                    (pedido_id,),
+                )
+                registrar_evento_pedido(
+                    db, pedido_id, "VENDA_MARCADA_COMO_REALIZADA",
+                    "Administrador confirmou a realização da venda",
+                    usuario_id, "administrador", "confirmado", "confirmado",
+                )
+                registrar_evento_pedido(
+                    db, pedido_id, "COMPRADOR_CONFIRMOU_RECEBIMENTO",
+                    "Administrador confirmou o recebimento pelo comprador",
+                    usuario_id, "administrador", "confirmado", "confirmado",
+                )
+                mensagem = "Pedido concluído pelo administrador."
+            else:
+                comprador_agiu = pedido["comprador_id"] == usuario_id
+                campo = "comprador_confirmou_em" if comprador_agiu else "vendedor_confirmou_em"
+                db.execute(
+                    f"UPDATE pedidos SET {campo}=COALESCE({campo}, CURRENT_TIMESTAMP), "
+                    "atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND status='confirmado'",
+                    (pedido_id,),
+                )
+                if comprador_agiu:
+                    registrar_evento_pedido(
+                        db, pedido_id, "COMPRADOR_CONFIRMOU_RECEBIMENTO",
+                        "Comprador informou que recebeu o produto",
+                        usuario_id, "comprador", "confirmado", "confirmado",
+                    )
+                else:
+                    registrar_evento_pedido(
+                        db, pedido_id, "VENDA_MARCADA_COMO_REALIZADA",
+                        "Vendedor marcou a venda como realizada",
+                        usuario_id, "vendedor", "confirmado", "confirmado",
+                    )
+                mensagem = (
+                    "Recebimento registrado. Aguardando confirmação do vendedor."
+                    if comprador_agiu
+                    else "Venda registrada. Aguardando confirmação do comprador."
+                )
+            pedido_atualizado = db.execute(
+                "SELECT vendedor_confirmou_em, comprador_confirmou_em FROM pedidos WHERE id=?",
+                (pedido_id,),
+            ).fetchone()
+            if pedido_atualizado["vendedor_confirmou_em"] and pedido_atualizado["comprador_confirmou_em"]:
+                db.execute(
+                    "UPDATE pedidos SET status='concluido', atualizado_em=CURRENT_TIMESTAMP "
+                    "WHERE id=? AND status='confirmado'", (pedido_id,)
+                )
+                registrar_evento_pedido(
+                    db, pedido_id, "PEDIDO_CONCLUIDO", "Pedido concluído",
+                    papel_usuario="sistema", estado_anterior="confirmado",
+                    estado_posterior="concluido",
+                )
+                if not e_admin:
+                    mensagem = "Pedido concluído com confirmação dos dois lados."
 
-    db.commit()
+        db.commit()
+    except Exception:
+        db.rollback()
+        app.logger.exception("Falha ao atualizar pedido %s", pedido_id)
+        flash("Não foi possível atualizar o pedido. Tente novamente.", "erro")
+        return redirect(url_for("pedidos"))
     flash(mensagem, "ok")
     return redirect(url_for("pedidos"))
 
@@ -2077,6 +2278,7 @@ def painel_admin():
         for pedido in pedidos_admin
         if pedido["status"] in {"aguardando", "confirmado", "em_analise"}
     ]
+    eventos_pedidos_admin = buscar_eventos_pedidos(db, pedidos_admin)
     denuncias = db.execute(
         "SELECT d.*, a.titulo, a.ativo AS anuncio_ativo, "
         "denunciante.nome AS denunciante_nome, vendedor.nome AS vendedor_nome "
@@ -2112,6 +2314,8 @@ def painel_admin():
         anuncios=anuncios,
         pagamentos=pagamentos,
         pedidos=pedidos_admin,
+        eventos_por_pedido=eventos_pedidos_admin,
+        problema_motivos=PROBLEMA_MOTIVOS,
         pedidos_atencao=pedidos_atencao,
         admin_notification_email=destinatario_admin(),
         admin_email_configurado=email_configurado(),
