@@ -385,8 +385,8 @@ def validar_perfil_loja(nome, descricao, bairro, whatsapp):
         return "O nome da loja deve ter entre 3 e 60 caracteres."
     if nome and any(ord(char) < 32 for char in nome):
         return "Informe um nome de loja válido."
-    if len(descricao) > 240:
-        return "A descrição da loja deve ter no máximo 240 caracteres."
+    if len(descricao) > 600:
+        return "A descrição da loja deve ter no máximo 600 caracteres."
     if bairro and (len(bairro) < 2 or len(bairro) > 60):
         return "Informe um bairro válido."
     if whatsapp and len(limpar_whatsapp(whatsapp)) not in {10, 11}:

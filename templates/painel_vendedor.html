@@ -40,7 +40,7 @@
           <input name="loja_whatsapp" maxlength="20" value="{{ vendedor.loja_whatsapp or '' }}" placeholder="{{ vendedor.whatsapp }}" inputmode="tel">
         </label>
         <label class="seller-store-description">Descrição curta
-          <textarea name="loja_descricao" maxlength="240" rows="3" placeholder="Conte brevemente o que sua loja oferece.">{{ vendedor.loja_descricao or '' }}</textarea>
+          <textarea name="loja_descricao" maxlength="600" rows="5" placeholder="Conte o que sua loja oferece, como funciona o atendimento, a entrega e seus diferenciais.">{{ vendedor.loja_descricao or '' }}</textarea>
         </label>
       </div>
       <button class="btn btn-verde" type="submit">Salvar perfil da loja</button>
