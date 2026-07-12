@@ -476,6 +476,44 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(painel.status_code, 200)
         self.assertIn(b"admin-sales-alert", painel.data)
         self.assertIn(f"Pedido #{pedido_id}".encode(), painel.data)
+        self.assertIn(b"Reenviar e-mail", painel.data)
+        self.assertIn(b"Central de pedidos", painel.data)
+
+    def test_admin_pode_enviar_email_de_teste(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        with patch.object(
+            app_module, "enviar_teste_admin", return_value="enviado"
+        ) as enviar:
+            resposta = self.client.post(
+                "/admin/email/teste",
+                data={"csrf_token": "token-teste"},
+            )
+
+        self.assertEqual(resposta.status_code, 302)
+        enviar.assert_called_once()
+
+    def test_admin_pode_reenviar_alerta_de_pedido(self):
+        with patch.object(app_module, "enviar_alerta_novo_pedido", return_value="falhou"):
+            pedido_id = self.criar_pedido_de_teste()
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        with patch.object(
+            app_module, "enviar_alerta_novo_pedido", return_value="enviado"
+        ) as enviar:
+            resposta = self.client.post(
+                f"/admin/pedido/{pedido_id}/reenviar-email",
+                data={"csrf_token": "token-teste"},
+            )
+
+        self.assertEqual(resposta.status_code, 302)
+        enviar.assert_called_once()
+        with app.app_context():
+            pedido = get_db().execute(
+                "SELECT admin_email_status, admin_email_enviado_em FROM pedidos WHERE id=?",
+                (pedido_id,),
+            ).fetchone()
+            self.assertEqual(pedido["admin_email_status"], "enviado")
+            self.assertIsNotNone(pedido["admin_email_enviado_em"])
 
     def test_admin_exibe_texto_do_email_com_acentuacao_correta(self):
         self.autenticar_sessao(self.admin_id, admin=True)

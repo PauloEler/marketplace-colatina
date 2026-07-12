@@ -6,6 +6,17 @@
 {% block content %}
 <h2 style="margin-bottom:22px">Painel admin</h2>
 
+<section class="admin-email-tools" aria-label="Ferramentas de e-mail">
+  <div>
+    <strong>Alertas por e-mail</strong>
+    <span>{{ 'Ativos para ' ~ admin_notification_email if admin_email_configurado else 'Aguardando configuracao' }}</span>
+  </div>
+  <form method="POST" action="/admin/email/teste">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-verde" type="submit">Enviar e-mail de teste</button>
+  </form>
+</section>
+
 {% if pedidos_atencao %}
 <section class="admin-sales-alert" role="alert" aria-labelledby="sales-alert-title">
   <div class="admin-sales-alert-icon">!</div>
@@ -236,13 +247,13 @@
 </table>
 </div>
 
-<h3 style="margin-bottom:10px">Pedidos ({{ pedidos|length }})</h3>
+<h3 style="margin-bottom:10px">Central de pedidos ({{ pedidos|length }})</h3>
 <div style="overflow-x:auto">
 <table>
-  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>Data</th></tr></thead>
+  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>E-mail</th><th>Data</th><th>Acoes</th></tr></thead>
   <tbody>
   {% for p in pedidos %}
-  <tr id="pedido-{{ p.id }}">
+  <tr id="pedido-{{ p.id }}" class="{{ 'admin-order-new' if p.status in ['aguardando', 'confirmado'] else '' }}">
     <td>#{{ p.id }}</td>
     <td><a href="/anuncio/{{ p.anuncio_id }}" style="color:#1a6b3c">{{ p.titulo[:38] }}</a></td>
     <td>{{ p.comprador_nome }}</td>
@@ -251,10 +262,28 @@
     <td>{{ pedido_entrega_label(p.entrega) }}</td>
     <td><span class="badge order-status status-{{ p.status }}">{{ pedido_status_label(p.status) }}</span></td>
     <td><span class="badge payment-admin payment-{{ p.pagamento_status }}">{{ pagamento_status_label(p.pagamento_status) }}</span></td>
+    <td>
+      {% if p.admin_email_status == 'enviado' %}
+      <span class="badge badge-verde">Enviado</span>
+      {% elif p.admin_email_status == 'falhou' %}
+      <span class="badge badge-warning">Falhou</span>
+      {% elif p.admin_email_status == 'aguardando_configuracao' %}
+      <span class="badge badge-warning">Configurar</span>
+      {% else %}
+      <span class="badge badge-cinza">Aguardando</span>
+      {% endif %}
+      {% if p.admin_email_enviado_em %}<br><span class="table-subtext">{{ p.admin_email_enviado_em }}</span>{% endif %}
+    </td>
     <td>{{ p.criado_em }}</td>
+    <td>
+      <form method="POST" action="/admin/pedido/{{ p.id }}/reenviar-email">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-cinza admin-small-button" type="submit">Reenviar e-mail</button>
+      </form>
+    </td>
   </tr>
   {% else %}
-  <tr><td colspan="9">Nenhum pedido registrado.</td></tr>
+  <tr><td colspan="11">Nenhum pedido registrado.</td></tr>
   {% endfor %}
   </tbody>
 </table>
