@@ -1622,6 +1622,19 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina = self.client.get("/")
         self.assertIn("Até 10 anúncios ativos".encode(), pagina.data)
 
+    def test_home_convida_visitante_a_publicar_dez_anuncios_gratis(self):
+        pagina = self.client.get("/")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Cadastre-se grátis e publique até 10 anúncios".encode(), pagina.data)
+        self.assertIn("Criar conta e anunciar grátis".encode(), pagina.data)
+        self.assertIn(b'href="/cadastro"', pagina.data)
+        self.assertIn(b'class="hero-signup-promo"', pagina.data)
+
+        self.autenticar_sessao(self.comprador_id)
+        pagina_autenticada = self.client.get("/")
+        self.assertNotIn(b'class="hero-signup-promo"', pagina_autenticada.data)
+
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(
