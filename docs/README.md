@@ -14,6 +14,7 @@ Esta pasta reúne documentos operacionais e relatórios técnicos que complement
 - [Rastreabilidade dos pedidos](RELATORIO_RASTREABILIDADE_PEDIDOS_MERCADO_COLATINA.md)
 - [Painel Profissional do Vendedor 1.0](RELATORIO_PAINEL_VENDEDOR_1_0.md)
 - [Sistema de Reputação 1.0](RELATORIO_REPUTACAO_1_0.md)
+- [Perfil Público da Loja](RELATORIO_PERFIL_PUBLICO_DA_LOJA.md)
 - [Organização do Documento Mestre](RELATORIO_DOCUMENTACAO_MASTER.md)
 
 ## Hierarquia documental

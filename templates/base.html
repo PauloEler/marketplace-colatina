@@ -3,16 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.">
+<meta name="description" content="{% block meta_description %}Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.{% endblock %}">
 <meta name="theme-color" content="#155f3b">
-<meta property="og:type" content="website">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Mercado Colatina">
-<meta property="og:title" content="Mercado Colatina | Compre e venda perto de você">
-<meta property="og:description" content="Um marketplace local para negociar com pessoas de Colatina e região.">
+<meta property="og:title" content="{% block og_title %}Mercado Colatina | Compre e venda perto de você{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Um marketplace local para negociar com pessoas de Colatina e região.{% endblock %}">
+{% block social_meta %}{% endblock %}
 <title>{% block title %}Mercado Colatina{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 <script src="{{ url_for('static', filename='password-toggle.js') }}" defer></script>
+{% block head_extra %}{% endblock %}
 </head>
 <body>
 <header class="site-header">
@@ -105,5 +107,6 @@
     <span class="footer-accesses">{{ total_acessos_formatado }} visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
   </div>
 </footer>
+{% block scripts %}{% endblock %}
 </body>
 </html>

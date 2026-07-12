@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}{{ nome_publico }} | Loja no Mercado Colatina{% endblock %}
+{% block meta_description %}{{ descricao_seo }}{% endblock %}
+{% block og_title %}{{ nome_publico }} | Mercado Colatina{% endblock %}
+{% block og_description %}{{ descricao_seo }}{% endblock %}
+{% block social_meta %}
+<meta property="og:url" content="{{ loja_url }}">
+<meta property="og:image" content="{{ imagem_social }}">
+<meta property="og:image:alt" content="Mercado Colatina — Compre e venda perto de você">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ nome_publico }} | Mercado Colatina">
+<meta name="twitter:description" content="{{ descricao_seo }}">
+<meta name="twitter:image" content="{{ imagem_social }}">
+{% endblock %}
+{% block head_extra %}<link rel="canonical" href="{{ loja_url }}">{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">← Voltar às ofertas</a>{% endblock %}
+
+{% block content %}
+<div class="public-store-page">
+  <section class="public-store-hero" aria-labelledby="store-name">
+    <div class="public-store-logo" aria-label="Logo padrão da loja {{ nome_publico }}">{{ logo_iniciais }}</div>
+    <div class="public-store-intro">
+      <div class="section-kicker">Loja no Mercado Colatina</div>
+      <div class="public-store-title-line">
+        <h1 id="store-name">{{ nome_publico }}</h1>
+        {% if reputacao_publica.loja_verificada %}<span class="verified-store-badge">Loja verificada</span>{% endif %}
+      </div>
+      {% if loja.loja_bairro %}<p class="public-store-location">{{ loja.loja_bairro }} · Colatina, ES</p>{% else %}<p class="public-store-location">Colatina, ES</p>{% endif %}
+      <p class="public-store-description">{{ loja.loja_descricao or 'Esta loja faz parte do Mercado Colatina. Conheça os anúncios disponíveis abaixo.' }}</p>
+      <div class="public-store-actions">
+        {% if whatsapp_url %}<a class="btn btn-wpp" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer">Conversar no WhatsApp</a>{% endif %}
+        <button class="btn btn-cinza store-share-button" type="button" data-store-share data-share-url="{{ loja_url }}" data-share-title="{{ nome_publico }} no Mercado Colatina">Compartilhar loja</button>
+      </div>
+      <p class="store-share-feedback" data-share-feedback role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="public-store-stats" aria-label="Indicadores públicos da loja">
+    <article><span>Membro desde</span><strong>{{ reputacao_publica.membro_desde }}</strong></article>
+    <article><span>Anúncios ativos</span><strong>{{ total_anuncios }}</strong></article>
+    <article><span>Vendas concluídas</span><strong>{{ reputacao_publica.vendas_concluidas }}</strong></article>
+    <article><span>Produtos vendidos</span><strong>{{ produtos_vendidos }}</strong></article>
+    <article><span>Taxa de conclusão</span><strong>{{ reputacao_publica.taxa_conclusao }}%</strong></article>
+  </section>
+
+  <section class="public-store-listings" aria-labelledby="store-listings-title">
+    <div class="section-head">
+      <div><div class="section-kicker">Vitrine da loja</div><h2 id="store-listings-title">Anúncios de {{ nome_publico }}</h2></div>
+      <span class="result-count">{{ total_anuncios }} produto{{ '' if total_anuncios == 1 else 's' }} disponível{{ '' if total_anuncios == 1 else 'is' }}</span>
+    </div>
+    {% if anuncios %}
+    <div class="grid public-store-products">
+      {% for a in anuncios %}
+      <a href="/anuncio/{{ a.id }}" class="card" aria-label="Ver anúncio: {{ a.titulo }} por R$ {{ a.preco }}">
+        <div class="card-media">
+          {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy">
+          {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
+          <span class="card-condition">{{ a.condicao }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-cat">{{ categoria_label(a.categoria) }}</div>
+          <div class="card-titulo">{{ a.titulo }}</div>
+          <div class="card-preco">R$ {{ a.preco }}</div>
+          <div class="card-meta"><span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span><span>{{ a.estoque }} disponíve{{ 'l' if a.estoque == 1 else 'is' }}</span></div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state compact"><h3>Nenhum anúncio disponível agora</h3><p>Esta loja ainda não possui produtos ativos na vitrine.</p></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='store-share.js') }}" defer></script>{% endblock %}

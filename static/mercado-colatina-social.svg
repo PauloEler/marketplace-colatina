@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">Mercado Colatina</title>
+  <desc id="description">Compre e venda perto de você</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#083821"/>
+      <stop offset="1" stop-color="#17633d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <circle cx="1060" cy="90" r="230" fill="#6fc2e8" opacity=".14"/>
+  <circle cx="110" cy="600" r="270" fill="#e8f5ed" opacity=".08"/>
+  <rect x="86" y="92" width="120" height="120" rx="32" fill="#6fc2e8"/>
+  <text x="146" y="167" text-anchor="middle" fill="#083821" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="42" font-weight="900">MC</text>
+  <text x="86" y="330" fill="#ffffff" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="78" font-weight="800">Mercado Colatina</text>
+  <text x="90" y="410" fill="#d9f4e5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="40" font-weight="500">Compre e venda perto de você.</text>
+  <rect x="88" y="474" width="500" height="56" rx="28" fill="#ffffff" opacity=".12"/>
+  <text x="338" y="512" text-anchor="middle" fill="#ffffff" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="23" font-weight="700">Colatina e Região Noroeste do ES</text>
+</svg>

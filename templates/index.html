@@ -99,23 +99,26 @@
   {% if anuncios %}
   <div class="grid">
     {% for a in anuncios %}
-    <a href="/anuncio/{{ a.id }}" class="card" aria-label="Ver anúncio: {{ a.titulo }} por R$ {{ a.preco }}">
-      <div class="card-media">
-        {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy">
-        {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
-        <span class="card-condition">{{ a.condicao }}</span>
-      </div>
-      <div class="card-body">
-        <div class="card-cat">{{ categoria_label(a.categoria) }}</div>
-        <div class="card-titulo">{{ a.titulo }}</div>
-        <div class="card-preco">R$ {{ a.preco }}</div>
-        <div class="card-meta">
-          <span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span>
-          <span>{{ a.estoque }} disponivel{{ '' if a.estoque == 1 else 'is' }}</span>
-          <span>{{ a.vendedor_nome }}</span>
+    <article class="card">
+      <a href="/anuncio/{{ a.id }}" class="card-main-link" aria-label="Ver anúncio: {{ a.titulo }} por R$ {{ a.preco }}">
+        <div class="card-media">
+          {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy">
+          {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
+          <span class="card-condition">{{ a.condicao }}</span>
         </div>
-      </div>
-    </a>
+        <div class="card-body">
+          <div class="card-cat">{{ categoria_label(a.categoria) }}</div>
+          <div class="card-titulo">{{ a.titulo }}</div>
+          <div class="card-preco">R$ {{ a.preco }}</div>
+          <div class="card-meta">
+            <span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span>
+            <span>{{ a.estoque }} disponivel{{ '' if a.estoque == 1 else 'is' }}</span>
+            <span>{{ a.loja_nome or a.vendedor_nome }}</span>
+          </div>
+        </div>
+      </a>
+      <a class="card-store-link" href="{{ url_loja_publica_por_dados(a.usuario_id, a.loja_nome, a.vendedor_nome) }}">Conhecer a loja</a>
+    </article>
     {% endfor %}
   </div>
   {% else %}
