@@ -1588,6 +1588,40 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Você será direcionado para o Mercado Livre".encode(), pagina.data)
         self.assertIn(b'rel="sponsored nofollow"', pagina.data)
 
+    def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):
+        with app.app_context():
+            db = get_db()
+            for numero in range(2, 11):
+                db.execute(
+                    "INSERT INTO anuncios "
+                    "(usuario_id, titulo, descricao, preco, categoria, condicao, ativo, estoque) "
+                    "VALUES (?,?,?,?,?,?,1,1)",
+                    (
+                        self.vendedor_id,
+                        f"Produto gratuito {numero}",
+                        "Anúncio para validar o limite gratuito.",
+                        "10,00",
+                        "Outros",
+                        "Usado",
+                    ),
+                )
+            db.commit()
+            permitido, motivo = app_module.pode_criar_anuncio(self.vendedor_id)
+            self.assertFalse(permitido)
+            self.assertEqual(motivo, "limite")
+
+            db.execute(
+                "UPDATE anuncios SET ativo=0 WHERE usuario_id=? AND titulo=?",
+                (self.vendedor_id, "Produto gratuito 10"),
+            )
+            db.commit()
+            permitido, aviso = app_module.pode_criar_anuncio(self.vendedor_id)
+            self.assertTrue(permitido)
+            self.assertIn("1 anúncio(s) gratuito(s) restante(s)", aviso)
+
+        pagina = self.client.get("/")
+        self.assertIn("Até 10 anúncios ativos".encode(), pagina.data)
+
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(

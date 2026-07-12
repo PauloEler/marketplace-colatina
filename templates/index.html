@@ -147,7 +147,7 @@
   <div class="plans-wrap">
     <article class="plan-card">
       <div class="plan-name">Gratuito</div><div class="plan-price">R$ 0</div>
-      <ul><li>Até 3 anúncios ativos</li><li>Contato direto por WhatsApp</li><li>Presença em todas as categorias</li></ul>
+      <ul><li>Até {{ limite_gratis }} anúncios ativos</li><li>Contato direto por WhatsApp</li><li>Presença em todas as categorias</li></ul>
       {% if not session.get('usuario_id') %}<a href="/cadastro" class="btn btn-verde">Começar gratuitamente</a>{% else %}<a href="/criar" class="btn btn-verde">Criar anúncio</a>{% endif %}
     </article>
     <article class="plan-card featured">
