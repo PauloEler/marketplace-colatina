@@ -131,6 +131,11 @@ DENUNCIA_MOTIVOS = {
     "ofensivo": "Conteúdo ofensivo",
     "outro": "Outro motivo",
 }
+COMUNICADO_TIPOS = {
+    "informacao": "Informação",
+    "atencao": "Atenção",
+    "novidade": "Novidade",
+}
 LOGIN_MAX_FALHAS = 5
 LOGIN_JANELA_SEGUNDOS = 15 * 60
 
@@ -541,6 +546,24 @@ def fornecer_total_acessos():
         "total_acessos": total,
         "total_acessos_formatado": f"{total:,}".replace(",", "."),
     }
+
+
+@app.context_processor
+def fornecer_comunicado_global():
+    try:
+        comunicado = (
+            get_db()
+            .execute(
+                "SELECT id, titulo, mensagem, tipo, criado_em "
+                "FROM comunicados WHERE ativo=1 "
+                "ORDER BY criado_em DESC, id DESC LIMIT 1"
+            )
+            .fetchone()
+        )
+    except Exception:
+        app.logger.exception("Falha ao consultar comunicado global")
+        comunicado = None
+    return {"comunicado_global": comunicado}
 
 
 @app.before_request
@@ -1902,6 +1925,11 @@ def painel_admin():
         "JOIN usuarios vendedor ON vendedor.id=a.usuario_id "
         "ORDER BY CASE WHEN d.status='pendente' THEN 0 ELSE 1 END, d.criado_em DESC"
     ).fetchall()
+    comunicados = db.execute(
+        "SELECT c.*, u.nome AS autor_nome FROM comunicados c "
+        "JOIN usuarios u ON u.id=c.criado_por "
+        "ORDER BY c.criado_em DESC, c.id DESC"
+    ).fetchall()
     metricas = {
         "usuarios_ativos": db.execute(
             "SELECT COUNT(*) FROM usuarios WHERE ativo=1"
@@ -1925,8 +1953,75 @@ def painel_admin():
         pedidos=pedidos_admin,
         denuncias=denuncias,
         denuncia_motivos=DENUNCIA_MOTIVOS,
+        comunicado_tipos=COMUNICADO_TIPOS,
+        comunicados=comunicados,
         metricas=metricas,
     )
+
+
+@app.route("/admin/comunicado", methods=["POST"])
+def admin_criar_comunicado():
+    if not admin():
+        return redirect(url_for("index"))
+
+    titulo = request.form.get("titulo", "").strip()
+    mensagem = request.form.get("mensagem", "").strip()
+    tipo = request.form.get("tipo", "informacao")
+    if not 3 <= len(titulo) <= 80:
+        flash("O título do comunicado deve ter entre 3 e 80 caracteres.", "erro")
+        return redirect(url_for("painel_admin"))
+    if not 5 <= len(mensagem) <= 500:
+        flash("A mensagem deve ter entre 5 e 500 caracteres.", "erro")
+        return redirect(url_for("painel_admin"))
+    if tipo not in COMUNICADO_TIPOS:
+        flash("Escolha um tipo de comunicado válido.", "erro")
+        return redirect(url_for("painel_admin"))
+
+    db = get_db()
+    db.execute(
+        "UPDATE comunicados SET ativo=0, desativado_em=CURRENT_TIMESTAMP WHERE ativo=1"
+    )
+    db.execute(
+        "INSERT INTO comunicados (titulo, mensagem, tipo, criado_por) VALUES (?,?,?,?)",
+        (titulo, mensagem, tipo, session["usuario_id"]),
+    )
+    db.commit()
+    flash("Comunicado publicado para todos os usuários.", "ok")
+    return redirect(url_for("painel_admin"))
+
+
+@app.route("/admin/comunicado/<int:comunicado_id>/toggle", methods=["POST"])
+def admin_toggle_comunicado(comunicado_id):
+    if not admin():
+        return redirect(url_for("index"))
+
+    db = get_db()
+    comunicado = db.execute(
+        "SELECT id, ativo FROM comunicados WHERE id=?", (comunicado_id,)
+    ).fetchone()
+    if not comunicado:
+        abort(404)
+
+    if comunicado["ativo"]:
+        db.execute(
+            "UPDATE comunicados SET ativo=0, desativado_em=CURRENT_TIMESTAMP "
+            "WHERE id=?",
+            (comunicado_id,),
+        )
+        mensagem = "Comunicado arquivado."
+    else:
+        db.execute(
+            "UPDATE comunicados SET ativo=0, desativado_em=CURRENT_TIMESTAMP "
+            "WHERE ativo=1"
+        )
+        db.execute(
+            "UPDATE comunicados SET ativo=1, desativado_em=NULL WHERE id=?",
+            (comunicado_id,),
+        )
+        mensagem = "Comunicado reativado para todos os usuários."
+    db.commit()
+    flash(mensagem, "ok")
+    return redirect(url_for("painel_admin"))
 
 
 @app.route("/ajuda")
