@@ -1101,12 +1101,22 @@ def criar_anuncio():
             for arquivo in arquivos:
                 extensao = arquivo.filename.rsplit(".", 1)[1].lower()
                 fotos_salvas.append(
-                    salvar_imagem(arquivo, extensao, app.config["UPLOAD_FOLDER"])
+                    salvar_imagem(
+                        arquivo,
+                        extensao,
+                        app.config["UPLOAD_FOLDER"],
+                        permitir_externo=not app.testing,
+                    )
                 )
         except Exception:
             app.logger.exception("Falha ao armazenar imagens do anúncio")
             for foto_salva, foto_id_salva in fotos_salvas:
-                excluir_imagem(foto_salva, foto_id_salva, app.config["UPLOAD_FOLDER"])
+                excluir_imagem(
+                    foto_salva,
+                    foto_id_salva,
+                    app.config["UPLOAD_FOLDER"],
+                    permitir_externo=not app.testing,
+                )
             flash("Não foi possível enviar as imagens. Tente novamente.", "erro")
             return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
 
@@ -1252,12 +1262,22 @@ def editar_anuncio(anuncio_id):
                 for arquivo in arquivos:
                     extensao = arquivo.filename.rsplit(".", 1)[1].lower()
                     novas_fotos.append(
-                        salvar_imagem(arquivo, extensao, app.config["UPLOAD_FOLDER"])
+                        salvar_imagem(
+                            arquivo,
+                            extensao,
+                            app.config["UPLOAD_FOLDER"],
+                            permitir_externo=not app.testing,
+                        )
                     )
             except Exception:
                 app.logger.exception("Falha ao substituir imagens do anúncio")
                 for foto_nova, foto_id_nova in novas_fotos:
-                    excluir_imagem(foto_nova, foto_id_nova, app.config["UPLOAD_FOLDER"])
+                    excluir_imagem(
+                        foto_nova,
+                        foto_id_nova,
+                        app.config["UPLOAD_FOLDER"],
+                        permitir_externo=not app.testing,
+                    )
                 flash(
                     "Não foi possível enviar as novas imagens. Tente novamente.", "erro"
                 )
@@ -1299,6 +1319,7 @@ def editar_anuncio(anuncio_id):
                         foto_antiga["foto"],
                         foto_antiga["foto_id"],
                         app.config["UPLOAD_FOLDER"],
+                        permitir_externo=not app.testing,
                     )
                 except Exception:
                     app.logger.exception("Falha ao remover imagem antiga do anúncio")
