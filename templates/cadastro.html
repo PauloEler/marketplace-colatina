@@ -19,7 +19,10 @@
       </div>
       <div class="form-grupo">
         <label for="cadastro-senha">Senha</label>
-        <input id="cadastro-senha" type="password" name="senha" required minlength="8" autocomplete="new-password">
+        <div class="password-field">
+          <input id="cadastro-senha" type="password" name="senha" required minlength="8" autocomplete="new-password">
+          <button type="button" class="password-toggle" data-password-toggle="cadastro-senha" aria-controls="cadastro-senha" aria-pressed="false" aria-label="Mostrar senha">Mostrar</button>
+        </div>
       </div>
       <div class="form-grupo">
         <label for="cadastro-whatsapp">WhatsApp com DDD</label>

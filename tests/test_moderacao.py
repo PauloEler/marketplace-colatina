@@ -272,6 +272,16 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(resposta.status_code, 302)
         self.assertTrue(resposta.headers["Location"].startswith("https://wa.me/"))
 
+    def test_formularios_permitam_mostrar_a_senha(self):
+        login = self.client.get("/login")
+        cadastro = self.client.get("/cadastro")
+
+        self.assertIn(b'data-password-toggle="login-senha"', login.data)
+        self.assertIn(b'data-password-toggle="cadastro-senha"', cadastro.data)
+        self.assertIn(b"password-toggle.js", login.data)
+        self.assertIn(b'autocomplete="current-password"', login.data)
+        self.assertIn("salvar sua senha".encode(), login.data)
+
     def test_anuncio_aceita_bairro_e_varias_fotos(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(

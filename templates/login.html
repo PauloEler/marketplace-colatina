@@ -15,9 +15,13 @@
       </div>
       <div class="form-grupo">
         <label for="login-senha">Senha</label>
-        <input id="login-senha" type="password" name="senha" required minlength="4" autocomplete="current-password">
+        <div class="password-field">
+          <input id="login-senha" type="password" name="senha" required minlength="4" autocomplete="current-password">
+          <button type="button" class="password-toggle" data-password-toggle="login-senha" aria-controls="login-senha" aria-pressed="false" aria-label="Mostrar senha">Mostrar</button>
+        </div>
       </div>
       <button class="btn btn-verde" type="submit" style="width:100%">Entrar</button>
+      <p class="password-manager-note">Para salvar sua senha, aceite a opção do navegador depois de entrar.</p>
     </form>
     <a class="recovery-link" href="/recuperar-acesso">Esqueci minha senha</a>
     <p style="text-align:center;margin-top:14px;font-size:.88rem">

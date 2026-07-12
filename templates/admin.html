@@ -21,7 +21,7 @@
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
       <div class="form-grupo" style="margin:0"><label for="admin-nome">Nome</label><input id="admin-nome" type="text" name="nome" required minlength="3" maxlength="80" autocomplete="name"></div>
       <div class="form-grupo" style="margin:0"><label for="admin-username">Nome de usuário</label><input id="admin-username" type="text" name="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" autocomplete="username"></div>
-      <div class="form-grupo" style="margin:0"><label for="admin-senha">Senha</label><input id="admin-senha" type="password" name="senha" required minlength="8" autocomplete="new-password"></div>
+      <div class="form-grupo" style="margin:0"><label for="admin-senha">Senha</label><div class="password-field"><input id="admin-senha" type="password" name="senha" required minlength="8" autocomplete="new-password"><button type="button" class="password-toggle" data-password-toggle="admin-senha" aria-controls="admin-senha" aria-pressed="false" aria-label="Mostrar senha">Mostrar</button></div></div>
       <div class="form-grupo" style="margin:0"><label for="admin-whatsapp">WhatsApp</label><input id="admin-whatsapp" type="tel" name="whatsapp" required inputmode="numeric" minlength="10" maxlength="11" pattern="[0-9]{10,11}" placeholder="27999999999" autocomplete="tel"></div>
     </div>
     <div style="margin-top:12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
