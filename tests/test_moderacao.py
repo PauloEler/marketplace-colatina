@@ -487,6 +487,166 @@ class ModeracaoTestCase(unittest.TestCase):
                 ).fetchall()
             ]
 
+    def preparar_dados_painel_vendedor(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE anuncios SET estoque=2, ativo=1, visualizacoes=7, "
+                "criado_em='2026-01-01 10:00:00' WHERE id=?",
+                (self.anuncio_id,),
+            )
+            anuncios_extras = (
+                ("Produto pausado", 3, 0, 3, "2026-01-02 10:00:00"),
+                ("Produto esgotado", 0, 0, 5, "2026-01-03 10:00:00"),
+                ("Produto sem visualizações", 5, 1, 0, "2026-01-04 10:00:00"),
+            )
+            for titulo, estoque, ativo, visualizacoes, criado_em in anuncios_extras:
+                db.execute(
+                    "INSERT INTO anuncios "
+                    "(usuario_id, titulo, descricao, preco, categoria, condicao, estoque, ativo, visualizacoes, criado_em) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        self.vendedor_id,
+                        titulo,
+                        "Produto preparado para testar o painel.",
+                        "100,00",
+                        "Outros",
+                        "Usado",
+                        estoque,
+                        ativo,
+                        visualizacoes,
+                        criado_em,
+                    ),
+                )
+            pedidos = (
+                ("aguardando", None, None, "2026-02-01 10:00:00", "2026-02-01 10:00:00"),
+                ("confirmado", "2026-02-02 12:00:00", None, "2026-02-02 10:00:00", "2026-02-02 12:00:00"),
+                ("em_analise", None, None, "2026-02-03 10:00:00", "2026-02-03 13:00:00"),
+                ("concluido", "2026-02-05 10:00:00", "2026-02-05 10:00:00", "2026-02-04 10:00:00", "2026-02-05 10:00:00"),
+                ("cancelado", None, None, "2026-02-06 10:00:00", "2026-02-06 11:00:00"),
+            )
+            for status, vendedor_em, comprador_em, criado_em, atualizado_em in pedidos:
+                db.execute(
+                    "INSERT INTO pedidos "
+                    "(anuncio_id, comprador_id, vendedor_id, valor, status, entrega, "
+                    "vendedor_confirmou_em, comprador_confirmou_em, criado_em, atualizado_em) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)",
+                    (
+                        self.anuncio_id,
+                        self.comprador_id,
+                        self.vendedor_id,
+                        "1.200,00",
+                        status,
+                        "retirada",
+                        vendedor_em,
+                        comprador_em,
+                        criado_em,
+                        atualizado_em,
+                    ),
+                )
+            db.commit()
+
+    def test_painel_vendedor_exibe_resumo_e_estatisticas_calculadas(self):
+        self.preparar_dados_painel_vendedor()
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get("/painel-vendedor")
+
+        self.assertEqual(pagina.status_code, 200)
+        esperados = (
+            b'data-metric="anuncios_ativos" data-value="2"',
+            b'data-metric="anuncios_pausados" data-value="1"',
+            b'data-metric="produtos_esgotados" data-value="1"',
+            b'data-metric="estoque_baixo" data-value="1"',
+            b'data-metric="pedidos_aguardando_acao" data-value="1"',
+            b'data-metric="pedidos_em_analise" data-value="1"',
+            b'data-metric="vendas_concluidas" data-value="1"',
+            b'data-stat="pedidos" data-value="5"',
+            b'data-stat="taxa_conclusao" data-value="20"',
+        )
+        for esperado in esperados:
+            self.assertIn(esperado, pagina.data)
+        self.assertIn("1 dia".encode(), pagina.data)
+        self.assertIn("Membro desde".encode(), pagina.data)
+
+    def test_painel_vendedor_separa_pedidos_e_oferece_historico(self):
+        self.preparar_dados_painel_vendedor()
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get("/painel-vendedor")
+
+        for grupo in ("aguardando", "comprador", "analise", "concluidos", "cancelados"):
+            self.assertIn(f'data-order-group="{grupo}"'.encode(), pagina.data)
+        self.assertIn("Aguardando minha confirmação".encode(), pagina.data)
+        self.assertIn("Aguardando comprador".encode(), pagina.data)
+        self.assertEqual(pagina.data.count("Abrir histórico completo".encode()), 5)
+
+    def test_painel_vendedor_nao_expoe_dados_de_outro_vendedor(self):
+        self.preparar_dados_painel_vendedor()
+        self.autenticar_sessao(self.comprador_id)
+        pagina = self.client.get("/painel-vendedor")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertNotIn("Bicicleta aro 29".encode(), pagina.data)
+        self.assertNotIn("Produto pausado".encode(), pagina.data)
+        self.assertNotIn("Vendedor".encode(), pagina.data)
+        self.assertIn("Nenhum anúncio neste filtro".encode(), pagina.data)
+
+    def test_painel_vendedor_exige_login(self):
+        resposta = self.client.get("/painel-vendedor")
+        self.assertEqual(resposta.status_code, 302)
+        self.assertTrue(resposta.headers["Location"].endswith("/login"))
+
+    def test_filtros_do_painel_vendedor(self):
+        self.preparar_dados_painel_vendedor()
+        self.autenticar_sessao(self.vendedor_id)
+        cenarios = {
+            "ativos": ("Bicicleta aro 29", "Produto sem visualizações"),
+            "pausados": ("Produto pausado",),
+            "esgotados": ("Produto esgotado",),
+            "sem_visualizacoes": ("Produto sem visualizações",),
+        }
+        todos_titulos = {
+            "Bicicleta aro 29",
+            "Produto pausado",
+            "Produto esgotado",
+            "Produto sem visualizações",
+        }
+        for filtro, presentes in cenarios.items():
+            with self.subTest(filtro=filtro):
+                pagina = self.client.get(f"/painel-vendedor?filtro={filtro}")
+                self.assertEqual(pagina.status_code, 200)
+                html = pagina.data.decode("utf-8")
+                inicio = html.index('<div class="seller-products-grid">')
+                fim = html.index("</section>", inicio)
+                vitrine = html[inicio:fim]
+                for titulo in presentes:
+                    self.assertIn(titulo, vitrine)
+                for titulo in todos_titulos - set(presentes):
+                    self.assertNotIn(titulo, vitrine)
+        mais_vistos = self.client.get("/painel-vendedor?filtro=mais_vistos").data.decode("utf-8")
+        inicio = mais_vistos.index('<div class="seller-products-grid">')
+        fim = mais_vistos.index("</section>", inicio)
+        vitrine_mais_vistos = mais_vistos[inicio:fim]
+        self.assertLess(
+            vitrine_mais_vistos.find("Bicicleta aro 29"),
+            vitrine_mais_vistos.find("Produto esgotado"),
+        )
+
+    def test_painel_vendedor_e_responsivo_e_nao_usa_tabelas(self):
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get("/painel-vendedor")
+
+        self.assertIn(b'name="viewport"', pagina.data)
+        self.assertIn(b"seller-summary-grid", pagina.data)
+        self.assertIn(b"seller-order-groups", pagina.data)
+        self.assertNotIn(b"<table", pagina.data)
+        with open(
+            os.path.join(os.path.dirname(app_module.__file__), "static", "styles.css"),
+            encoding="utf-8",
+        ) as estilos:
+            css = estilos.read()
+        self.assertIn("@media(max-width:640px)", css)
+        self.assertIn(".seller-order-groups", css)
+
     def test_criacao_do_pedido_gera_evento_inicial(self):
         pedido_id = self.criar_pedido_de_teste()
         with app.app_context():
@@ -963,6 +1123,7 @@ class ModeracaoTestCase(unittest.TestCase):
             "/minha-conta",
             "/criar",
             "/meus-anuncios",
+            "/painel-vendedor",
             "/pedidos",
             "/assinar",
             f"/anuncio/{self.anuncio_id}",

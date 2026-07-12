@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Minha Loja | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">← Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<div class="seller-dashboard">
+  <header class="seller-dashboard-hero">
+    <div>
+      <div class="section-kicker">Gestão da sua loja</div>
+      <h1>Olá, {{ vendedor.nome }}</h1>
+      <p>Acompanhe seus anúncios, estoque e vendas em um só lugar.</p>
+    </div>
+    <div class="seller-dashboard-actions">
+      <a href="/criar" class="btn btn-verde">+ Novo anúncio</a>
+      <a href="/pedidos" class="btn btn-cinza">Gerenciar pedidos</a>
+    </div>
+  </header>
+
+  <section aria-labelledby="resumo-loja">
+    <div class="seller-section-heading">
+      <div><div class="section-kicker">Visão geral</div><h2 id="resumo-loja">Resumo da loja</h2></div>
+      {% if resumo.pedidos_aguardando_acao %}<span class="seller-attention">{{ resumo.pedidos_aguardando_acao }} aguardando sua ação</span>{% endif %}
+    </div>
+    <div class="seller-summary-grid">
+      <article data-metric="anuncios_ativos" data-value="{{ resumo.anuncios_ativos }}"><span>Anúncios ativos</span><strong>{{ resumo.anuncios_ativos }}</strong></article>
+      <article data-metric="anuncios_pausados" data-value="{{ resumo.anuncios_pausados }}"><span>Anúncios pausados</span><strong>{{ resumo.anuncios_pausados }}</strong></article>
+      <article data-metric="produtos_esgotados" data-value="{{ resumo.produtos_esgotados }}" class="{{ 'seller-card-alert' if resumo.produtos_esgotados else '' }}"><span>Produtos esgotados</span><strong>{{ resumo.produtos_esgotados }}</strong></article>
+      <article data-metric="estoque_baixo" data-value="{{ resumo.estoque_baixo }}" class="{{ 'seller-card-warning' if resumo.estoque_baixo else '' }}"><span>Estoque baixo</span><strong>{{ resumo.estoque_baixo }}</strong><small>Até 2 unidades</small></article>
+      <article data-metric="pedidos_aguardando_acao" data-value="{{ resumo.pedidos_aguardando_acao }}" class="{{ 'seller-card-warning' if resumo.pedidos_aguardando_acao else '' }}"><span>Pedidos aguardando ação</span><strong>{{ resumo.pedidos_aguardando_acao }}</strong></article>
+      <article data-metric="pedidos_em_analise" data-value="{{ resumo.pedidos_em_analise }}" class="{{ 'seller-card-alert' if resumo.pedidos_em_analise else '' }}"><span>Pedidos em análise</span><strong>{{ resumo.pedidos_em_analise }}</strong></article>
+      <article data-metric="vendas_concluidas" data-value="{{ resumo.vendas_concluidas }}"><span>Vendas concluídas</span><strong>{{ resumo.vendas_concluidas }}</strong></article>
+      <article data-metric="itens_vendidos" data-value="{{ resumo.itens_vendidos }}"><span>Total vendido (quantidade)</span><strong>{{ resumo.itens_vendidos }}</strong><small>1 unidade por pedido</small></article>
+    </div>
+  </section>
+
+  <section class="seller-dashboard-section" aria-labelledby="anuncios-loja">
+    <div class="seller-section-heading">
+      <div><div class="section-kicker">Sua vitrine</div><h2 id="anuncios-loja">Anúncios</h2></div>
+      <a href="/meus-anuncios" class="seller-section-link">Abrir gestão completa</a>
+    </div>
+    <nav class="seller-quick-filters" aria-label="Filtros rápidos de anúncios">
+      {% for valor, rotulo in [
+        ('todos','Todos'),('ativos','Ativos'),('pausados','Pausados'),
+        ('esgotados','Esgotados'),('mais_vistos','Mais vistos'),
+        ('sem_visualizacoes','Sem visualizações'),('recentes','Recentes')
+      ] %}
+      <a href="/painel-vendedor?filtro={{ valor }}#anuncios-loja" class="{{ 'active' if filtro == valor else '' }}">{{ rotulo }}</a>
+      {% endfor %}
+    </nav>
+    {% if anuncios %}
+    <div class="seller-products-grid">
+      {% for a in anuncios %}
+      <article class="seller-product-card" data-ad-id="{{ a.id }}">
+        <div class="seller-product-media">
+          {% if a.foto %}<img src="{{ foto_url(a.foto, 500) }}" alt="{{ a.titulo }}">
+          {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
+        </div>
+        <div class="seller-product-body">
+          <div class="seller-product-topline">
+            {% if a.estoque <= 0 %}<span class="badge seller-badge-soldout">Esgotado</span>
+            {% elif a.ativo %}<span class="badge badge-verde">Ativo</span>
+            {% else %}<span class="badge badge-cinza">Pausado</span>{% endif %}
+            <span>{{ a.visualizacoes }} visualização{{ '' if a.visualizacoes == 1 else 'ões' }}</span>
+          </div>
+          <h3>{{ a.titulo }}</h3>
+          <strong class="seller-product-price">R$ {{ a.preco }}</strong>
+          <div class="seller-product-meta">
+            <span>Estoque: {{ a.estoque }}</span>
+            <span>Publicado em {{ a.criado_em|string|truncate(10, true, '') }}</span>
+          </div>
+          <div class="seller-product-actions">
+            <a href="/editar/{{ a.id }}" class="btn btn-verde">Editar</a>
+            <a href="/anuncio/{{ a.id }}" class="btn btn-cinza">Visualizar</a>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="seller-empty"><strong>Nenhum anúncio neste filtro.</strong><span>Escolha outro filtro ou publique um novo produto.</span></div>
+    {% endif %}
+  </section>
+
+  <section class="seller-dashboard-section" aria-labelledby="pedidos-loja">
+    <div class="seller-section-heading">
+      <div><div class="section-kicker">Negociações</div><h2 id="pedidos-loja">Pedidos recebidos</h2></div>
+      <a href="/pedidos" class="seller-section-link">Ver central de pedidos</a>
+    </div>
+    <div class="seller-order-groups">
+      {% for chave, titulo, pedidos_grupo in grupos_pedidos %}
+      <section class="seller-order-group" data-order-group="{{ chave }}">
+        <header><h3>{{ titulo }}</h3><span>{{ pedidos_grupo|length }}</span></header>
+        {% if pedidos_grupo %}
+        <div class="seller-order-list">
+          {% for p in pedidos_grupo %}
+          <article class="seller-order-card">
+            <div>
+              <span class="badge order-status status-{{ p.status }}">{{ pedido_status_label(p.status) }}</span>
+              <small>Pedido #{{ p.id }}</small>
+            </div>
+            <h4>{{ p.titulo }}</h4>
+            <p>Comprador: <strong>{{ p.comprador_nome }}</strong></p>
+            <p>Solicitado em {{ p.criado_em }}</p>
+            <a href="/pedido/{{ p.id }}/historico" class="seller-history-link">Abrir histórico completo</a>
+          </article>
+          {% endfor %}
+        </div>
+        {% else %}<p class="seller-order-empty">Nenhum pedido nesta etapa.</p>{% endif %}
+      </section>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="seller-dashboard-section seller-insights-grid">
+    <div aria-labelledby="estatisticas-loja">
+      <div class="section-kicker">Desempenho</div><h2 id="estatisticas-loja">Estatísticas</h2>
+      <div class="seller-stats-grid">
+        <article data-stat="anuncios" data-value="{{ estatisticas.anuncios }}"><span>Anúncios</span><strong>{{ estatisticas.anuncios }}</strong></article>
+        <article data-stat="vendas" data-value="{{ estatisticas.vendas }}"><span>Vendas</span><strong>{{ estatisticas.vendas }}</strong></article>
+        <article data-stat="pedidos" data-value="{{ estatisticas.pedidos }}"><span>Pedidos</span><strong>{{ estatisticas.pedidos }}</strong></article>
+        <article data-stat="em_analise" data-value="{{ estatisticas.em_analise }}"><span>Em análise</span><strong>{{ estatisticas.em_analise }}</strong></article>
+        <article data-stat="taxa_conclusao" data-value="{{ estatisticas.taxa_conclusao }}"><span>Taxa de conclusão</span><strong>{{ estatisticas.taxa_conclusao }}%</strong></article>
+        <article data-stat="tempo_medio"><span>Tempo médio até conclusão</span><strong>{{ estatisticas.tempo_medio }}</strong></article>
+      </div>
+    </div>
+    <aside class="seller-reputation" aria-labelledby="reputacao-loja">
+      <div class="section-kicker">Indicadores internos</div><h2 id="reputacao-loja">Histórico da loja</h2>
+      <p>Estes dados ainda não são uma avaliação pública.</p>
+      <dl>
+        <div><dt>Membro desde</dt><dd>{{ reputacao.membro_desde }}</dd></div>
+        <div><dt>Vendas concluídas</dt><dd>{{ reputacao.vendas_concluidas }}</dd></div>
+        <div><dt>Pedidos cancelados</dt><dd>{{ reputacao.pedidos_cancelados }}</dd></div>
+        <div><dt>Pedidos em análise</dt><dd>{{ reputacao.pedidos_em_analise }}</dd></div>
+      </dl>
+    </aside>
+  </section>
+</div>
+{% endblock %}

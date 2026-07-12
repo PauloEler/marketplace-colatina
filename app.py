@@ -356,6 +356,30 @@ def validar_estoque(valor, minimo=1):
     return estoque, None
 
 
+def converter_data_hora(valor):
+    if isinstance(valor, datetime):
+        return valor
+    if not valor:
+        return None
+    try:
+        return datetime.fromisoformat(str(valor).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def formatar_duracao_media(segundos):
+    if segundos is None:
+        return "Sem dados ainda"
+    minutos = max(0, round(segundos / 60))
+    if minutos < 60:
+        return f"{minutos} min"
+    horas = minutos // 60
+    if horas < 24:
+        return f"{horas}h {minutos % 60}min"
+    dias = horas // 24
+    return f"{dias} dia{'s' if dias != 1 else ''}"
+
+
 def csrf_token():
     token = session.get("_csrf_token")
     if not token:
@@ -1579,6 +1603,151 @@ def meus_anuncios():
         (session["usuario_id"],),
     ).fetchall()
     return render_template("meus_anuncios.html", anuncios=anuncios)
+
+
+@app.route("/painel-vendedor")
+def painel_vendedor():
+    if not logado():
+        return redirect(url_for("login"))
+
+    db = get_db()
+    usuario_id = session["usuario_id"]
+    vendedor = db.execute(
+        "SELECT id, nome, criado_em FROM usuarios WHERE id=? AND ativo=1",
+        (usuario_id,),
+    ).fetchone()
+    if not vendedor:
+        abort(403)
+
+    anuncios = list(
+        db.execute(
+            "SELECT * FROM anuncios WHERE usuario_id=? ORDER BY criado_em DESC, id DESC",
+            (usuario_id,),
+        ).fetchall()
+    )
+    pedidos_vendedor = list(
+        db.execute(
+            "SELECT p.*, a.titulo, a.foto, comprador.nome AS comprador_nome, "
+            "COALESCE(conclusao.criado_em, p.atualizado_em) AS concluido_em "
+            "FROM pedidos p "
+            "JOIN anuncios a ON a.id=p.anuncio_id "
+            "JOIN usuarios comprador ON comprador.id=p.comprador_id "
+            "LEFT JOIN pedido_eventos conclusao ON conclusao.pedido_id=p.id "
+            "AND conclusao.tipo='PEDIDO_CONCLUIDO' "
+            "WHERE p.vendedor_id=? ORDER BY p.criado_em DESC, p.id DESC",
+            (usuario_id,),
+        ).fetchall()
+    )
+
+    anuncios_ativos = [a for a in anuncios if a["ativo"] and a["estoque"] > 0]
+    anuncios_esgotados = [a for a in anuncios if a["estoque"] <= 0]
+    anuncios_pausados = [a for a in anuncios if not a["ativo"] and a["estoque"] > 0]
+    estoque_baixo = [a for a in anuncios_ativos if a["estoque"] <= 2]
+    vendas_concluidas = [p for p in pedidos_vendedor if p["status"] == "concluido"]
+    pedidos_em_analise = [p for p in pedidos_vendedor if p["status"] == "em_analise"]
+    pedidos_cancelados = [
+        p for p in pedidos_vendedor if p["status"] in {"cancelado", "recusado"}
+    ]
+    pedidos_aguardando_acao = [
+        p
+        for p in pedidos_vendedor
+        if p["status"] == "aguardando"
+        or (p["status"] == "confirmado" and not p["vendedor_confirmou_em"])
+    ]
+
+    filtro = request.args.get("filtro", "todos")
+    filtros_validos = {
+        "todos",
+        "ativos",
+        "pausados",
+        "esgotados",
+        "mais_vistos",
+        "sem_visualizacoes",
+        "recentes",
+    }
+    if filtro not in filtros_validos:
+        filtro = "todos"
+    anuncios_filtrados = list(anuncios)
+    if filtro == "ativos":
+        anuncios_filtrados = anuncios_ativos
+    elif filtro == "pausados":
+        anuncios_filtrados = anuncios_pausados
+    elif filtro == "esgotados":
+        anuncios_filtrados = anuncios_esgotados
+    elif filtro == "mais_vistos":
+        anuncios_filtrados.sort(
+            key=lambda anuncio: (anuncio["visualizacoes"], anuncio["id"]), reverse=True
+        )
+    elif filtro == "sem_visualizacoes":
+        anuncios_filtrados = [a for a in anuncios if not a["visualizacoes"]]
+    elif filtro == "recentes":
+        anuncios_filtrados = anuncios[:6]
+
+    duracoes = []
+    for pedido in vendas_concluidas:
+        inicio = converter_data_hora(pedido["criado_em"])
+        fim = converter_data_hora(pedido["concluido_em"])
+        if inicio and fim:
+            if inicio.tzinfo is not None and fim.tzinfo is None:
+                inicio = inicio.replace(tzinfo=None)
+            elif fim.tzinfo is not None and inicio.tzinfo is None:
+                fim = fim.replace(tzinfo=None)
+            duracoes.append(max(0, (fim - inicio).total_seconds()))
+
+    total_pedidos = len(pedidos_vendedor)
+    taxa_conclusao = (
+        round(len(vendas_concluidas) * 100 / total_pedidos) if total_pedidos else 0
+    )
+    tempo_medio = sum(duracoes) / len(duracoes) if duracoes else None
+    resumo = {
+        "anuncios_ativos": len(anuncios_ativos),
+        "anuncios_pausados": len(anuncios_pausados),
+        "produtos_esgotados": len(anuncios_esgotados),
+        "estoque_baixo": len(estoque_baixo),
+        "pedidos_aguardando_acao": len(pedidos_aguardando_acao),
+        "pedidos_em_analise": len(pedidos_em_analise),
+        "vendas_concluidas": len(vendas_concluidas),
+        "itens_vendidos": len(vendas_concluidas),
+    }
+    estatisticas = {
+        "anuncios": len(anuncios),
+        "vendas": len(vendas_concluidas),
+        "pedidos": total_pedidos,
+        "em_analise": len(pedidos_em_analise),
+        "taxa_conclusao": taxa_conclusao,
+        "tempo_medio": formatar_duracao_media(tempo_medio),
+    }
+    grupos_pedidos = (
+        (
+            "aguardando",
+            "Aguardando minha confirmação",
+            [p for p in pedidos_vendedor if p["status"] == "aguardando"],
+        ),
+        (
+            "comprador",
+            "Aguardando comprador",
+            [p for p in pedidos_vendedor if p["status"] == "confirmado"],
+        ),
+        ("analise", "Em análise", pedidos_em_analise),
+        ("concluidos", "Concluídos", vendas_concluidas),
+        ("cancelados", "Cancelados", pedidos_cancelados),
+    )
+    reputacao = {
+        "membro_desde": str(vendedor["criado_em"])[:10],
+        "vendas_concluidas": len(vendas_concluidas),
+        "pedidos_cancelados": len(pedidos_cancelados),
+        "pedidos_em_analise": len(pedidos_em_analise),
+    }
+    return render_template(
+        "painel_vendedor.html",
+        vendedor=vendedor,
+        resumo=resumo,
+        estatisticas=estatisticas,
+        reputacao=reputacao,
+        anuncios=anuncios_filtrados,
+        filtro=filtro,
+        grupos_pedidos=grupos_pedidos,
+    )
 
 
 @app.route("/comprar/<int:anuncio_id>", methods=["GET", "POST"])
