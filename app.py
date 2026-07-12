@@ -90,7 +90,7 @@ CATEGORIA_CANONICA = {
     for alias in aliases
 }
 
-LIMITE_GRATIS = 3
+LIMITE_GRATIS = 10
 VALOR_PLANO = os.environ.get("PLAN_PRICE_DISPLAY", "R$ 10,00")
 VALOR_PLANO_BANCO = os.environ.get("PLAN_PRICE", "10.00")
 PIX_CHAVE = os.environ.get("PIX_KEY", "27998984840")
@@ -987,6 +987,7 @@ def index():
         cat_sel=categoria,
         info_plano=info_plano,
         valor_plano=VALOR_PLANO,
+        limite_gratis=LIMITE_GRATIS,
         mercado_livre_afiliado_url=MERCADO_LIVRE_AFILIADO_URL,
     )
 
