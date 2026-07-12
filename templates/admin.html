@@ -11,19 +11,19 @@
   <div class="admin-sales-alert-icon">!</div>
   <div>
     <div class="section-kicker">Alerta de venda</div>
-    <h3 id="sales-alert-title">{{ pedidos_atencao|length }} pedido{{ '' if pedidos_atencao|length == 1 else 's' }} precisa{{ '' if pedidos_atencao|length == 1 else 'm' }} da sua atenÃ§Ã£o</h3>
+    <h3 id="sales-alert-title">{{ pedidos_atencao|length }} pedido{{ '' if pedidos_atencao|length == 1 else 's' }} precisa{{ '' if pedidos_atencao|length == 1 else 'm' }} da sua atenção</h3>
     <p>Confira o comprador, o vendedor e o pagamento. Os pedidos continuam registrados no banco mesmo que o e-mail falhe.</p>
     <div class="admin-sales-alert-list">
       {% for pedido in pedidos_atencao[:3] %}
       <a href="#pedido-{{ pedido.id }}">
-        <strong>Pedido #{{ pedido.id }} Â· {{ pedido.titulo }}</strong>
-        <span>R$ {{ pedido.valor }} Â· {{ pedido_status_label(pedido.status) }}</span>
+        <strong>Pedido #{{ pedido.id }} · {{ pedido.titulo }}</strong>
+        <span>R$ {{ pedido.valor }} · {{ pedido_status_label(pedido.status) }}</span>
         {% if pedido.admin_email_status == 'enviado' %}
           <small class="email-sent">E-mail enviado para {{ admin_notification_email }}</small>
         {% elif admin_notification_email %}
-          <small class="email-pending">E-mail para {{ admin_notification_email }} aguardando ativaÃ§Ã£o ou reenvio</small>
+          <small class="email-pending">E-mail para {{ admin_notification_email }} aguardando ativação ou reenvio</small>
         {% else %}
-          <small class="email-pending">E-mail administrativo ainda nÃ£o configurado</small>
+          <small class="email-pending">E-mail administrativo ainda não configurado</small>
         {% endif %}
       </a>
       {% endfor %}
@@ -31,9 +31,9 @@
   </div>
 </section>
 {% else %}
-<section class="admin-sales-clear" aria-label="SituaÃ§Ã£o dos pedidos">
-  <strong>Nenhum pedido aguardando atenÃ§Ã£o.</strong>
-  <span>{% if admin_email_configurado %}Alertas por e-mail ativos para {{ admin_notification_email }}.{% elif admin_notification_email %}Destino definido: {{ admin_notification_email }}. O serviÃ§o remetente ainda precisa ser ativado.{% endif %}</span>
+<section class="admin-sales-clear" aria-label="Situação dos pedidos">
+  <strong>Nenhum pedido aguardando atenção.</strong>
+  <span>{% if admin_email_configurado %}Alertas por e-mail ativos para {{ admin_notification_email }}.{% elif admin_notification_email %}Destino definido: {{ admin_notification_email }}. O serviço remetente ainda precisa ser ativado.{% endif %}</span>
 </section>
 {% endif %}
 
