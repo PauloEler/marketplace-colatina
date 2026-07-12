@@ -1,0 +1,42 @@
+name: Validacao segura
+
+on:
+  pull_request:
+    branches:
+      - agent/profissionalizar-marketplace
+  push:
+    branches:
+      - agent/profissionalizar-marketplace
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    env:
+      FLASK_ENV: testing
+      SECRET_KEY: github-actions-test-key
+      DATABASE_PATH: /tmp/mercado-colatina-tests.db
+      DATABASE_URL: ""
+      RESTORED_DATABASE_URL: ""
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt ruff
+
+      - name: Verificar codigo
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Executar testes isolados
+        run: python -m unittest discover -s tests -v

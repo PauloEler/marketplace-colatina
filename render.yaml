@@ -4,7 +4,7 @@ services:
     runtime: python
     region: virginia
     plan: starter
-    buildCommand: "pip install -r requirements.txt && env -u DATABASE_URL -u RESTORED_DATABASE_URL python -m unittest discover -s tests -v"
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60"
     healthCheckPath: /health
     autoDeployTrigger: commit
