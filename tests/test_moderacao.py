@@ -779,22 +779,24 @@ class ModeracaoTestCase(unittest.TestCase):
             )
             db.execute(
                 "UPDATE anuncios SET titulo='Anúncio mais antigo', estoque=3, ativo=1, "
+                "preco='1.200,00', categoria='Outros', visualizacoes=9, "
                 "criado_em='2026-01-01 10:00:00' WHERE id=?",
                 (self.anuncio_id,),
             )
             db.execute(
                 "INSERT INTO anuncios "
-                "(usuario_id, titulo, descricao, preco, categoria, condicao, estoque, ativo, criado_em) "
-                "VALUES (?,?,?,?,?,?,?,?,?)",
+                "(usuario_id, titulo, descricao, preco, categoria, condicao, estoque, "
+                "ativo, visualizacoes, criado_em) VALUES (?,?,?,?,?,?,?,?,?,?)",
                 (
                     self.vendedor_id,
                     "Anúncio mais recente",
                     "Produto ativo da loja.",
                     "250,00",
-                    "Outros",
+                    "Eletrônicos",
                     "Novo",
                     2,
                     1,
+                    3,
                     "2026-02-01 10:00:00",
                 ),
             )
@@ -846,8 +848,54 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Anúncios ativos</span><strong>2", html)
         self.assertIn("Vendas concluídas</span><strong>1", html)
         self.assertIn("Produtos vendidos</span><strong>1", html)
+        self.assertIn("Visualizações dos anúncios</span><strong>12", html)
         self.assertLess(html.index("Anúncio mais recente"), html.index("Anúncio mais antigo"))
         self.assertNotIn("Anúncio privado pausado", html)
+
+    def test_loja_publica_filtra_busca_categoria_preco_e_ordenacao(self):
+        caminho = self.preparar_loja_publica()
+
+        busca = self.client.get(f"{caminho}?q=mais+recente").data.decode("utf-8")
+        self.assertIn("Anúncio mais recente", busca)
+        self.assertNotIn("Anúncio mais antigo", busca)
+
+        categoria = self.client.get(
+            f"{caminho}?categoria=Eletr%C3%B4nicos"
+        ).data.decode("utf-8")
+        self.assertIn("Anúncio mais recente", categoria)
+        self.assertNotIn("Anúncio mais antigo", categoria)
+
+        faixa = self.client.get(
+            f"{caminho}?preco_min=200&preco_max=300"
+        ).data.decode("utf-8")
+        self.assertIn("Anúncio mais recente", faixa)
+        self.assertNotIn("Anúncio mais antigo", faixa)
+
+        mais_vistos = self.client.get(
+            f"{caminho}?ordem=mais_vistos"
+        ).data.decode("utf-8")
+        self.assertLess(
+            mais_vistos.index("Anúncio mais antigo"),
+            mais_vistos.index("Anúncio mais recente"),
+        )
+
+        menor_preco = self.client.get(
+            f"{caminho}?ordem=menor_preco"
+        ).data.decode("utf-8")
+        self.assertLess(
+            menor_preco.index("Anúncio mais recente"),
+            menor_preco.index("Anúncio mais antigo"),
+        )
+
+        maior_preco = self.client.get(
+            f"{caminho}?ordem=maior_preco"
+        ).data.decode("utf-8")
+        self.assertLess(
+            maior_preco.index("Anúncio mais antigo"),
+            maior_preco.index("Anúncio mais recente"),
+        )
+        self.assertIn("Limpar filtros", maior_preco)
+        self.assertNotIn("Anúncio privado pausado", maior_preco)
 
     def test_loja_publica_usa_slug_canonico_e_atalho_por_id(self):
         caminho = self.preparar_loja_publica()
@@ -914,7 +962,9 @@ class ModeracaoTestCase(unittest.TestCase):
         ) as estilos:
             css = estilos.read()
         self.assertIn("@media(max-width:840px){.public-store-stats", css)
-        self.assertIn("@media(max-width:640px){.public-store-hero", css)
+        self.assertIn("@media(max-width:640px){.public-store-cover", css)
+        self.assertIn(".public-store-page{display:grid;gap:30px;min-width:0;max-width:100%", css)
+        self.assertIn(".public-store-filters{grid-template-columns:1fr", css)
 
     def test_sitemap_inclui_loja_publica_com_anuncio_ativo(self):
         caminho = self.preparar_loja_publica()

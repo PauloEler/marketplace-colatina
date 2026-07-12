@@ -1,132 +1,131 @@
-# Relatório — Perfil Público da Loja
+# Relatório — Perfil Público Profissional das Lojas
 
 ## Resumo técnico
 
-Foi criada uma página pública profissional para cada vendedor ativo do Mercado Colatina. A página apresenta a identidade da loja, descrição, bairro, indicadores públicos de reputação, contato comercial e todos os anúncios ativos disponíveis, ordenados dos mais recentes para os mais antigos.
+A página pública existente das lojas foi evoluída sem reconstrução. A rota canônica continua no formato `/loja/<id>-<slug>`, preservando todos os endereços já publicados e redirecionando slugs antigos para o endereço atual.
 
-A URL canônica usa o formato:
+A evolução concentra apresentação comercial, descoberta de produtos e confiança. Nenhuma regra de pedido, estoque, rastreabilidade, painel ou reputação foi modificada.
 
-```text
-/loja/<id>-<slug>
-```
+## Experiência pública
 
-Exemplo:
+A página apresenta:
 
-```text
-/loja/12-pedal-colatina
-```
+- nome e descrição da loja;
+- bairro comercial e município;
+- data de entrada no marketplace;
+- quantidade de anúncios ativos;
+- vendas e produtos vendidos;
+- visualizações acumuladas dos anúncios ativos;
+- taxa pública de conclusão;
+- selo de loja verificada, quando aplicável;
+- WhatsApp comercial, quando configurado;
+- compartilhamento nativo ou cópia do endereço da loja.
 
-O identificador garante unicidade e estabilidade. O slug torna o endereço legível e é normalizado sem acentos. Acesso somente pelo identificador e slugs antigos ou incorretos são redirecionados permanentemente para a URL canônica atual.
+O cabeçalho possui uma área visual própria para futura foto de capa e um avatar por iniciais preparado para futuro upload. Nesta versão não são usadas imagens genéricas ou repetidas.
 
-## Conteúdo público
+## Catálogo e descoberta
 
-- nome da loja, com o nome do vendedor como alternativa quando a loja ainda não foi nomeada;
-- logo padrão por iniciais;
-- descrição e bairro comercial;
-- membro desde;
-- anúncios ativos;
-- vendas concluídas;
-- produtos vendidos;
-- taxa de conclusão;
-- selo de loja verificada somente quando ativo;
-- botão de WhatsApp comercial;
-- botão de compartilhamento.
+Os anúncios públicos continuam restritos a itens ativos e com estoque disponível. A página faz uma única consulta do catálogo e reutiliza o resultado para métricas, categorias, filtros e ordenação.
+
+Foram adicionados:
+
+- busca por título e descrição, sem diferenciar acentos ou letras maiúsculas;
+- filtro por categoria disponível na própria loja;
+- preço mínimo e preço máximo;
+- ordenação por mais recentes;
+- ordenação por mais vistos;
+- ordenação por menor preço;
+- ordenação por maior preço;
+- indicação da quantidade filtrada em relação ao catálogo completo;
+- estado vazio específico para buscas sem resultado;
+- contagem de visualizações em cada cartão.
 
 ## Privacidade e segurança
 
-A página consulta somente o vendedor ativo e seus anúncios públicos com estoque disponível.
+A página não expõe:
 
-Não são exibidos:
-
+- CPF;
+- e-mail;
 - telefone pessoal;
 - último acesso;
+- endereço completo;
 - pedidos;
 - cancelamentos;
-- situações em análise;
-- dados administrativos;
-- endereço detalhado;
-- informações internas da conta.
+- casos em análise;
+- informações administrativas ou internas.
 
-O botão de WhatsApp aparece somente quando `loja_whatsapp` foi configurado. O telefone pessoal cadastrado para a conta não é usado como alternativa pública.
+Somente o WhatsApp comercial configurado no perfil da loja pode aparecer publicamente. Entradas de busca e filtros possuem limites, validação e escape automático na renderização.
 
-## Descoberta e compartilhamento
+## SEO e compartilhamento
 
-- Os cartões da página inicial oferecem o link “Conhecer a loja” antes da abertura do anúncio.
-- A página do anúncio também oferece acesso ao perfil público.
-- O botão de compartilhamento usa o compartilhamento nativo do dispositivo quando disponível e copia a URL como alternativa.
-- Lojas com anúncios ativos são incluídas no sitemap.
+Foram preservados:
 
-## SEO
-
-Cada loja possui:
-
-- título de página próprio;
-- meta description baseada na descrição da loja;
-- URL canônica;
-- Open Graph com título, descrição, URL e imagem;
-- metadados de compartilhamento para Twitter;
-- imagem social padrão do Mercado Colatina.
+- título exclusivo por loja;
+- meta description baseada na descrição comercial;
+- URL canônica amigável;
+- Open Graph com título, descrição, URL e imagem institucional;
+- metadados para compartilhamento;
+- inclusão no sitemap quando a loja possui anúncio público.
 
 ## Responsividade
 
-A página utiliza cartões e grades adaptáveis:
+O layout foi preparado para desktop, tablet e celular:
 
-- desktop com apresentação ampla e cinco indicadores;
-- tablet com reorganização dos indicadores;
-- celular com cabeçalho em coluna, ações em largura total e grade simplificada.
+- grades adaptáveis de indicadores e produtos;
+- filtros reorganizados conforme a largura disponível;
+- botões em largura total no celular;
+- textos longos com quebra segura;
+- cartões sem largura mínima que provoque rolagem horizontal;
+- catálogo em uma coluna nas telas menores.
 
-## Migração
+## Banco de dados e migração
 
-Nenhuma migração foi necessária.
+Nenhuma migração foi criada ou executada.
 
-- Nenhuma tabela ou coluna foi criada.
-- O slug é calculado a partir do nome público da loja.
-- Nenhum dado existente foi alterado.
+- Nenhuma tabela ou coluna foi adicionada.
+- Nenhum registro existente foi alterado.
+- As visualizações usam o campo já existente nos anúncios.
+- A reputação continua sendo calculada pelas regras já existentes.
 
 ## Preservação de escopo
 
-- Pedidos não foram alterados.
-- Estoque não foi alterado.
-- Rastreabilidade não foi alterada.
-- Painel administrativo não foi alterado.
-- Painel interno do vendedor não foi alterado.
+Não foram alterados:
+
+- pedidos;
+- estoque;
+- dupla confirmação;
+- rastreabilidade;
+- painel administrativo;
+- painel interno do vendedor;
+- sistema de reputação.
 
 ## Arquivos alterados
 
 - `app.py`
-- `static/styles.css`
-- `static/store-share.js`
-- `static/mercado-colatina-social.svg`
-- `templates/base.html`
-- `templates/index.html`
-- `templates/anuncio.html`
 - `templates/loja_publica.html`
+- `static/styles.css`
 - `tests/test_moderacao.py`
-- `MERCADO_COLATINA_MASTER.md`
-- `docs/README.md`
 - `docs/RELATORIO_PERFIL_PUBLICO_DA_LOJA.md`
 
-## Testes executados
+## Testes
 
-Comando:
+Foram mantidos os testes anteriores de rota pública, slug, redirecionamento canônico, privacidade, compartilhamento, SEO, loja inexistente, catálogo e responsividade.
 
-```powershell
-python -m unittest discover -s tests -v
-```
+Foi acrescentada cobertura para:
 
-Resultado final: **67 testes aprovados de 67**.
+- busca dentro da loja;
+- filtro por categoria;
+- faixa de preço;
+- ordenação por visualizações;
+- ordenação crescente e decrescente de preço;
+- exclusão permanente de anúncios pausados nos resultados;
+- total de visualizações da loja.
 
-Os novos testes validam:
+Resultado final: **70 testes aprovados de 70**.
 
-- acesso público sem autenticação;
-- slug normalizado e URL canônica;
-- redirecionamento do identificador e de slug incorreto;
-- perfil, anúncios ativos e ordem por data;
-- indicadores públicos disponíveis;
-- ausência de informações privadas;
-- uso exclusivo do WhatsApp comercial;
-- SEO, Open Graph e URL de compartilhamento;
-- loja inexistente ou inativa;
-- descoberta da loja antes de abrir o anúncio;
-- sitemap;
-- estrutura responsiva para desktop, tablet e celular.
+## Sugestões futuras
+
+- upload opcional de capa e avatar pela própria loja;
+- paginação do catálogo quando lojas passarem a ter grande volume;
+- categorias em destaque configuráveis pela loja;
+- URL baseada somente em slug após uma estratégia segura de unicidade e histórico de redirecionamentos.
