@@ -594,6 +594,96 @@ class ModeracaoTestCase(unittest.TestCase):
         resposta = self.client.get("/painel-vendedor")
         self.assertEqual(resposta.status_code, 302)
         self.assertTrue(resposta.headers["Location"].endswith("/login"))
+        with self.client.session_transaction() as sessao:
+            sessao["_csrf_token"] = "token-teste"
+        salvar = self.client.post(
+            "/painel-vendedor/perfil",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(salvar.status_code, 302)
+        self.assertTrue(salvar.headers["Location"].endswith("/login"))
+
+    def test_vendedor_pode_definir_nome_e_perfil_da_loja(self):
+        self.autenticar_sessao(self.vendedor_id)
+        resposta = self.client.post(
+            "/painel-vendedor/perfil",
+            data={
+                "csrf_token": "token-teste",
+                "loja_nome": "  Pedal   Colatina  ",
+                "loja_descricao": "Bicicletas, peças e acessórios para a região.",
+                "loja_bairro": "Centro",
+                "loja_whatsapp": "(27) 99999-9991",
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        with app.app_context():
+            perfil = get_db().execute(
+                "SELECT loja_nome, loja_descricao, loja_bairro, loja_whatsapp "
+                "FROM usuarios WHERE id=?", (self.vendedor_id,)
+            ).fetchone()
+            self.assertEqual(perfil["loja_nome"], "Pedal Colatina")
+            self.assertEqual(perfil["loja_bairro"], "Centro")
+            self.assertEqual(perfil["loja_whatsapp"], "27999999991")
+        pagina = self.client.get("/painel-vendedor")
+        self.assertIn("Pedal Colatina".encode(), pagina.data)
+        self.assertIn("Responsável: Vendedor".encode(), pagina.data)
+        self.assertIn("Bicicletas, peças e acessórios".encode(), pagina.data)
+
+        self.autenticar_sessao(self.comprador_id)
+        painel_outro_usuario = self.client.get("/painel-vendedor")
+        self.assertNotIn("Pedal Colatina".encode(), painel_outro_usuario.data)
+
+    def test_nome_da_loja_e_exclusivo_sem_diferenciar_maiusculas(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Loja Central' WHERE id=?",
+                (self.comprador_id,),
+            )
+            db.commit()
+        self.autenticar_sessao(self.vendedor_id)
+        resposta = self.client.post(
+            "/painel-vendedor/perfil",
+            data={"csrf_token": "token-teste", "loja_nome": "loja central"},
+            follow_redirects=True,
+        )
+
+        self.assertIn("Este nome de loja já está em uso".encode(), resposta.data)
+        with app.app_context():
+            nome = get_db().execute(
+                "SELECT loja_nome FROM usuarios WHERE id=?", (self.vendedor_id,)
+            ).fetchone()[0]
+            self.assertIsNone(nome)
+
+    def test_perfil_da_loja_valida_nome_descricao_e_whatsapp(self):
+        self.autenticar_sessao(self.vendedor_id)
+        casos = (
+            {"loja_nome": "AB"},
+            {"loja_nome": "Loja válida", "loja_descricao": "x" * 241},
+            {"loja_nome": "Loja válida", "loja_whatsapp": "123"},
+        )
+        for dados in casos:
+            with self.subTest(dados=list(dados)):
+                dados["csrf_token"] = "token-teste"
+                resposta = self.client.post("/painel-vendedor/perfil", data=dados)
+                self.assertEqual(resposta.status_code, 302)
+        with app.app_context():
+            perfil = get_db().execute(
+                "SELECT loja_nome, loja_descricao, loja_whatsapp FROM usuarios WHERE id=?",
+                (self.vendedor_id,),
+            ).fetchone()
+            self.assertIsNone(perfil["loja_nome"])
+            self.assertEqual(perfil["loja_descricao"], "")
+            self.assertEqual(perfil["loja_whatsapp"], "")
+
+    def test_painel_usa_nome_do_vendedor_quando_loja_nao_foi_nomeada(self):
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get("/painel-vendedor")
+
+        self.assertIn("<h1>Vendedor</h1>".encode(), pagina.data)
+        self.assertIn("Editar perfil da loja".encode(), pagina.data)
+        self.assertNotIn("Responsável: Vendedor".encode(), pagina.data)
 
     def test_filtros_do_painel_vendedor(self):
         self.preparar_dados_painel_vendedor()
@@ -632,6 +722,7 @@ class ModeracaoTestCase(unittest.TestCase):
         )
 
     def test_painel_vendedor_e_responsivo_e_nao_usa_tabelas(self):
+        self.preparar_dados_painel_vendedor()
         self.autenticar_sessao(self.vendedor_id)
         pagina = self.client.get("/painel-vendedor")
 
@@ -639,6 +730,8 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b"seller-summary-grid", pagina.data)
         self.assertIn(b"seller-order-groups", pagina.data)
         self.assertNotIn(b"<table", pagina.data)
+        self.assertIn("7 visualizações".encode(), pagina.data)
+        self.assertNotIn("visualizaçãoões".encode(), pagina.data)
         with open(
             os.path.join(os.path.dirname(app_module.__file__), "static", "styles.css"),
             encoding="utf-8",
@@ -646,6 +739,8 @@ class ModeracaoTestCase(unittest.TestCase):
             css = estilos.read()
         self.assertIn("@media(max-width:640px)", css)
         self.assertIn(".seller-order-groups", css)
+        self.assertIn("grid-auto-flow:column", css)
+        self.assertIn("min-width:0;max-width:100%", css)
 
     def test_criacao_do_pedido_gera_evento_inicial(self):
         pedido_id = self.criar_pedido_de_teste()

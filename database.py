@@ -114,6 +114,10 @@ def _init_sqlite():
             plano_ativo INTEGER DEFAULT 0,
             plano_expira DATE,
             termos_aceitos_em TIMESTAMP,
+            loja_nome TEXT,
+            loja_descricao TEXT NOT NULL DEFAULT '',
+            loja_bairro TEXT NOT NULL DEFAULT '',
+            loja_whatsapp TEXT NOT NULL DEFAULT '',
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS anuncios (
@@ -271,10 +275,19 @@ def _init_sqlite():
         "mp_user_id": "TEXT",
         "mp_token_expira": "TIMESTAMP",
         "mp_conectado_em": "TIMESTAMP",
+        "loja_nome": "TEXT",
+        "loja_descricao": "TEXT NOT NULL DEFAULT ''",
+        "loja_bairro": "TEXT NOT NULL DEFAULT ''",
+        "loja_whatsapp": "TEXT NOT NULL DEFAULT ''",
     }
     for nome, tipo in novas_colunas_usuarios.items():
         if nome not in colunas_usuarios:
             db.execute(f"ALTER TABLE usuarios ADD COLUMN {nome} {tipo}")
+    db.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_loja_nome "
+        "ON usuarios(lower(loja_nome)) "
+        "WHERE loja_nome IS NOT NULL AND loja_nome<>''"
+    )
     colunas_pedidos = {
         linha[1] for linha in db.execute("PRAGMA table_info(pedidos)").fetchall()
     }
@@ -326,6 +339,10 @@ def _init_pg():
             plano_ativo INTEGER DEFAULT 0,
             plano_expira DATE,
             termos_aceitos_em TIMESTAMP,
+            loja_nome TEXT,
+            loja_descricao TEXT NOT NULL DEFAULT '',
+            loja_bairro TEXT NOT NULL DEFAULT '',
+            loja_whatsapp TEXT NOT NULL DEFAULT '',
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -525,8 +542,17 @@ def _init_pg():
         "mp_user_id": "TEXT",
         "mp_token_expira": "TIMESTAMP",
         "mp_conectado_em": "TIMESTAMP",
+        "loja_nome": "TEXT",
+        "loja_descricao": "TEXT NOT NULL DEFAULT ''",
+        "loja_bairro": "TEXT NOT NULL DEFAULT ''",
+        "loja_whatsapp": "TEXT NOT NULL DEFAULT ''",
     }.items():
         db.execute(f"ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS {coluna} {tipo}")
+    db.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_loja_nome "
+        "ON usuarios(lower(loja_nome)) "
+        "WHERE loja_nome IS NOT NULL AND loja_nome<>''"
+    )
     for coluna, tipo in {
         "pagamento_status": "TEXT NOT NULL DEFAULT 'nao_iniciado'",
         "mp_preference_id": "TEXT",
