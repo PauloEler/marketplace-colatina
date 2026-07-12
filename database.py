@@ -15,6 +15,7 @@ USE_PG = bool(DATABASE_URL)
 
 class Row(dict):
     """Dict que também aceita índice inteiro, como sqlite3.Row."""
+
     def __getitem__(self, key):
         if isinstance(key, int):
             return list(self.values())[key]
@@ -57,6 +58,7 @@ class _PgConn:
 def _abrir_conexao():
     if USE_PG:
         import psycopg2
+
         conn = psycopg2.connect(DATABASE_URL)
         return _PgConn(conn)
     conn = sqlite3.connect(DB_PATH)
@@ -101,6 +103,7 @@ def _init_sqlite():
             ativo INTEGER DEFAULT 1,
             plano_ativo INTEGER DEFAULT 0,
             plano_expira DATE,
+            termos_aceitos_em TIMESTAMP,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS anuncios (
@@ -111,11 +114,13 @@ def _init_sqlite():
             preco TEXT NOT NULL,
             categoria TEXT NOT NULL,
             condicao TEXT NOT NULL DEFAULT 'Usado',
+            bairro TEXT NOT NULL DEFAULT '',
             foto TEXT,
             foto_id TEXT,
             ativo INTEGER DEFAULT 1,
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
+            contatos_whatsapp INTEGER DEFAULT 0,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         );
@@ -159,15 +164,65 @@ def _init_sqlite():
             ON pedidos(vendedor_id, criado_em);
         CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status
             ON pedidos(anuncio_id, status);
+        CREATE TABLE IF NOT EXISTS denuncias (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            anuncio_id INTEGER NOT NULL,
+            denunciante_id INTEGER NOT NULL,
+            motivo TEXT NOT NULL,
+            detalhes TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'pendente',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            resolvido_em TIMESTAMP,
+            resolvido_por INTEGER,
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id),
+            FOREIGN KEY (denunciante_id) REFERENCES usuarios(id),
+            FOREIGN KEY (resolvido_por) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_denuncias_status_criado
+            ON denuncias(status, criado_em);
+        CREATE INDEX IF NOT EXISTS idx_denuncias_anuncio
+            ON denuncias(anuncio_id, status);
+        CREATE TABLE IF NOT EXISTS anuncio_fotos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            anuncio_id INTEGER NOT NULL,
+            foto TEXT NOT NULL,
+            foto_id TEXT,
+            ordem INTEGER NOT NULL DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_anuncio_fotos_ordem
+            ON anuncio_fotos(anuncio_id, ordem);
+        CREATE TABLE IF NOT EXISTS tentativas_login (
+            chave TEXT PRIMARY KEY,
+            falhas INTEGER NOT NULL DEFAULT 0,
+            janela_inicio INTEGER NOT NULL,
+            bloqueado_ate INTEGER NOT NULL DEFAULT 0
+        );
         """
     )
-    colunas = {linha[1] for linha in db.execute("PRAGMA table_info(anuncios)").fetchall()}
+    colunas = {
+        linha[1] for linha in db.execute("PRAGMA table_info(anuncios)").fetchall()
+    }
     if "foto_id" not in colunas:
         db.execute("ALTER TABLE anuncios ADD COLUMN foto_id TEXT")
+    if "bairro" not in colunas:
+        db.execute("ALTER TABLE anuncios ADD COLUMN bairro TEXT NOT NULL DEFAULT ''")
+    if "contatos_whatsapp" not in colunas:
+        db.execute(
+            "ALTER TABLE anuncios ADD COLUMN contatos_whatsapp INTEGER DEFAULT 0"
+        )
+    db.execute(
+        "INSERT INTO anuncio_fotos (anuncio_id, foto, foto_id, ordem) "
+        "SELECT a.id, a.foto, a.foto_id, 0 FROM anuncios a "
+        "WHERE a.foto IS NOT NULL AND a.foto<>'' AND NOT EXISTS "
+        "(SELECT 1 FROM anuncio_fotos f WHERE f.anuncio_id=a.id)"
+    )
     colunas_usuarios = {
         linha[1] for linha in db.execute("PRAGMA table_info(usuarios)").fetchall()
     }
     novas_colunas_usuarios = {
+        "termos_aceitos_em": "TIMESTAMP",
         "mp_access_token": "TEXT",
         "mp_refresh_token": "TEXT",
         "mp_user_id": "TEXT",
@@ -197,7 +252,6 @@ def _init_sqlite():
 
 
 def _init_pg():
-    import psycopg2
     db = get_db()
     db.execute(
         """
@@ -211,6 +265,7 @@ def _init_pg():
             ativo INTEGER DEFAULT 1,
             plano_ativo INTEGER DEFAULT 0,
             plano_expira DATE,
+            termos_aceitos_em TIMESTAMP,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -225,17 +280,25 @@ def _init_pg():
             preco TEXT NOT NULL,
             categoria TEXT NOT NULL,
             condicao TEXT NOT NULL DEFAULT 'Usado',
+            bairro TEXT NOT NULL DEFAULT '',
             foto TEXT,
             foto_id TEXT,
             ativo INTEGER DEFAULT 1,
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
+            contatos_whatsapp INTEGER DEFAULT 0,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         )
         """
     )
     db.execute("ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS foto_id TEXT")
+    db.execute(
+        "ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS bairro TEXT NOT NULL DEFAULT ''"
+    )
+    db.execute(
+        "ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS contatos_whatsapp INTEGER DEFAULT 0"
+    )
     db.execute(
         """
         CREATE TABLE IF NOT EXISTS pagamentos (
@@ -294,7 +357,64 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_pedidos_anuncio_status ON pedidos(anuncio_id, status)"
     )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS denuncias (
+            id SERIAL PRIMARY KEY,
+            anuncio_id INTEGER NOT NULL,
+            denunciante_id INTEGER NOT NULL,
+            motivo TEXT NOT NULL,
+            detalhes TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'pendente',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            resolvido_em TIMESTAMP,
+            resolvido_por INTEGER,
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id),
+            FOREIGN KEY (denunciante_id) REFERENCES usuarios(id),
+            FOREIGN KEY (resolvido_por) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_denuncias_status_criado ON denuncias(status, criado_em)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_denuncias_anuncio ON denuncias(anuncio_id, status)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS anuncio_fotos (
+            id SERIAL PRIMARY KEY,
+            anuncio_id INTEGER NOT NULL,
+            foto TEXT NOT NULL,
+            foto_id TEXT,
+            ordem INTEGER NOT NULL DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_anuncio_fotos_ordem ON anuncio_fotos(anuncio_id, ordem)"
+    )
+    db.execute(
+        "INSERT INTO anuncio_fotos (anuncio_id, foto, foto_id, ordem) "
+        "SELECT a.id, a.foto, a.foto_id, 0 FROM anuncios a "
+        "WHERE a.foto IS NOT NULL AND a.foto<>'' AND NOT EXISTS "
+        "(SELECT 1 FROM anuncio_fotos f WHERE f.anuncio_id=a.id)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tentativas_login (
+            chave TEXT PRIMARY KEY,
+            falhas INTEGER NOT NULL DEFAULT 0,
+            janela_inicio BIGINT NOT NULL,
+            bloqueado_ate BIGINT NOT NULL DEFAULT 0
+        )
+        """
+    )
     for coluna, tipo in {
+        "termos_aceitos_em": "TIMESTAMP",
         "mp_access_token": "TEXT",
         "mp_refresh_token": "TEXT",
         "mp_user_id": "TEXT",
@@ -330,12 +450,22 @@ def _seed_admin(db):
         if admin_password:
             db.execute(
                 "INSERT INTO usuarios (nome, username, senha, whatsapp, is_admin) VALUES (?,?,?,?,1)",
-                (admin_nome, admin_username, generate_password_hash(admin_password), admin_whatsapp),
+                (
+                    admin_nome,
+                    admin_username,
+                    generate_password_hash(admin_password),
+                    admin_whatsapp,
+                ),
             )
         elif flask_env != "production":
             db.execute(
                 "INSERT INTO usuarios (nome, username, senha, whatsapp, is_admin) VALUES (?,?,?,?,1)",
-                (admin_nome, admin_username, generate_password_hash("admin123"), admin_whatsapp),
+                (
+                    admin_nome,
+                    admin_username,
+                    generate_password_hash("admin123"),
+                    admin_whatsapp,
+                ),
             )
 
 

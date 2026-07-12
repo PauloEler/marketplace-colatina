@@ -105,7 +105,9 @@ def _validar_resposta_http(resposta):
     except ValueError as exc:
         raise MercadoPagoError("Resposta invalida do Mercado Pago.") from exc
     if not resposta.ok:
-        mensagem = dados.get("message") or dados.get("error") or "Falha no Mercado Pago."
+        mensagem = (
+            dados.get("message") or dados.get("error") or "Falha no Mercado Pago."
+        )
         raise MercadoPagoError(str(mensagem))
     return dados
 
@@ -114,7 +116,9 @@ def _validar_resposta_sdk(resultado):
     status = int(resultado.get("status", 500))
     dados = resultado.get("response") or {}
     if status < 200 or status >= 300:
-        mensagem = dados.get("message") or dados.get("error") or "Falha no Mercado Pago."
+        mensagem = (
+            dados.get("message") or dados.get("error") or "Falha no Mercado Pago."
+        )
         raise MercadoPagoError(str(mensagem))
     return dados
 

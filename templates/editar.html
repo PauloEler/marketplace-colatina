@@ -18,7 +18,13 @@
         <div class="form-grupo"><label for="editar-condicao">Condição</label><select id="editar-condicao" name="condicao" required>{% for item in ['Novo','Seminovo','Usado'] %}<option {% if a.condicao == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select></div>
       </div>
       <div class="form-grupo"><label for="editar-descricao">Descrição</label><textarea id="editar-descricao" name="descricao" required minlength="10" maxlength="2000">{{ a.descricao }}</textarea></div>
-      <div class="form-grupo"><label for="editar-foto">Substituir foto</label><input id="editar-foto" type="file" name="foto" accept=".jpg,.jpeg,.png,.webp"><small>Deixe em branco para manter a imagem atual.</small></div>
+      <div class="form-grupo"><label for="editar-bairro">Bairro em Colatina</label><input id="editar-bairro" type="text" name="bairro" required minlength="2" maxlength="60" value="{{ a.bairro or '' }}" placeholder="Ex.: Centro"></div>
+      {% if fotos %}
+      <div class="current-photos" aria-label="Fotos atuais">
+        {% for foto in fotos %}<img src="{{ foto_url(foto.foto, 240) }}" alt="Foto {{ loop.index }} de {{ a.titulo }}">{% endfor %}
+      </div>
+      {% endif %}
+      <div class="form-grupo"><label for="editar-fotos">Substituir todas as fotos</label><input id="editar-fotos" type="file" name="fotos" accept=".jpg,.jpeg,.png,.webp" multiple><small>Envie até 5 fotos ou deixe em branco para manter as atuais.</small></div>
       <button class="btn btn-verde full-button" type="submit">Salvar alterações</button>
     </form>
   </div>

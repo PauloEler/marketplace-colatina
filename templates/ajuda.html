@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Ajuda | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<div class="info-page help-page">
+  <div class="section-kicker">Central de ajuda</div>
+  <h1>Como podemos ajudar?</h1>
+  <p class="info-lead">Encontre respostas rápidas ou converse com o atendimento do Mercado Colatina.</p>
+  <div class="info-sections">
+    <section><h2>Problemas para entrar</h2><p>Use a opção <a href="/recuperar-acesso">Recuperar acesso</a>. A confirmação é feita pelo atendimento para proteger sua conta.</p></section>
+    <section><h2>Anúncios e pedidos</h2><p>Você pode editar ou pausar seus anúncios em “Meus anúncios”. Compras, vendas e respectivos status ficam em “Pedidos”.</p></section>
+    <section><h2>Segurança e denúncias</h2><p>Abra o anúncio e selecione “Denunciar este anúncio”. A equipe avaliará o conteúdo antes de tomar uma decisão.</p></section>
+    <section><h2>Pagamentos</h2><p>Não envie senhas nem códigos. Pagamentos online, quando disponíveis, são processados no ambiente do Mercado Pago.</p></section>
+  </div>
+  <a class="btn btn-wpp help-cta" href="{{ suporte_url }}" target="_blank" rel="noopener noreferrer">Conversar com o atendimento</a>
+</div>
+{% endblock %}

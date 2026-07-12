@@ -7,3 +7,5 @@ python-dotenv>=1.0,<2
 mercadopago>=3.3,<4
 cryptography>=45,<47
 requests>=2.33,<3
+openai>=2.29,<3
+pydantic>=2.11,<3

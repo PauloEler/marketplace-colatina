@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Recuperar acesso | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/login" class="voltar">Voltar ao login</a>{% endblock %}
+
+{% block content %}
+<div class="form-page recovery-page">
+  <div class="section-kicker">Ajuda com a conta</div>
+  <h1>Recuperar acesso</h1>
+  <p class="form-intro">Informe seu nome de usuário. Abriremos uma conversa com o atendimento para confirmar sua identidade com segurança.</p>
+  <div class="form-box">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-grupo">
+        <label for="recovery-username">Nome de usuário</label>
+        <input id="recovery-username" type="text" name="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" autocomplete="username" placeholder="Seu usuário no Mercado Colatina">
+      </div>
+      <button class="btn btn-wpp full-button" type="submit">Falar com o atendimento</button>
+    </form>
+    <p class="support-note">Nunca informe sua senha ou códigos recebidos por mensagem.</p>
+  </div>
+</div>
+{% endblock %}

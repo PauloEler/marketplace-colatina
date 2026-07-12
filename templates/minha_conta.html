@@ -1,53 +1,88 @@
 {% extends 'base.html' %}
 {% block title %}Minha Conta | Mercado Colatina{% endblock %}
 
-{% block voltar %}<a href="/" class="voltar">Voltar ao inicio</a>{% endblock %}
+{% block voltar %}<a href="/" class="voltar">Voltar ao início</a>{% endblock %}
 
 {% block content %}
 <div class="account-page">
   <div class="dashboard-heading">
-    <div><div class="section-kicker">Configurações</div><h1>Minha conta</h1><p>Gerencie sua segurança e seus recebimentos.</p></div>
+    <div><div class="section-kicker">Configurações</div><h1>Minha conta</h1><p>Atualize seus dados, sua segurança e seus recebimentos.</p></div>
   </div>
   <div class="account-grid">
-  <div class="form-box account-card">
-    <p class="account-user">Usuário: <strong>{{ session.usuario_nome }}</strong></p>
-    <h2>Alterar senha</h2>
-    <form method="POST">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div class="form-grupo">
-        <label for="senha-atual">Senha atual</label>
-        <input id="senha-atual" type="password" name="senha_atual" required autofocus minlength="4" autocomplete="current-password">
-      </div>
-      <div class="form-grupo">
-        <label for="nova-senha">Nova senha</label>
-        <input id="nova-senha" type="password" name="nova_senha" required minlength="8" autocomplete="new-password">
-      </div>
-      <div class="form-grupo">
-        <label for="confirmar-senha">Confirmar nova senha</label>
-        <input id="confirmar-senha" type="password" name="confirmar" required minlength="8" autocomplete="new-password">
-      </div>
-      <button class="btn btn-verde" type="submit" style="width:100%">Salvar nova senha</button>
-    </form>
-  </div>
-
-  <section class="form-box account-card mp-account-card" aria-labelledby="mp-title">
-    <div class="mp-brand-line"><span class="mp-mark">MP</span><div><div class="section-kicker">Recebimentos</div><h2 id="mp-title">Mercado Pago</h2></div></div>
-    {% if usuario.mp_user_id %}
-      <div class="mp-connection-status connected"><span></span><strong>Conta conectada</strong></div>
-      <p>Seus compradores poderão pagar pedidos confirmados pelo Checkout Pro. O valor será processado diretamente na sua conta Mercado Pago.</p>
-      <form method="POST" action="/mercadopago/desconectar">
+    <section class="form-box account-card" aria-labelledby="profile-title">
+      <h2 id="profile-title">Dados pessoais</h2>
+      <p class="account-user">Nome de usuário: <strong>@{{ usuario.username }}</strong></p>
+      <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-cinza full-button" type="submit">Desconectar Mercado Pago</button>
+        <input type="hidden" name="acao" value="perfil">
+        <div class="form-grupo">
+          <label for="conta-nome">Nome completo</label>
+          <input id="conta-nome" type="text" name="nome" value="{{ usuario.nome }}" required minlength="3" maxlength="80" autocomplete="name">
+        </div>
+        <div class="form-grupo">
+          <label for="conta-whatsapp">WhatsApp com DDD</label>
+          <input id="conta-whatsapp" type="tel" name="whatsapp" value="{{ usuario.whatsapp }}" required inputmode="numeric" minlength="10" maxlength="11" pattern="[0-9]{10,11}" autocomplete="tel">
+        </div>
+        <button class="btn btn-verde full-button" type="submit">Salvar dados</button>
       </form>
-    {% elif mercadopago_configurado() %}
-      <div class="mp-connection-status"><span></span><strong>Conta não conectada</strong></div>
-      <p>Conecte sua própria conta Mercado Pago para receber pagamentos dos produtos vendidos no Mercado Colatina.</p>
-      <a class="btn btn-mp full-button" href="/mercadopago/conectar">Conectar Mercado Pago</a>
-      <small>Você será direcionado ao ambiente seguro do Mercado Pago para autorizar a conexão.</small>
-    {% else %}
-      <p>A integração com o Mercado Pago está em configuração.</p>
-    {% endif %}
-  </section>
+    </section>
+
+    <section class="form-box account-card" aria-labelledby="password-title">
+      <h2 id="password-title">Alterar senha</h2>
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="acao" value="senha">
+        <div class="form-grupo">
+          <label for="senha-atual">Senha atual</label>
+          <input id="senha-atual" type="password" name="senha_atual" required minlength="4" autocomplete="current-password">
+        </div>
+        <div class="form-grupo">
+          <label for="nova-senha">Nova senha</label>
+          <input id="nova-senha" type="password" name="nova_senha" required minlength="8" autocomplete="new-password">
+        </div>
+        <div class="form-grupo">
+          <label for="confirmar-senha">Confirmar nova senha</label>
+          <input id="confirmar-senha" type="password" name="confirmar" required minlength="8" autocomplete="new-password">
+        </div>
+        <button class="btn btn-verde full-button" type="submit">Salvar nova senha</button>
+      </form>
+    </section>
+
+    <section class="form-box account-card mp-account-card" aria-labelledby="mp-title">
+      <div class="mp-brand-line"><span class="mp-mark">MP</span><div><div class="section-kicker">Recebimentos</div><h2 id="mp-title">Mercado Pago</h2></div></div>
+      {% if usuario.mp_user_id %}
+        <div class="mp-connection-status connected"><span></span><strong>Conta conectada</strong></div>
+        <p>Seus compradores poderão pagar pedidos confirmados pelo Checkout Pro. O valor será processado diretamente na sua conta Mercado Pago.</p>
+        <form method="POST" action="/mercadopago/desconectar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-cinza full-button" type="submit">Desconectar Mercado Pago</button>
+        </form>
+      {% elif mercadopago_configurado() %}
+        <div class="mp-connection-status"><span></span><strong>Conta não conectada</strong></div>
+        <p>Conecte sua própria conta Mercado Pago para receber pagamentos dos produtos vendidos no Mercado Colatina.</p>
+        <a class="btn btn-mp full-button" href="/mercadopago/conectar">Conectar Mercado Pago</a>
+        <small>Você será direcionado ao ambiente seguro do Mercado Pago para autorizar a conexão.</small>
+      {% else %}
+        <p>A integração com o Mercado Pago está em configuração.</p>
+      {% endif %}
+    </section>
+
+    <section class="form-box account-card danger-zone" aria-labelledby="danger-title">
+      <div class="section-kicker">Privacidade</div>
+      <h2 id="danger-title">Desativar conta</h2>
+      <p>Seus anúncios serão ocultados e o acesso será encerrado. O histórico necessário para pedidos e segurança será preservado.</p>
+      <details>
+        <summary>Quero desativar minha conta</summary>
+        <form method="POST" action="/minha-conta/desativar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="form-grupo">
+            <label for="desativar-senha">Confirme sua senha</label>
+            <input id="desativar-senha" type="password" name="senha" required autocomplete="current-password">
+          </div>
+          <button class="btn btn-danger full-button" type="submit">Desativar minha conta</button>
+        </form>
+      </details>
+    </section>
   </div>
 </div>
 {% endblock %}
