@@ -25,12 +25,18 @@
     <div class="eyebrow">Marketplace de Colatina</div>
     <h1 id="hero-title">Boas oportunidades, bem perto de você.</h1>
     <p>Compre e venda produtos e serviços com pessoas da sua região. Contato direto, negociação simples e sem intermediários.</p>
+    {% if not session.get('usuario_id') %}
+    <div class="hero-signup-promo" role="note" aria-label="Convite para anunciar gratuitamente">
+      <strong>Cadastre-se grátis e publique até {{ limite_gratis }} anúncios</strong>
+      <span>Crie sua conta agora e comece a vender em Colatina e região.</span>
+    </div>
+    {% endif %}
     <div class="hero-actions">
       {% if session.get('usuario_id') %}
       <a href="/criar" class="btn btn-amarelo">Publicar um anúncio</a>
       <a href="/meus-anuncios" class="btn btn-ghost">Ver meus anúncios</a>
       {% else %}
-      <a href="/cadastro" class="btn btn-amarelo">Anunciar gratuitamente</a>
+      <a href="/cadastro" class="btn btn-amarelo">Criar conta e anunciar grátis</a>
       <a href="#ofertas" class="btn btn-ghost">Explorar ofertas</a>
       {% endif %}
     </div>
