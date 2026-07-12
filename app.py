@@ -42,6 +42,11 @@ from mercadopago_service import (  # noqa: E402
 )
 from storage import excluir_imagem, salvar_imagem  # noqa: E402
 from neo_service import configurado as neo_configurado, gerar_rascunho  # noqa: E402
+from email_service import (  # noqa: E402
+    destinatario_admin,
+    email_configurado,
+    enviar_alerta_novo_pedido,
+)
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -1505,6 +1510,30 @@ def comprar(anuncio_id):
             ),
         )
         db.commit()
+        pedido_criado = db.execute(
+            "SELECT p.*, a.titulo, comprador.nome AS comprador_nome, "
+            "vendedor.nome AS vendedor_nome FROM pedidos p "
+            "JOIN anuncios a ON a.id=p.anuncio_id "
+            "JOIN usuarios comprador ON comprador.id=p.comprador_id "
+            "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
+            "WHERE p.anuncio_id=? AND p.comprador_id=? "
+            "ORDER BY p.id DESC LIMIT 1",
+            (anuncio_id, session["usuario_id"]),
+        ).fetchone()
+        try:
+            email_status = enviar_alerta_novo_pedido(
+                pedido_criado, url_for("painel_admin", _external=True)
+            )
+        except Exception:
+            app.logger.exception("Falha ao enviar alerta administrativo de pedido")
+            email_status = "falhou"
+        db.execute(
+            "UPDATE pedidos SET admin_email_status=?, "
+            "admin_email_enviado_em=CASE WHEN ?='enviado' THEN CURRENT_TIMESTAMP ELSE NULL END "
+            "WHERE id=?",
+            (email_status, email_status, pedido_criado["id"]),
+        )
+        db.commit()
         flash("Pedido enviado! Aguarde a confirmação do vendedor.", "ok")
         return redirect(url_for("pedidos"))
 
@@ -1916,6 +1945,11 @@ def painel_admin():
         "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
         "ORDER BY p.criado_em DESC"
     ).fetchall()
+    pedidos_atencao = [
+        pedido
+        for pedido in pedidos_admin
+        if pedido["status"] in {"aguardando", "confirmado"}
+    ]
     denuncias = db.execute(
         "SELECT d.*, a.titulo, a.ativo AS anuncio_ativo, "
         "denunciante.nome AS denunciante_nome, vendedor.nome AS vendedor_nome "
@@ -1951,6 +1985,9 @@ def painel_admin():
         anuncios=anuncios,
         pagamentos=pagamentos,
         pedidos=pedidos_admin,
+        pedidos_atencao=pedidos_atencao,
+        admin_notification_email=destinatario_admin(),
+        admin_email_configurado=email_configurado(),
         denuncias=denuncias,
         denuncia_motivos=DENUNCIA_MOTIVOS,
         comunicado_tipos=COMUNICADO_TIPOS,

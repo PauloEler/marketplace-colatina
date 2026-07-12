@@ -6,6 +6,37 @@
 {% block content %}
 <h2 style="margin-bottom:22px">Painel admin</h2>
 
+{% if pedidos_atencao %}
+<section class="admin-sales-alert" role="alert" aria-labelledby="sales-alert-title">
+  <div class="admin-sales-alert-icon">!</div>
+  <div>
+    <div class="section-kicker">Alerta de venda</div>
+    <h3 id="sales-alert-title">{{ pedidos_atencao|length }} pedido{{ '' if pedidos_atencao|length == 1 else 's' }} precisa{{ '' if pedidos_atencao|length == 1 else 'm' }} da sua atenÃ§Ã£o</h3>
+    <p>Confira o comprador, o vendedor e o pagamento. Os pedidos continuam registrados no banco mesmo que o e-mail falhe.</p>
+    <div class="admin-sales-alert-list">
+      {% for pedido in pedidos_atencao[:3] %}
+      <a href="#pedido-{{ pedido.id }}">
+        <strong>Pedido #{{ pedido.id }} Â· {{ pedido.titulo }}</strong>
+        <span>R$ {{ pedido.valor }} Â· {{ pedido_status_label(pedido.status) }}</span>
+        {% if pedido.admin_email_status == 'enviado' %}
+          <small class="email-sent">E-mail enviado para {{ admin_notification_email }}</small>
+        {% elif admin_notification_email %}
+          <small class="email-pending">E-mail para {{ admin_notification_email }} aguardando ativaÃ§Ã£o ou reenvio</small>
+        {% else %}
+          <small class="email-pending">E-mail administrativo ainda nÃ£o configurado</small>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% else %}
+<section class="admin-sales-clear" aria-label="SituaÃ§Ã£o dos pedidos">
+  <strong>Nenhum pedido aguardando atenÃ§Ã£o.</strong>
+  <span>{% if admin_email_configurado %}Alertas por e-mail ativos para {{ admin_notification_email }}.{% elif admin_notification_email %}Destino definido: {{ admin_notification_email }}. O serviÃ§o remetente ainda precisa ser ativado.{% endif %}</span>
+</section>
+{% endif %}
+
 <section class="admin-metrics" aria-label="Indicadores do marketplace">
   <article><span>Usuários ativos</span><strong>{{ metricas.usuarios_ativos }}</strong></article>
   <article><span>Anúncios ativos</span><strong>{{ metricas.anuncios_ativos }}</strong></article>
@@ -200,7 +231,7 @@
   <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>Data</th></tr></thead>
   <tbody>
   {% for p in pedidos %}
-  <tr>
+  <tr id="pedido-{{ p.id }}">
     <td>#{{ p.id }}</td>
     <td><a href="/anuncio/{{ p.anuncio_id }}" style="color:#1a6b3c">{{ p.titulo[:38] }}</a></td>
     <td>{{ p.comprador_nome }}</td>

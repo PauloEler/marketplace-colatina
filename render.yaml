@@ -27,6 +27,20 @@ services:
         sync: false
       - key: RESTORED_DATABASE_URL
         sync: false
+      - key: ADMIN_NOTIFICATION_EMAIL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        sync: false
+      - key: SMTP_USE_SSL
+        sync: false
       - key: CLOUDINARY_URL
         sync: false
       - key: PLAN_PRICE
