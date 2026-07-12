@@ -250,10 +250,10 @@
 <h3 style="margin-bottom:10px">Central de pedidos ({{ pedidos|length }})</h3>
 <div style="overflow-x:auto">
 <table>
-  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>E-mail</th><th>Data</th><th>Acoes</th></tr></thead>
+  <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>Conclusao</th><th>E-mail</th><th>Data</th><th>Acoes</th></tr></thead>
   <tbody>
   {% for p in pedidos %}
-  <tr id="pedido-{{ p.id }}" class="{{ 'admin-order-new' if p.status in ['aguardando', 'confirmado'] else '' }}">
+  <tr id="pedido-{{ p.id }}" class="{{ 'admin-order-new' if p.status in ['aguardando', 'confirmado', 'em_analise'] else '' }}">
     <td>#{{ p.id }}</td>
     <td><a href="/anuncio/{{ p.anuncio_id }}" style="color:#1a6b3c">{{ p.titulo[:38] }}</a></td>
     <td>{{ p.comprador_nome }}</td>
@@ -262,6 +262,10 @@
     <td>{{ pedido_entrega_label(p.entrega) }}</td>
     <td><span class="badge order-status status-{{ p.status }}">{{ pedido_status_label(p.status) }}</span></td>
     <td><span class="badge payment-admin payment-{{ p.pagamento_status }}">{{ pagamento_status_label(p.pagamento_status) }}</span></td>
+    <td>
+      <span class="badge {{ 'badge-verde' if p.vendedor_confirmou_em else 'badge-cinza' }}">Vendedor</span>
+      <span class="badge {{ 'badge-verde' if p.comprador_confirmou_em else 'badge-cinza' }}">Comprador</span>
+    </td>
     <td>
       {% if p.admin_email_status == 'enviado' %}
       <span class="badge badge-verde">Enviado</span>
@@ -283,7 +287,7 @@
     </td>
   </tr>
   {% else %}
-  <tr><td colspan="11">Nenhum pedido registrado.</td></tr>
+  <tr><td colspan="12">Nenhum pedido registrado.</td></tr>
   {% endfor %}
   </tbody>
 </table>

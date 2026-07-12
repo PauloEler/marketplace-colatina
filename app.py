@@ -112,6 +112,7 @@ USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,24}$")
 PEDIDO_STATUS = {
     "aguardando": "Aguardando vendedor",
     "confirmado": "Pedido confirmado",
+    "em_analise": "Em analise",
     "concluido": "Compra concluída",
     "cancelado": "Pedido cancelado",
     "recusado": "Pedido recusado",
@@ -1019,7 +1020,7 @@ def desativar_conta():
         return redirect(url_for("minha_conta"))
     pedido_aberto = db.execute(
         "SELECT id FROM pedidos WHERE (comprador_id=? OR vendedor_id=?) "
-        "AND status IN ('aguardando','confirmado') LIMIT 1",
+        "AND status IN ('aguardando','confirmado','em_analise') LIMIT 1",
         (session["usuario_id"], session["usuario_id"]),
     ).fetchone()
     if pedido_aberto:
@@ -1093,7 +1094,7 @@ def mercadopago_desconectar():
         return redirect(url_for("login"))
     db = get_db()
     pedido_aberto = db.execute(
-        "SELECT id FROM pedidos WHERE vendedor_id=? AND status='confirmado' "
+        "SELECT id FROM pedidos WHERE vendedor_id=? AND status IN ('confirmado','em_analise') "
         "AND pagamento_status IN ('aguardando','pendente','aprovado') LIMIT 1",
         (session["usuario_id"],),
     ).fetchone()
@@ -1502,7 +1503,7 @@ def comprar(anuncio_id):
 
     pedido_existente = db.execute(
         "SELECT id FROM pedidos WHERE anuncio_id=? AND comprador_id=? "
-        "AND status IN ('aguardando','confirmado') ORDER BY criado_em DESC LIMIT 1",
+        "AND status IN ('aguardando','confirmado','em_analise') ORDER BY criado_em DESC LIMIT 1",
         (anuncio_id, session["usuario_id"]),
     ).fetchone()
     if pedido_existente:
@@ -1588,7 +1589,7 @@ def pedidos():
 def atualizar_pedido(pedido_id, acao):
     if not logado():
         return redirect(url_for("login"))
-    if acao not in {"confirmar", "recusar", "cancelar", "concluir"}:
+    if acao not in {"confirmar", "recusar", "cancelar", "concluir", "problema"}:
         abort(404)
 
     db = get_db()
@@ -1603,9 +1604,24 @@ def atualizar_pedido(pedido_id, acao):
         status_permitido = pedido["status"] == "aguardando"
     elif acao == "cancelar":
         autorizado = pedido["comprador_id"] == usuario_id or e_admin
-        status_permitido = pedido["status"] in {"aguardando", "confirmado"}
+        status_permitido = pedido["status"] in {
+            "aguardando",
+            "confirmado",
+            "em_analise",
+        }
+    elif acao == "problema":
+        autorizado = (
+            pedido["comprador_id"] == usuario_id
+            or pedido["vendedor_id"] == usuario_id
+            or e_admin
+        )
+        status_permitido = pedido["status"] == "confirmado"
     else:
-        autorizado = pedido["comprador_id"] == usuario_id or e_admin
+        autorizado = (
+            pedido["comprador_id"] == usuario_id
+            or pedido["vendedor_id"] == usuario_id
+            or e_admin
+        )
         status_permitido = pedido["status"] == "confirmado"
 
     if not autorizado:
@@ -1667,12 +1683,51 @@ def atualizar_pedido(pedido_id, acao):
                 mensagem = "Pedido cancelado. O anúncio permaneceu pausado para revisão do vendedor."
         else:
             mensagem = "Pedido cancelado."
-    else:
+    elif acao == "problema":
         db.execute(
-            "UPDATE pedidos SET status='concluido', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+            "UPDATE pedidos SET status='em_analise', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
             (pedido_id,),
         )
-        mensagem = "Compra concluida com sucesso."
+        mensagem = "Pedido enviado para analise do administrador."
+    else:
+        if e_admin:
+            db.execute(
+                "UPDATE pedidos SET status='concluido', "
+                "vendedor_confirmou_em=COALESCE(vendedor_confirmou_em, CURRENT_TIMESTAMP), "
+                "comprador_confirmou_em=COALESCE(comprador_confirmou_em, CURRENT_TIMESTAMP), "
+                "atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+                (pedido_id,),
+            )
+            mensagem = "Pedido concluido pelo administrador."
+        else:
+            campo = (
+                "comprador_confirmou_em"
+                if pedido["comprador_id"] == usuario_id
+                else "vendedor_confirmou_em"
+            )
+            db.execute(
+                f"UPDATE pedidos SET {campo}=COALESCE({campo}, CURRENT_TIMESTAMP), "
+                "atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+                (pedido_id,),
+            )
+            pedido_atualizado = db.execute(
+                "SELECT vendedor_confirmou_em, comprador_confirmou_em "
+                "FROM pedidos WHERE id=?",
+                (pedido_id,),
+            ).fetchone()
+            if (
+                pedido_atualizado["vendedor_confirmou_em"]
+                and pedido_atualizado["comprador_confirmou_em"]
+            ):
+                db.execute(
+                    "UPDATE pedidos SET status='concluido', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+                    (pedido_id,),
+                )
+                mensagem = "Pedido concluido com confirmacao dos dois lados."
+            elif pedido["comprador_id"] == usuario_id:
+                mensagem = "Recebimento registrado. Aguardando confirmacao do vendedor."
+            else:
+                mensagem = "Venda registrada. Aguardando confirmacao do comprador."
 
     db.commit()
     flash(mensagem, "ok")
@@ -1966,7 +2021,7 @@ def painel_admin():
     pedidos_atencao = [
         pedido
         for pedido in pedidos_admin
-        if pedido["status"] in {"aguardando", "confirmado"}
+        if pedido["status"] in {"aguardando", "confirmado", "em_analise"}
     ]
     denuncias = db.execute(
         "SELECT d.*, a.titulo, a.ativo AS anuncio_ativo, "

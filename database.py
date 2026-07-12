@@ -259,6 +259,8 @@ def _init_sqlite():
         "comissao": "TEXT NOT NULL DEFAULT '0.00'",
         "admin_email_status": "TEXT NOT NULL DEFAULT 'pendente'",
         "admin_email_enviado_em": "TIMESTAMP",
+        "vendedor_confirmou_em": "TIMESTAMP",
+        "comprador_confirmou_em": "TIMESTAMP",
     }
     for nome, tipo in novas_colunas_pedidos.items():
         if nome not in colunas_pedidos:
@@ -466,6 +468,8 @@ def _init_pg():
         "comissao": "TEXT NOT NULL DEFAULT '0.00'",
         "admin_email_status": "TEXT NOT NULL DEFAULT 'pendente'",
         "admin_email_enviado_em": "TIMESTAMP",
+        "vendedor_confirmou_em": "TIMESTAMP",
+        "comprador_confirmou_em": "TIMESTAMP",
     }.items():
         db.execute(f"ALTER TABLE pedidos ADD COLUMN IF NOT EXISTS {coluna} {tipo}")
     _seed_admin(db)

@@ -446,12 +446,73 @@ class ModeracaoTestCase(unittest.TestCase):
             data={"csrf_token": "token-teste"},
         )
         with app.app_context():
-            status = (
+            pedido = (
                 get_db()
-                .execute("SELECT status FROM pedidos WHERE id=?", (pedido_id,))
-                .fetchone()[0]
+                .execute(
+                    "SELECT status, comprador_confirmou_em, vendedor_confirmou_em FROM pedidos WHERE id=?",
+                    (pedido_id,),
+                )
+                .fetchone()
             )
-            self.assertEqual(status, "concluido")
+            self.assertEqual(pedido["status"], "confirmado")
+            self.assertIsNotNone(pedido["comprador_confirmou_em"])
+            self.assertIsNone(pedido["vendedor_confirmou_em"])
+
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/concluir",
+            data={"csrf_token": "token-teste"},
+        )
+        with app.app_context():
+            pedido = (
+                get_db()
+                .execute(
+                    "SELECT status, comprador_confirmou_em, vendedor_confirmou_em FROM pedidos WHERE id=?",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
+            self.assertEqual(pedido["status"], "concluido")
+            self.assertIsNotNone(pedido["comprador_confirmou_em"])
+            self.assertIsNotNone(pedido["vendedor_confirmou_em"])
+
+    def test_vendedor_sozinho_nao_conclui_pedido(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar",
+            data={"csrf_token": "token-teste"},
+        )
+        self.client.post(
+            f"/pedido/{pedido_id}/concluir",
+            data={"csrf_token": "token-teste"},
+        )
+        with app.app_context():
+            pedido = get_db().execute(
+                "SELECT status, vendedor_confirmou_em, comprador_confirmou_em FROM pedidos WHERE id=?",
+                (pedido_id,),
+            ).fetchone()
+            self.assertEqual(pedido["status"], "confirmado")
+            self.assertIsNotNone(pedido["vendedor_confirmou_em"])
+            self.assertIsNone(pedido["comprador_confirmou_em"])
+
+    def test_usuario_pode_enviar_pedido_confirmado_para_analise(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar",
+            data={"csrf_token": "token-teste"},
+        )
+        self.autenticar_sessao(self.comprador_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/problema",
+            data={"csrf_token": "token-teste"},
+        )
+        with app.app_context():
+            status = get_db().execute(
+                "SELECT status FROM pedidos WHERE id=?", (pedido_id,)
+            ).fetchone()[0]
+            self.assertEqual(status, "em_analise")
 
     def test_novo_pedido_dispara_email_administrativo_e_registra_envio(self):
         with patch.object(
