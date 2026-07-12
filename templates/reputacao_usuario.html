@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Reputação de {{ usuario.nome }} | Mercado Colatina{% endblock %}
+{% block voltar %}<a href="/admin" class="voltar">Voltar ao painel</a>{% endblock %}
+{% block content %}
+<div class="account-page admin-reputation-page">
+  <div class="dashboard-heading">
+    <div><div class="section-kicker">Visão administrativa</div><h1>{{ usuario.nome }}</h1><p>@{{ usuario.username }} · indicadores completos e somente para consulta.</p></div>
+  </div>
+  {% include '_reputacao_completa.html' %}
+</div>
+{% endblock %}
