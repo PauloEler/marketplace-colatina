@@ -1255,6 +1255,10 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina = self.client.get("/")
 
         self.assertEqual(pagina.status_code, 200)
+        self.assertIn(
+            "Agora em Colatina e na Região Noroeste do Espírito Santo!".encode(),
+            pagina.data,
+        )
         self.assertIn("OFERTAS NO MERCADO LIVRE".encode(), pagina.data)
         self.assertIn("VER PROMOÇÕES NO MERCADO LIVRE".encode(), pagina.data)
         self.assertIn("Você será direcionado para o Mercado Livre".encode(), pagina.data)
