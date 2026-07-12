@@ -1886,6 +1886,50 @@ class ModeracaoTestCase(unittest.TestCase):
             html,
         )
 
+    def test_loja_oficial_fica_fixa_na_primeira_posicao(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Loja Concorrente', "
+                "loja_verificada=1 WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Loja Oficial do Mercado Colatina' "
+                "WHERE id=?",
+                (self.comprador_id,),
+            )
+            db.execute(
+                "INSERT INTO anuncios "
+                "(usuario_id, titulo, descricao, preco, categoria, condicao, "
+                "ativo, estoque, visualizacoes) VALUES (?,?,?,?,?,?,1,1,0)",
+                (
+                    self.comprador_id,
+                    "Produto oficial",
+                    "Produto da loja oficial.",
+                    "50,00",
+                    "Outros",
+                    "Novo",
+                ),
+            )
+            db.execute(
+                "UPDATE anuncios SET visualizacoes=999 WHERE id=?",
+                (self.anuncio_id,),
+            )
+            db.commit()
+
+        with patch.object(app_module, "LOJA_OFICIAL_ID", self.comprador_id):
+            html = self.client.get("/").data.decode("utf-8")
+
+        inicio = html.index('<div class="home-stores-grid">')
+        fim = html.index("</section>", inicio)
+        vitrine = html[inicio:fim]
+        self.assertLess(
+            vitrine.index("Loja Oficial do Mercado Colatina"),
+            vitrine.index("Loja Concorrente"),
+        )
+        self.assertIn("Loja oficial", vitrine)
+
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(

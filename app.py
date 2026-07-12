@@ -96,6 +96,10 @@ try:
 except ValueError:
     LIMITE_FUNDADORES = 100
 LIMITE_FUNDADORES = max(0, min(LIMITE_FUNDADORES, 10000))
+try:
+    LOJA_OFICIAL_ID = int(os.environ.get("OFFICIAL_STORE_ID", "1"))
+except ValueError:
+    LOJA_OFICIAL_ID = 1
 VALOR_PLANO = os.environ.get("PLAN_PRICE_DISPLAY", "R$ 10,00")
 VALOR_PLANO_BANCO = os.environ.get("PLAN_PRICE", "10.00")
 PIX_CHAVE = os.environ.get("PIX_KEY", "27998984840")
@@ -1004,8 +1008,10 @@ def index():
         "c.total_visualizacoes, COALESCE(v.vendas_concluidas, 0) AS vendas_concluidas "
         "FROM usuarios u JOIN catalogo c ON c.usuario_id=u.id "
         "LEFT JOIN vendas v ON v.vendedor_id=u.id WHERE u.ativo=1 "
-        "ORDER BY u.loja_verificada DESC, c.total_anuncios DESC, "
-        "c.total_visualizacoes DESC, u.id ASC"
+        "ORDER BY CASE WHEN u.id=? THEN 0 ELSE 1 END, "
+        "u.loja_verificada DESC, c.total_anuncios DESC, "
+        "c.total_visualizacoes DESC, u.id ASC",
+        (LOJA_OFICIAL_ID,),
     ).fetchall()
     lojas_destaque = []
     for loja in lojas_linhas:
@@ -1024,6 +1030,7 @@ def index():
                 "bairro": loja["loja_bairro"],
                 "loja_verificada": loja["loja_verificada"],
                 "fundador": loja["fundador"],
+                "loja_oficial": loja["id"] == LOJA_OFICIAL_ID,
                 "membro_desde": formatar_data_reputacao(loja["criado_em"]),
                 "total_anuncios": loja["total_anuncios"],
                 "total_visualizacoes": loja["total_visualizacoes"],
