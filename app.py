@@ -971,6 +971,45 @@ def index():
     query += " ORDER BY a.criado_em DESC"
     anuncios = db.execute(query, params).fetchall()
 
+    lojas_linhas = db.execute(
+        "WITH catalogo AS ("
+        "SELECT usuario_id, COUNT(*) AS total_anuncios, "
+        "COALESCE(SUM(COALESCE(visualizacoes, 0)), 0) AS total_visualizacoes "
+        "FROM anuncios WHERE ativo=1 AND estoque>0 GROUP BY usuario_id"
+        "), vendas AS ("
+        "SELECT vendedor_id, COUNT(*) AS vendas_concluidas FROM pedidos "
+        "WHERE status='concluido' GROUP BY vendedor_id"
+        ") SELECT u.id, u.nome, u.loja_nome, u.loja_bairro, "
+        "u.loja_verificada, u.criado_em, c.total_anuncios, "
+        "c.total_visualizacoes, COALESCE(v.vendas_concluidas, 0) AS vendas_concluidas "
+        "FROM usuarios u JOIN catalogo c ON c.usuario_id=u.id "
+        "LEFT JOIN vendas v ON v.vendedor_id=u.id WHERE u.ativo=1 "
+        "ORDER BY u.loja_verificada DESC, c.total_anuncios DESC, "
+        "c.total_visualizacoes DESC, u.id ASC"
+    ).fetchall()
+    lojas_destaque = []
+    for loja in lojas_linhas:
+        nome_publico = nome_loja_publica(loja)
+        palavras_nome = [palavra for palavra in nome_publico.split() if palavra]
+        lojas_destaque.append(
+            {
+                "id": loja["id"],
+                "nome": loja["nome"],
+                "loja_nome": loja["loja_nome"],
+                "nome_publico": nome_publico,
+                "logo_iniciais": "".join(
+                    palavra[0] for palavra in palavras_nome[:2]
+                ).upper()
+                or "MC",
+                "bairro": loja["loja_bairro"],
+                "loja_verificada": loja["loja_verificada"],
+                "membro_desde": formatar_data_reputacao(loja["criado_em"]),
+                "total_anuncios": loja["total_anuncios"],
+                "total_visualizacoes": loja["total_visualizacoes"],
+                "vendas_concluidas": loja["vendas_concluidas"],
+            }
+        )
+
     info_plano = None
     if session.get("usuario_id"):
         usuario = db.execute(
@@ -988,6 +1027,7 @@ def index():
     return render_template(
         "index.html",
         anuncios=anuncios,
+        lojas_destaque=lojas_destaque,
         categorias=CATEGORIAS,
         busca=busca,
         cat_sel=categoria,
