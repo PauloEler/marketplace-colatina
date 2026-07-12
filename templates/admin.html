@@ -31,10 +31,21 @@
   </div>
 </section>
 {% else %}
+{% if not admin_email_configurado %}
+<section class="admin-email-warning" role="alert" aria-labelledby="email-warning-title">
+  <div class="admin-sales-alert-icon">!</div>
+  <div>
+    <div class="admin-warning-label">ATENÇÃO</div>
+    <h3 id="email-warning-title">Alertas por e-mail ainda não estão ativos</h3>
+    <p>Nenhum pedido aguardando atenção neste momento. O destino está definido como <strong>{{ admin_notification_email or 'não informado' }}</strong>, mas o serviço remetente ainda precisa ser ativado.</p>
+  </div>
+</section>
+{% else %}
 <section class="admin-sales-clear" aria-label="Situação dos pedidos">
   <strong>Nenhum pedido aguardando atenção.</strong>
-  <span>{% if admin_email_configurado %}Alertas por e-mail ativos para {{ admin_notification_email }}.{% elif admin_notification_email %}Destino definido: {{ admin_notification_email }}. O serviço remetente ainda precisa ser ativado.{% endif %}</span>
+  <span>Alertas por e-mail ativos para {{ admin_notification_email }}.</span>
 </section>
+{% endif %}
 {% endif %}
 
 <section class="admin-metrics" aria-label="Indicadores do marketplace">
