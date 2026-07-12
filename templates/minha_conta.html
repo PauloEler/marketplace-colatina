@@ -34,15 +34,24 @@
         <input type="hidden" name="acao" value="senha">
         <div class="form-grupo">
           <label for="senha-atual">Senha atual</label>
-          <input id="senha-atual" type="password" name="senha_atual" required minlength="4" autocomplete="current-password">
+          <div class="password-field">
+            <input id="senha-atual" type="password" name="senha_atual" required minlength="4" autocomplete="current-password">
+            <button type="button" class="password-toggle" data-password-toggle="senha-atual" aria-controls="senha-atual" aria-pressed="false" aria-label="Mostrar senha atual">Mostrar</button>
+          </div>
         </div>
         <div class="form-grupo">
           <label for="nova-senha">Nova senha</label>
-          <input id="nova-senha" type="password" name="nova_senha" required minlength="8" autocomplete="new-password">
+          <div class="password-field">
+            <input id="nova-senha" type="password" name="nova_senha" required minlength="8" autocomplete="new-password">
+            <button type="button" class="password-toggle" data-password-toggle="nova-senha" aria-controls="nova-senha" aria-pressed="false" aria-label="Mostrar nova senha">Mostrar</button>
+          </div>
         </div>
         <div class="form-grupo">
           <label for="confirmar-senha">Confirmar nova senha</label>
-          <input id="confirmar-senha" type="password" name="confirmar" required minlength="8" autocomplete="new-password">
+          <div class="password-field">
+            <input id="confirmar-senha" type="password" name="confirmar" required minlength="8" autocomplete="new-password">
+            <button type="button" class="password-toggle" data-password-toggle="confirmar-senha" aria-controls="confirmar-senha" aria-pressed="false" aria-label="Mostrar confirmação da senha">Mostrar</button>
+          </div>
         </div>
         <button class="btn btn-verde full-button" type="submit">Salvar nova senha</button>
       </form>
@@ -77,7 +86,10 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <div class="form-grupo">
             <label for="desativar-senha">Confirme sua senha</label>
-            <input id="desativar-senha" type="password" name="senha" required autocomplete="current-password">
+            <div class="password-field">
+              <input id="desativar-senha" type="password" name="senha" required autocomplete="current-password">
+              <button type="button" class="password-toggle" data-password-toggle="desativar-senha" aria-controls="desativar-senha" aria-pressed="false" aria-label="Mostrar senha de confirmação">Mostrar</button>
+            </div>
           </div>
           <button class="btn btn-danger full-button" type="submit">Desativar minha conta</button>
         </form>
