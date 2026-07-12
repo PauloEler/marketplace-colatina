@@ -10,8 +10,8 @@ def armazenamento_externo_ativo():
     return bool(CLOUDINARY_URL)
 
 
-def salvar_imagem(arquivo, extensao, upload_folder):
-    if armazenamento_externo_ativo():
+def salvar_imagem(arquivo, extensao, upload_folder, permitir_externo=True):
+    if permitir_externo and armazenamento_externo_ativo():
         import cloudinary
         import cloudinary.uploader
 
@@ -34,10 +34,10 @@ def salvar_imagem(arquivo, extensao, upload_folder):
     return nome, None
 
 
-def excluir_imagem(foto, foto_id, upload_folder):
+def excluir_imagem(foto, foto_id, upload_folder, permitir_externo=True):
     if not foto:
         return
-    if foto_id and armazenamento_externo_ativo():
+    if foto_id and permitir_externo and armazenamento_externo_ativo():
         import cloudinary
         import cloudinary.uploader
 
