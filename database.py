@@ -6,7 +6,10 @@ from werkzeug.security import generate_password_hash
 
 BASE_DIR = os.path.dirname(__file__)
 DB_PATH = os.environ.get("DATABASE_PATH", os.path.join(BASE_DIR, "marketplace.db"))
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
+DATABASE_URL = (
+    os.environ.get("RESTORED_DATABASE_URL", "").strip()
+    or os.environ.get("DATABASE_URL", "").strip()
+)
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
