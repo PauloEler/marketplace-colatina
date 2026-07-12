@@ -29,6 +29,13 @@
     </div>
     {% if p.observacao %}<p class="order-note">“{{ p.observacao }}”</p>{% endif %}
 
+    {% if p.status in ['confirmado', 'concluido'] %}
+    <div class="order-confirmation">
+      <span class="{{ 'done' if p.vendedor_confirmou_em else 'pending' }}">Vendedor: {{ 'venda realizada' if p.vendedor_confirmou_em else 'aguardando confirmar venda' }}</span>
+      <span class="{{ 'done' if p.comprador_confirmou_em else 'pending' }}">Comprador: {{ 'recebimento confirmado' if p.comprador_confirmou_em else 'aguardando confirmar recebimento' }}</span>
+    </div>
+    {% endif %}
+
     <div class="order-actions">
       {% if tipo == 'venda' and p.status == 'aguardando' %}
         <form method="POST" action="/pedido/{{ p.id }}/confirmar">
@@ -67,17 +74,37 @@
           {% else %}
             <span class="payment-waiting-note">Vendedor ainda não conectou o Mercado Pago</span>
           {% endif %}
-          <form method="POST" action="/pedido/{{ p.id }}/concluir">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-verde" type="submit">Recebi o produto</button>
-          </form>
+          {% if p.comprador_confirmou_em %}
+            <span class="payment-confirmed-note">Voce confirmou recebimento</span>
+          {% else %}
+            <form method="POST" action="/pedido/{{ p.id }}/concluir">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-verde" type="submit">Recebi o produto</button>
+            </form>
+          {% endif %}
           {% if p.pagamento_status != 'aprovado' %}<form method="POST" action="/pedido/{{ p.id }}/cancelar">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-cinza" type="submit">Cancelar</button>
           </form>{% endif %}
-        {% elif not p.vendedor_mp_user_id %}
-          <a class="btn btn-mp" href="/minha-conta">Conectar Mercado Pago</a>
+        {% else %}
+          {% if p.vendedor_confirmou_em %}
+            <span class="payment-confirmed-note">Voce confirmou a venda</span>
+          {% else %}
+            <form method="POST" action="/pedido/{{ p.id }}/concluir">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-verde" type="submit">Venda realizada</button>
+            </form>
+          {% endif %}
+          {% if not p.vendedor_mp_user_id %}
+            <a class="btn btn-mp" href="/minha-conta">Conectar Mercado Pago</a>
+          {% endif %}
         {% endif %}
+        <form method="POST" action="/pedido/{{ p.id }}/problema">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-cinza" type="submit">Relatar problema</button>
+        </form>
+      {% elif p.status == 'em_analise' %}
+        <span class="payment-waiting-note">Pedido em analise pelo administrador</span>
       {% endif %}
     </div>
   </div>
