@@ -20,6 +20,7 @@
         <h2>{{ a.titulo }}</h2>
         <div class="product-price">R$ {{ a.preco }}</div>
         <p>Vendido por <strong>{{ a.vendedor_nome }}</strong></p>
+        <p>{{ a.estoque }} disponivel{{ '' if a.estoque == 1 else 'is' }}. Este pedido reserva 1 unidade quando o vendedor confirmar.</p>
       </div>
     </section>
 

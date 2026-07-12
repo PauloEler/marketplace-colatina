@@ -121,6 +121,7 @@ def _init_sqlite():
             foto TEXT,
             foto_id TEXT,
             ativo INTEGER DEFAULT 1,
+            estoque INTEGER NOT NULL DEFAULT 1,
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
             contatos_whatsapp INTEGER DEFAULT 0,
@@ -228,6 +229,8 @@ def _init_sqlite():
         db.execute(
             "ALTER TABLE anuncios ADD COLUMN contatos_whatsapp INTEGER DEFAULT 0"
         )
+    if "estoque" not in colunas:
+        db.execute("ALTER TABLE anuncios ADD COLUMN estoque INTEGER NOT NULL DEFAULT 1")
     db.execute(
         "INSERT INTO anuncio_fotos (anuncio_id, foto, foto_id, ordem) "
         "SELECT a.id, a.foto, a.foto_id, 0 FROM anuncios a "
@@ -304,6 +307,7 @@ def _init_pg():
             foto TEXT,
             foto_id TEXT,
             ativo INTEGER DEFAULT 1,
+            estoque INTEGER NOT NULL DEFAULT 1,
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
             contatos_whatsapp INTEGER DEFAULT 0,
@@ -318,6 +322,9 @@ def _init_pg():
     )
     db.execute(
         "ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS contatos_whatsapp INTEGER DEFAULT 0"
+    )
+    db.execute(
+        "ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS estoque INTEGER NOT NULL DEFAULT 1"
     )
     db.execute(
         """

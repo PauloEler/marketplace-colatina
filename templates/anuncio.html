@@ -15,7 +15,7 @@
       <div class="product-tags"><span>{{ a.condicao }}</span><span>{{ categoria_label(a.categoria) }}</span></div>
       <h1 id="product-title">{{ a.titulo }}</h1>
       <div class="product-price">R$ {{ a.preco }}</div>
-      <div class="product-meta"><span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span><span>{{ a.visualizacoes }} visualização(ões)</span></div>
+      <div class="product-meta"><span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span><span>{{ a.estoque }} disponivel{{ '' if a.estoque == 1 else 'is' }}</span><span>{{ a.visualizacoes }} visualização(ões)</span></div>
       <div class="product-divider"></div>
       <h2>Descrição</h2>
       <div class="detalhe-desc">{{ a.descricao }}</div>

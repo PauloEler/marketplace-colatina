@@ -496,6 +496,47 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIsNotNone(pedido["vendedor_confirmou_em"])
             self.assertIsNone(pedido["comprador_confirmou_em"])
 
+    def test_confirmar_pedido_reserva_uma_unidade_do_estoque(self):
+        with app.app_context():
+            db = get_db()
+            db.execute("UPDATE anuncios SET estoque=2 WHERE id=?", (self.anuncio_id,))
+            db.commit()
+
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar",
+            data={"csrf_token": "token-teste"},
+        )
+
+        with app.app_context():
+            anuncio = get_db().execute(
+                "SELECT estoque, ativo FROM anuncios WHERE id=?", (self.anuncio_id,)
+            ).fetchone()
+            self.assertEqual(anuncio["estoque"], 1)
+            self.assertEqual(anuncio["ativo"], 1)
+
+    def test_cancelar_pedido_reservado_devolve_estoque(self):
+        pedido_id = self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/confirmar",
+            data={"csrf_token": "token-teste"},
+        )
+
+        self.autenticar_sessao(self.comprador_id)
+        self.client.post(
+            f"/pedido/{pedido_id}/cancelar",
+            data={"csrf_token": "token-teste"},
+        )
+
+        with app.app_context():
+            anuncio = get_db().execute(
+                "SELECT estoque, ativo FROM anuncios WHERE id=?", (self.anuncio_id,)
+            ).fetchone()
+            self.assertEqual(anuncio["estoque"], 1)
+            self.assertEqual(anuncio["ativo"], 1)
+
     def test_usuario_pode_enviar_pedido_confirmado_para_analise(self):
         pedido_id = self.criar_pedido_de_teste()
         self.autenticar_sessao(self.vendedor_id)

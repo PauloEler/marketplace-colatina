@@ -25,6 +25,7 @@
       <div class="card-cat">{{ categoria_label(a.categoria) }}</div>
       <h2>{{ a.titulo }}</h2>
       <div class="card-preco">R$ {{ a.preco }}</div>
+      <div class="table-subtext">Estoque: {{ a.estoque }} unidade{{ '' if a.estoque == 1 else 's' }}</div>
       <div class="owner-actions">
         {% if a.ativo %}<a href="/anuncio/{{ a.id }}" class="btn btn-cinza">Ver</a>{% endif %}
         <a href="/editar/{{ a.id }}" class="btn btn-verde">Editar</a>
