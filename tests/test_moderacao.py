@@ -35,6 +35,7 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             for tabela in (
+                "comunicados",
                 "tentativas_login",
                 "anuncio_fotos",
                 "denuncias",
@@ -287,6 +288,59 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b"password-toggle.js", login.data)
         self.assertIn(b'autocomplete="current-password"', login.data)
         self.assertIn("salvar sua senha".encode(), login.data)
+
+    def test_admin_publica_e_arquiva_comunicado_global(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        resposta = self.client.post(
+            "/admin/comunicado",
+            data={
+                "csrf_token": "token-teste",
+                "titulo": "Atualização importante",
+                "mensagem": "Os anúncios foram restaurados e os dados estão protegidos.",
+                "tipo": "atencao",
+            },
+        )
+        self.assertEqual(resposta.status_code, 302)
+
+        pagina = self.client.get("/")
+        self.assertIn("Atualização importante".encode(), pagina.data)
+        self.assertIn("Os anúncios foram restaurados".encode(), pagina.data)
+
+        with app.app_context():
+            comunicado = get_db().execute("SELECT * FROM comunicados").fetchone()
+            self.assertEqual(comunicado["ativo"], 1)
+
+        resposta = self.client.post(
+            f"/admin/comunicado/{comunicado['id']}/toggle",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(resposta.status_code, 302)
+        pagina = self.client.get("/")
+        self.assertNotIn("Atualização importante".encode(), pagina.data)
+
+    def test_novo_comunicado_arquiva_anterior_sem_apagar_historico(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        for numero in (1, 2):
+            self.client.post(
+                "/admin/comunicado",
+                data={
+                    "csrf_token": "token-teste",
+                    "titulo": f"Comunicado {numero}",
+                    "mensagem": f"Mensagem geral número {numero}.",
+                    "tipo": "informacao",
+                },
+            )
+        with app.app_context():
+            db = get_db()
+            self.assertEqual(
+                db.execute("SELECT COUNT(*) FROM comunicados").fetchone()[0], 2
+            )
+            self.assertEqual(
+                db.execute("SELECT COUNT(*) FROM comunicados WHERE ativo=1").fetchone()[
+                    0
+                ],
+                1,
+            )
 
     def test_anuncio_aceita_bairro_e_varias_fotos(self):
         self.autenticar_sessao(self.comprador_id)
