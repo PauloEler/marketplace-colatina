@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import json
 import time
+import unicodedata
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from urllib.parse import quote
@@ -255,6 +256,34 @@ def foto_url(foto, largura=1200):
             return foto.replace("/upload/", f"/upload/{transformacao}/", 1)
         return foto
     return url_for("uploaded_file", filename=foto)
+
+
+def nome_loja_publica(usuario):
+    return (usuario["loja_nome"] or usuario["nome"]).strip()
+
+
+def slug_loja(nome):
+    texto = unicodedata.normalize("NFKD", nome or "")
+    texto = texto.encode("ascii", "ignore").decode("ascii").lower()
+    return re.sub(r"[^a-z0-9]+", "-", texto).strip("-")[:80] or "loja"
+
+
+def url_loja_publica(usuario, externa=False):
+    opcoes_url = {"_external": externa}
+    if externa and FLASK_ENV == "production":
+        opcoes_url["_scheme"] = "https"
+    return url_for(
+        "loja_publica",
+        loja_id=usuario["id"],
+        slug=slug_loja(nome_loja_publica(usuario)),
+        **opcoes_url,
+    )
+
+
+def url_loja_publica_por_dados(usuario_id, loja_nome, nome):
+    return url_loja_publica(
+        {"id": usuario_id, "loja_nome": loja_nome, "nome": nome}
+    )
 
 
 def plano_valido(usuario):
@@ -765,6 +794,8 @@ app.jinja_env.globals["csrf_token"] = csrf_token
 app.jinja_env.globals["categoria_label"] = categoria_label
 app.jinja_env.globals["plano_valido"] = plano_valido
 app.jinja_env.globals["foto_url"] = foto_url
+app.jinja_env.globals["url_loja_publica"] = url_loja_publica
+app.jinja_env.globals["url_loja_publica_por_dados"] = url_loja_publica_por_dados
 app.jinja_env.globals["pedido_status_label"] = pedido_status_label
 app.jinja_env.globals["pedido_entrega_label"] = pedido_entrega_label
 app.jinja_env.globals["pagamento_status_label"] = pagamento_status_label
@@ -913,7 +944,7 @@ def index():
         categoria = ""
 
     query = (
-        "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp "
+        "SELECT a.*, u.nome AS vendedor_nome, u.loja_nome, u.whatsapp "
         "FROM anuncios a "
         "JOIN usuarios u ON a.usuario_id = u.id "
         "WHERE a.ativo = 1 AND a.estoque > 0"
@@ -993,15 +1024,101 @@ def sitemap():
         f"<url><loc>{url_for(endpoint, _external=True)}</loc></url>"
         for endpoint in endpoints
     )
+    lojas = get_db().execute(
+        "SELECT DISTINCT u.id, u.nome, u.loja_nome FROM usuarios u "
+        "JOIN anuncios a ON a.usuario_id=u.id "
+        "WHERE u.ativo=1 AND a.ativo=1 AND a.estoque>0"
+    ).fetchall()
+    urls += "".join(
+        f"<url><loc>{url_loja_publica(loja, externa=True)}</loc></url>"
+        for loja in lojas
+    )
     xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
     return Response(xml, mimetype="application/xml")
+
+
+@app.route("/loja/<int:loja_id>")
+def loja_publica_por_id(loja_id):
+    loja = get_db().execute(
+        "SELECT id, nome, loja_nome FROM usuarios WHERE id=? AND ativo=1",
+        (loja_id,),
+    ).fetchone()
+    if not loja:
+        abort(404)
+    return redirect(url_loja_publica(loja), code=301)
+
+
+@app.route("/loja/<int:loja_id>-<slug>")
+def loja_publica(loja_id, slug):
+    db = get_db()
+    loja = db.execute(
+        "SELECT id, nome, loja_nome, loja_descricao, loja_bairro, loja_whatsapp, "
+        "criado_em, ultimo_acesso_em, loja_verificada "
+        "FROM usuarios WHERE id=? AND ativo=1",
+        (loja_id,),
+    ).fetchone()
+    if not loja:
+        abort(404)
+
+    nome_publico = nome_loja_publica(loja)
+    slug_canonico = slug_loja(nome_publico)
+    if slug != slug_canonico:
+        return redirect(url_loja_publica(loja), code=301)
+
+    anuncios = db.execute(
+        "SELECT * FROM anuncios WHERE usuario_id=? AND ativo=1 AND estoque>0 "
+        "ORDER BY criado_em DESC, id DESC",
+        (loja_id,),
+    ).fetchall()
+    reputacao = calcular_reputacao_usuario(db, loja)["vendedor"]
+    palavras_nome = [palavra for palavra in nome_publico.split() if palavra]
+    logo_iniciais = "".join(palavra[0] for palavra in palavras_nome[:2]).upper()
+    descricao_seo = re.sub(r"\s+", " ", loja["loja_descricao"] or "").strip()
+    if not descricao_seo:
+        descricao_seo = (
+            f"Conheça a loja {nome_publico} e seus anúncios no Mercado Colatina."
+        )
+    descricao_seo = descricao_seo[:155]
+
+    whatsapp_url = None
+    numero_comercial = limpar_whatsapp(loja["loja_whatsapp"] or "")
+    if len(numero_comercial) in {10, 11, 12, 13}:
+        if not numero_comercial.startswith("55"):
+            numero_comercial = f"55{numero_comercial}"
+        mensagem = quote(
+            f"Olá! Conheci a loja {nome_publico} no Mercado Colatina."
+        )
+        whatsapp_url = f"https://wa.me/{numero_comercial}?text={mensagem}"
+
+    loja_url = url_loja_publica(loja, externa=True)
+    opcoes_imagem = {"_external": True}
+    if FLASK_ENV == "production":
+        opcoes_imagem["_scheme"] = "https"
+    imagem_social = url_for(
+        "static", filename="mercado-colatina-social.svg", **opcoes_imagem
+    )
+    return render_template(
+        "loja_publica.html",
+        loja=loja,
+        nome_publico=nome_publico,
+        logo_iniciais=logo_iniciais or "MC",
+        anuncios=anuncios,
+        total_anuncios=len(anuncios),
+        reputacao_publica=reputacao,
+        produtos_vendidos=reputacao["vendas_concluidas"],
+        whatsapp_url=whatsapp_url,
+        loja_url=loja_url,
+        descricao_seo=descricao_seo,
+        imagem_social=imagem_social,
+    )
 
 
 @app.route("/anuncio/<int:anuncio_id>")
 def anuncio(anuncio_id):
     db = get_db()
     anuncio_item = db.execute(
-        "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp, u.criado_em AS vendedor_criado_em, "
+        "SELECT a.*, u.nome AS vendedor_nome, u.loja_nome, u.whatsapp, "
+        "u.criado_em AS vendedor_criado_em, "
         "u.ultimo_acesso_em, u.loja_verificada "
         "FROM anuncios a "
         "JOIN usuarios u ON a.usuario_id = u.id "
@@ -1031,11 +1148,19 @@ def anuncio(anuncio_id):
             "loja_verificada": anuncio_item["loja_verificada"],
         },
     )["vendedor"]
+    vendedor_loja_url = url_loja_publica(
+        {
+            "id": anuncio_item["usuario_id"],
+            "nome": anuncio_item["vendedor_nome"],
+            "loja_nome": anuncio_item["loja_nome"],
+        }
+    )
     return render_template(
         "anuncio.html",
         a=anuncio_item,
         fotos=fotos,
         vendedor_reputacao=vendedor_reputacao,
+        vendedor_loja_url=vendedor_loja_url,
         denuncia_motivos=DENUNCIA_MOTIVOS,
     )
 

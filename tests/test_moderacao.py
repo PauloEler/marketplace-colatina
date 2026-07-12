@@ -762,6 +762,166 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("grid-auto-flow:column", css)
         self.assertIn("min-width:0;max-width:100%", css)
 
+    def preparar_loja_publica(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome=?, loja_descricao=?, loja_bairro=?, "
+                "loja_whatsapp=?, criado_em=? WHERE id=?",
+                (
+                    "Pedal Ágil Colatina",
+                    "Bicicletas, peças e acessórios para ciclistas da região.",
+                    "Centro",
+                    "2788887777",
+                    "2025-01-15 09:00:00",
+                    self.vendedor_id,
+                ),
+            )
+            db.execute(
+                "UPDATE anuncios SET titulo='Anúncio mais antigo', estoque=3, ativo=1, "
+                "criado_em='2026-01-01 10:00:00' WHERE id=?",
+                (self.anuncio_id,),
+            )
+            db.execute(
+                "INSERT INTO anuncios "
+                "(usuario_id, titulo, descricao, preco, categoria, condicao, estoque, ativo, criado_em) "
+                "VALUES (?,?,?,?,?,?,?,?,?)",
+                (
+                    self.vendedor_id,
+                    "Anúncio mais recente",
+                    "Produto ativo da loja.",
+                    "250,00",
+                    "Outros",
+                    "Novo",
+                    2,
+                    1,
+                    "2026-02-01 10:00:00",
+                ),
+            )
+            db.execute(
+                "INSERT INTO anuncios "
+                "(usuario_id, titulo, descricao, preco, categoria, condicao, estoque, ativo, criado_em) "
+                "VALUES (?,?,?,?,?,?,?,?,?)",
+                (
+                    self.vendedor_id,
+                    "Anúncio privado pausado",
+                    "Este anúncio não pode aparecer publicamente.",
+                    "99,00",
+                    "Outros",
+                    "Usado",
+                    1,
+                    0,
+                    "2026-03-01 10:00:00",
+                ),
+            )
+            db.execute(
+                "INSERT INTO pedidos "
+                "(anuncio_id, comprador_id, vendedor_id, valor, status, entrega, "
+                "comprador_confirmou_em, criado_em, atualizado_em) "
+                "VALUES (?,?,?,?,?,?,?,?,?)",
+                (
+                    self.anuncio_id,
+                    self.comprador_id,
+                    self.vendedor_id,
+                    "1.200,00",
+                    "concluido",
+                    "retirada",
+                    "2026-01-05 12:00:00",
+                    "2026-01-04 10:00:00",
+                    "2026-01-05 12:00:00",
+                ),
+            )
+            db.commit()
+        return f"/loja/{self.vendedor_id}-pedal-agil-colatina"
+
+    def test_loja_publica_exibe_perfil_e_anuncios_ativos_em_ordem(self):
+        caminho = self.preparar_loja_publica()
+        pagina = self.client.get(caminho)
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Pedal Ágil Colatina", html)
+        self.assertIn("Bicicletas, peças e acessórios", html)
+        self.assertIn("Centro · Colatina, ES", html)
+        self.assertIn("Anúncios ativos</span><strong>2", html)
+        self.assertIn("Vendas concluídas</span><strong>1", html)
+        self.assertIn("Produtos vendidos</span><strong>1", html)
+        self.assertLess(html.index("Anúncio mais recente"), html.index("Anúncio mais antigo"))
+        self.assertNotIn("Anúncio privado pausado", html)
+
+    def test_loja_publica_usa_slug_canonico_e_atalho_por_id(self):
+        caminho = self.preparar_loja_publica()
+        slug_incorreto = self.client.get(f"/loja/{self.vendedor_id}-nome-antigo")
+        somente_id = self.client.get(f"/loja/{self.vendedor_id}")
+
+        self.assertEqual(slug_incorreto.status_code, 301)
+        self.assertTrue(slug_incorreto.headers["Location"].endswith(caminho))
+        self.assertEqual(somente_id.status_code, 301)
+        self.assertTrue(somente_id.headers["Location"].endswith(caminho))
+        self.assertEqual(app_module.slug_loja("Pedal Ágil Colatina"), "pedal-agil-colatina")
+
+    def test_loja_publica_nao_expoe_dados_privados_ou_administrativos(self):
+        caminho = self.preparar_loja_publica()
+        pagina = self.client.get(caminho)
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertNotIn("27999999991", html)
+        self.assertNotIn("Último acesso", html)
+        self.assertNotIn("Pedidos cancelados", html)
+        self.assertNotIn("Pedidos em análise", html)
+        self.assertNotIn("administrador", html.lower())
+        self.assertIn("https://wa.me/552788887777", html)
+
+    def test_loja_publica_tem_seo_url_e_compartilhamento(self):
+        caminho = self.preparar_loja_publica()
+        pagina = self.client.get(caminho)
+        html = pagina.data.decode("utf-8")
+
+        self.assertIn("<title>Pedal Ágil Colatina | Loja no Mercado Colatina</title>", html)
+        self.assertIn('property="og:title" content="Pedal Ágil Colatina | Mercado Colatina"', html)
+        self.assertIn('property="og:image"', html)
+        self.assertIn("mercado-colatina-social.svg", html)
+        self.assertIn(f'data-share-url="http://localhost{caminho}"', html)
+        self.assertIn(f'<link rel="canonical" href="http://localhost{caminho}">', html)
+        self.assertIn("store-share.js", html)
+
+    def test_visitante_acessa_loja_antes_de_abrir_anuncio(self):
+        caminho = self.preparar_loja_publica()
+        pagina_inicial = self.client.get("/")
+        self.assertEqual(pagina_inicial.status_code, 200)
+        self.assertIn(f'href="{caminho}">Conhecer a loja</a>'.encode(), pagina_inicial.data)
+
+    def test_loja_inexistente_ou_inativa_retorna_404(self):
+        self.assertEqual(self.client.get("/loja/999999-loja-inexistente").status_code, 404)
+        with app.app_context():
+            db = get_db()
+            db.execute("UPDATE usuarios SET ativo=0 WHERE id=?", (self.vendedor_id,))
+            db.commit()
+        self.assertEqual(
+            self.client.get(f"/loja/{self.vendedor_id}-vendedor").status_code, 404
+        )
+
+    def test_loja_publica_e_responsiva_em_desktop_tablet_e_celular(self):
+        caminho = self.preparar_loja_publica()
+        pagina = self.client.get(caminho)
+        self.assertIn(b'name="viewport"', pagina.data)
+        self.assertIn(b"public-store-hero", pagina.data)
+        self.assertIn(b"public-store-stats", pagina.data)
+        with open(
+            os.path.join(os.path.dirname(app_module.__file__), "static", "styles.css"),
+            encoding="utf-8",
+        ) as estilos:
+            css = estilos.read()
+        self.assertIn("@media(max-width:840px){.public-store-stats", css)
+        self.assertIn("@media(max-width:640px){.public-store-hero", css)
+
+    def test_sitemap_inclui_loja_publica_com_anuncio_ativo(self):
+        caminho = self.preparar_loja_publica()
+        sitemap = self.client.get("/sitemap.xml")
+        self.assertEqual(sitemap.status_code, 200)
+        self.assertIn(f"http://localhost{caminho}".encode(), sitemap.data)
+
     def preparar_dados_reputacao(self):
         with app.app_context():
             db = get_db()

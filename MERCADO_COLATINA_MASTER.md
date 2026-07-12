@@ -130,6 +130,7 @@ O roadmap expressa direção, não autorização automática para implementaçã
 - Reserva, baixa e devolução segura de estoque.
 - Linha do tempo dos pedidos e motivo estruturado para problemas.
 - Painel profissional do vendedor e perfil de loja.
+- Perfil público da loja com URL amigável, vitrine, SEO e compartilhamento.
 - Reputação automática 1.0 para vendedor e comprador.
 - Destaque regional e vitrine identificada de ofertas afiliadas.
 - Testes automatizados e publicação controlada pelo GitHub e Render.
@@ -146,7 +147,6 @@ O roadmap expressa direção, não autorização automática para implementaçã
 ## Próximas RFCs
 
 - Processo auditável de verificação de lojas e vendedores.
-- Página pública da loja com seus anúncios e indicadores públicos permitidos.
 - Comprovante opcional de entrega ou registro de evidências em situações de análise.
 - Evolução da mediação de problemas, com prazos, responsáveis e decisões registradas.
 - Notificações administrativas por canais adicionais, como Telegram ou WhatsApp, sem substituir o registro interno.
@@ -346,6 +346,10 @@ Vendedores passaram a definir nome, descrição, bairro e contato comercial da l
 ## Missão 003 — Sistema de Reputação 1.0
 
 Foram implantados indicadores automáticos para vendedor e comprador, visão privada completa, visão administrativa e exposição pública limitada. Consulte o [relatório de reputação](docs/RELATORIO_REPUTACAO_1_0.md).
+
+## Missão 004 — Perfil Público da Loja
+
+Cada loja passou a possuir uma página pública com URL amigável, identidade comercial, indicadores públicos, anúncios ativos, contato comercial, compartilhamento e metadados para mecanismos de busca. Consulte o [relatório do perfil público da loja](docs/RELATORIO_PERFIL_PUBLICO_DA_LOJA.md).
 
 ## Identidade regional e ofertas afiliadas
 

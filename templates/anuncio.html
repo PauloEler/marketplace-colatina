@@ -27,8 +27,9 @@
       <div class="seller-label">Vendedor</div>
       <div class="seller-identity">
         <div class="seller-avatar">{{ a.vendedor_nome[:1]|upper }}</div>
-        <div><strong>{{ a.vendedor_nome }}</strong><span>Colatina, ES</span></div>
+        <div><strong>{{ a.loja_nome or a.vendedor_nome }}</strong><span>Colatina, ES</span></div>
       </div>
+      <a class="seller-store-profile-link" href="{{ vendedor_loja_url }}">Conhecer a loja</a>
       <div class="public-reputation" aria-label="Reputação pública do vendedor">
         {% if vendedor_reputacao.loja_verificada %}<span class="verified-store-badge">Loja verificada</span>{% endif %}
         <dl>
