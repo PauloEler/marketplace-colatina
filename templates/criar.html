@@ -37,6 +37,11 @@
         <input id="anuncio-preco" type="text" name="preco" required maxlength="20" inputmode="decimal" placeholder="Ex.: 1.200,00">
       </div>
       <div class="form-grupo">
+        <label for="anuncio-estoque">Quantidade disponivel</label>
+        <input id="anuncio-estoque" type="number" name="estoque" required min="1" max="999" step="1" value="{{ request.form.get('estoque', '1') }}">
+        <small>Use 1 quando for uma peca unica.</small>
+      </div>
+      <div class="form-grupo">
         <label for="anuncio-categoria">Categoria</label>
         <select id="anuncio-categoria" name="categoria" required>
           {% for c in categorias %}<option {% if c == selected_cat %}selected{% endif %}>{{ c }}</option>{% endfor %}

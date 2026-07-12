@@ -334,6 +334,18 @@ def validar_anuncio(titulo, descricao, preco, categoria, condicao, bairro):
     return None
 
 
+def validar_estoque(valor, minimo=1):
+    try:
+        estoque = int(str(valor).strip() or "1")
+    except ValueError:
+        return None, "Informe uma quantidade valida."
+    if estoque < minimo or estoque > 999:
+        if minimo == 0:
+            return None, "A quantidade deve ficar entre 0 e 999."
+        return None, "A quantidade deve ficar entre 1 e 999."
+    return estoque, None
+
+
 def csrf_token():
     token = session.get("_csrf_token")
     if not token:
@@ -662,7 +674,7 @@ def index():
         "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp "
         "FROM anuncios a "
         "JOIN usuarios u ON a.usuario_id = u.id "
-        "WHERE a.ativo = 1"
+        "WHERE a.ativo = 1 AND a.estoque > 0"
     )
     params = []
     if busca:
@@ -750,7 +762,7 @@ def anuncio(anuncio_id):
         "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp "
         "FROM anuncios a "
         "JOIN usuarios u ON a.usuario_id = u.id "
-        "WHERE a.id=? AND a.ativo=1",
+        "WHERE a.id=? AND a.ativo=1 AND a.estoque>0",
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item:
@@ -780,7 +792,7 @@ def contato_anuncio(anuncio_id):
     db = get_db()
     anuncio_item = db.execute(
         "SELECT a.id, a.titulo, a.usuario_id, u.whatsapp FROM anuncios a "
-        "JOIN usuarios u ON u.id=a.usuario_id WHERE a.id=? AND a.ativo=1 AND u.ativo=1",
+        "JOIN usuarios u ON u.id=a.usuario_id WHERE a.id=? AND a.ativo=1 AND a.estoque>0 AND u.ativo=1",
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item:
@@ -1133,6 +1145,10 @@ def criar_anuncio():
         categoria = request.form["categoria"]
         condicao = request.form["condicao"]
         bairro = request.form.get("bairro", "").strip()
+        estoque, erro_estoque = validar_estoque(request.form.get("estoque", "1"))
+        if erro_estoque:
+            flash(erro_estoque, "erro")
+            return render_template("criar.html", categorias=CATEGORIAS, aviso=aviso)
         erro = validar_anuncio(titulo, descricao, preco, categoria, condicao, bairro)
         if erro:
             flash(erro, "erro")
@@ -1180,8 +1196,8 @@ def criar_anuncio():
 
         db = get_db()
         anuncio_id = db.execute(
-            "INSERT INTO anuncios (usuario_id, titulo, descricao, preco, categoria, condicao, bairro, foto, foto_id) "
-            "VALUES (?,?,?,?,?,?,?,?,?) RETURNING id",
+            "INSERT INTO anuncios (usuario_id, titulo, descricao, preco, categoria, condicao, bairro, estoque, foto, foto_id) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING id",
             (
                 session["usuario_id"],
                 titulo,
@@ -1190,6 +1206,7 @@ def criar_anuncio():
                 categoria,
                 condicao,
                 bairro,
+                estoque,
                 foto,
                 foto_id,
             ),
@@ -1276,6 +1293,14 @@ def editar_anuncio(anuncio_id):
         categoria = request.form["categoria"]
         condicao = request.form["condicao"]
         bairro = request.form.get("bairro", "").strip()
+        estoque, erro_estoque = validar_estoque(
+            request.form.get("estoque", anuncio_item["estoque"]), minimo=0
+        )
+        if erro_estoque:
+            flash(erro_estoque, "erro")
+            return render_template(
+                "editar.html", a=anuncio_item, fotos=fotos_atuais, categorias=CATEGORIAS
+            )
         erro = validar_anuncio(titulo, descricao, preco, categoria, condicao, bairro)
         if erro:
             flash(erro, "erro")
@@ -1346,7 +1371,7 @@ def editar_anuncio(anuncio_id):
             foto, foto_id = novas_fotos[0]
 
         db.execute(
-            "UPDATE anuncios SET titulo=?, descricao=?, preco=?, categoria=?, condicao=?, bairro=?, foto=?, foto_id=? WHERE id=?",
+            "UPDATE anuncios SET titulo=?, descricao=?, preco=?, categoria=?, condicao=?, bairro=?, estoque=?, ativo=CASE WHEN ?=0 THEN 0 ELSE ativo END, foto=?, foto_id=? WHERE id=?",
             (
                 titulo,
                 descricao,
@@ -1354,6 +1379,8 @@ def editar_anuncio(anuncio_id):
                 categoria,
                 condicao,
                 bairro,
+                estoque,
+                estoque,
                 foto,
                 foto_id,
                 anuncio_id,
@@ -1394,7 +1421,7 @@ def alternar_status_anuncio(anuncio_id):
         return redirect(url_for("login"))
     db = get_db()
     anuncio_item = db.execute(
-        "SELECT usuario_id, ativo FROM anuncios WHERE id=?",
+        "SELECT usuario_id, ativo, estoque FROM anuncios WHERE id=?",
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item or (
@@ -1403,6 +1430,9 @@ def alternar_status_anuncio(anuncio_id):
         abort(404)
     novo_status = 0 if anuncio_item["ativo"] else 1
     if novo_status:
+        if anuncio_item["estoque"] <= 0:
+            flash("Informe uma quantidade em estoque antes de reativar o anuncio.", "erro")
+            return redirect(url_for("meus_anuncios"))
         pode, _ = pode_criar_anuncio(anuncio_item["usuario_id"])
         if not pode:
             flash("Seu limite de anúncios ativos foi atingido.", "erro")
@@ -1491,7 +1521,7 @@ def comprar(anuncio_id):
     anuncio_item = db.execute(
         "SELECT a.*, u.nome AS vendedor_nome, u.whatsapp "
         "FROM anuncios a JOIN usuarios u ON a.usuario_id=u.id "
-        "WHERE a.id=? AND a.ativo=1",
+        "WHERE a.id=? AND a.ativo=1 AND a.estoque>0",
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item:
@@ -1636,17 +1666,37 @@ def atualizar_pedido(pedido_id, acao):
         return redirect(url_for("pedidos"))
 
     if acao == "confirmar":
+        anuncio_estoque = db.execute(
+            "SELECT estoque FROM anuncios WHERE id=?",
+            (pedido["anuncio_id"],),
+        ).fetchone()
+        if not anuncio_estoque or anuncio_estoque["estoque"] <= 0:
+            db.execute(
+                "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
+                (pedido_id,),
+            )
+            db.commit()
+            flash("Pedido recusado porque o estoque acabou.", "erro")
+            return redirect(url_for("pedidos"))
+
         db.execute(
             "UPDATE pedidos SET status='confirmado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
             (pedido_id,),
         )
-        db.execute("UPDATE anuncios SET ativo=0 WHERE id=?", (pedido["anuncio_id"],))
         db.execute(
-            "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
-            "WHERE anuncio_id=? AND id<>? AND status='aguardando'",
-            (pedido["anuncio_id"], pedido_id),
+            "UPDATE anuncios SET estoque=estoque-1, "
+            "ativo=CASE WHEN estoque-1<=0 THEN 0 ELSE ativo END WHERE id=?",
+            (pedido["anuncio_id"],),
         )
-        mensagem = "Pedido confirmado e anúncio reservado."
+        if anuncio_estoque["estoque"] <= 1:
+            db.execute(
+                "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
+                "WHERE anuncio_id=? AND id<>? AND status='aguardando'",
+                (pedido["anuncio_id"], pedido_id),
+            )
+            mensagem = "Pedido confirmado. Ultima unidade reservada e anuncio pausado."
+        else:
+            mensagem = "Pedido confirmado e 1 unidade reservada."
     elif acao == "recusar":
         db.execute(
             "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
@@ -1654,12 +1704,16 @@ def atualizar_pedido(pedido_id, acao):
         )
         mensagem = "Pedido recusado."
     elif acao == "cancelar":
-        estava_confirmado = pedido["status"] == "confirmado"
+        estava_confirmado = pedido["status"] in {"confirmado", "em_analise"}
         db.execute(
             "UPDATE pedidos SET status='cancelado', atualizado_em=CURRENT_TIMESTAMP WHERE id=?",
             (pedido_id,),
         )
         if estava_confirmado:
+            db.execute(
+                "UPDATE anuncios SET estoque=estoque+1 WHERE id=?",
+                (pedido["anuncio_id"],),
+            )
             anuncio_moderado = db.execute(
                 "SELECT id FROM denuncias WHERE anuncio_id=? AND status='resolvida' LIMIT 1",
                 (pedido["anuncio_id"],),
@@ -2340,10 +2394,13 @@ def admin_toggle_anuncio(anuncio_id):
         return redirect(url_for("index"))
     db = get_db()
     anuncio_item = db.execute(
-        "SELECT ativo FROM anuncios WHERE id=?",
+        "SELECT ativo, estoque FROM anuncios WHERE id=?",
         (anuncio_id,),
     ).fetchone()
     if anuncio_item:
+        if not anuncio_item["ativo"] and anuncio_item["estoque"] <= 0:
+            flash("Informe estoque antes de ativar o anuncio.", "erro")
+            return redirect(url_for("painel_admin"))
         db.execute(
             "UPDATE anuncios SET ativo=? WHERE id=?",
             (0 if anuncio_item["ativo"] else 1, anuncio_id),

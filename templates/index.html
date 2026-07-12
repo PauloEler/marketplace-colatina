@@ -111,6 +111,7 @@
         <div class="card-preco">R$ {{ a.preco }}</div>
         <div class="card-meta">
           <span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span>
+          <span>{{ a.estoque }} disponivel{{ '' if a.estoque == 1 else 'is' }}</span>
           <span>{{ a.vendedor_nome }}</span>
         </div>
       </div>
