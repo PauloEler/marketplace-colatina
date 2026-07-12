@@ -19,28 +19,15 @@ def email_configurado():
     )
 
 
-def enviar_alerta_novo_pedido(pedido, painel_url):
-    """Envia o aviso sem expor credenciais e sem interromper a compra."""
+def enviar_email_admin(assunto, corpo):
     if not email_configurado():
         return "aguardando_configuracao"
 
     mensagem = EmailMessage()
-    mensagem["Subject"] = (
-        f"[ALERTA DE VENDA] Novo pedido #{pedido['id']} - {pedido['titulo']}"
-    )
+    mensagem["Subject"] = assunto
     mensagem["From"] = os.environ["SMTP_FROM_EMAIL"].strip()
     mensagem["To"] = destinatario_admin()
-    mensagem.set_content(
-        "NOVO PEDIDO NO MERCADO COLATINA\n\n"
-        f"Pedido: #{pedido['id']}\n"
-        f"Produto: {pedido['titulo']}\n"
-        f"Valor: R$ {pedido['valor']}\n"
-        f"Comprador: {pedido['comprador_nome']}\n"
-        f"Vendedor: {pedido['vendedor_nome']}\n"
-        f"Entrega: {pedido['entrega']}\n"
-        f"Observacao: {pedido['observacao'] or '-'}\n\n"
-        f"Abra o painel administrativo: {painel_url}\n"
-    )
+    mensagem.set_content(corpo)
 
     host = os.environ["SMTP_HOST"].strip()
     porta = int(os.environ.get("SMTP_PORT", "587"))
@@ -55,3 +42,28 @@ def enviar_alerta_novo_pedido(pedido, painel_url):
         cliente.login(usuario, senha)
         cliente.send_message(mensagem)
     return "enviado"
+
+
+def enviar_alerta_novo_pedido(pedido, painel_url):
+    """Envia o aviso sem expor credenciais e sem interromper a compra."""
+    return enviar_email_admin(
+        f"[ALERTA DE VENDA] Novo pedido #{pedido['id']} - {pedido['titulo']}",
+        "NOVO PEDIDO NO MERCADO COLATINA\n\n"
+        f"Pedido: #{pedido['id']}\n"
+        f"Produto: {pedido['titulo']}\n"
+        f"Valor: R$ {pedido['valor']}\n"
+        f"Comprador: {pedido['comprador_nome']}\n"
+        f"Vendedor: {pedido['vendedor_nome']}\n"
+        f"Entrega: {pedido['entrega']}\n"
+        f"Observacao: {pedido['observacao'] or '-'}\n\n"
+        f"Abra o painel administrativo: {painel_url}\n"
+    )
+
+
+def enviar_teste_admin(painel_url):
+    return enviar_email_admin(
+        "[TESTE] Mercado Colatina - alertas por e-mail ativos",
+        "TESTE DE E-MAIL DO MERCADO COLATINA\n\n"
+        "Se voce recebeu esta mensagem, os alertas administrativos estao ativos.\n\n"
+        f"Painel administrativo: {painel_url}\n",
+    )

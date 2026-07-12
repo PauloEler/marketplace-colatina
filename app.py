@@ -46,6 +46,7 @@ from email_service import (  # noqa: E402
     destinatario_admin,
     email_configurado,
     enviar_alerta_novo_pedido,
+    enviar_teste_admin,
 )
 
 app = Flask(__name__)
@@ -361,6 +362,28 @@ def salvar_tokens_mercadopago(db, usuario_id, dados):
         ),
     )
     db.commit()
+
+
+def registrar_status_email_pedido(db, pedido_id, email_status):
+    db.execute(
+        "UPDATE pedidos SET admin_email_status=?, "
+        "admin_email_enviado_em=CASE WHEN ?='enviado' THEN CURRENT_TIMESTAMP ELSE admin_email_enviado_em END "
+        "WHERE id=?",
+        (email_status, email_status, pedido_id),
+    )
+
+
+def buscar_pedido_admin(db, pedido_id):
+    return db.execute(
+        "SELECT p.*, a.titulo, comprador.nome AS comprador_nome, "
+        "vendedor.nome AS vendedor_nome "
+        "FROM pedidos p "
+        "JOIN anuncios a ON a.id=p.anuncio_id "
+        "JOIN usuarios comprador ON comprador.id=p.comprador_id "
+        "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
+        "WHERE p.id=?",
+        (pedido_id,),
+    ).fetchone()
 
 
 def obter_token_vendedor(usuario_id):
@@ -1527,12 +1550,7 @@ def comprar(anuncio_id):
         except Exception:
             app.logger.exception("Falha ao enviar alerta administrativo de pedido")
             email_status = "falhou"
-        db.execute(
-            "UPDATE pedidos SET admin_email_status=?, "
-            "admin_email_enviado_em=CASE WHEN ?='enviado' THEN CURRENT_TIMESTAMP ELSE NULL END "
-            "WHERE id=?",
-            (email_status, email_status, pedido_criado["id"]),
-        )
+        registrar_status_email_pedido(db, pedido_criado["id"], email_status)
         db.commit()
         flash("Pedido enviado! Aguarde a confirmação do vendedor.", "ok")
         return redirect(url_for("pedidos"))
@@ -1994,6 +2012,55 @@ def painel_admin():
         comunicados=comunicados,
         metricas=metricas,
     )
+
+
+@app.route("/admin/email/teste", methods=["POST"])
+def admin_testar_email():
+    if not admin():
+        return redirect(url_for("index"))
+
+    try:
+        email_status = enviar_teste_admin(url_for("painel_admin", _external=True))
+    except Exception:
+        app.logger.exception("Falha ao enviar e-mail administrativo de teste")
+        email_status = "falhou"
+
+    if email_status == "enviado":
+        flash("E-mail de teste enviado para o administrador.", "ok")
+    elif email_status == "aguardando_configuracao":
+        flash("Configure o e-mail administrativo antes de enviar o teste.", "erro")
+    else:
+        flash("Nao foi possivel enviar o e-mail de teste. Confira o Render e o Gmail.", "erro")
+    return redirect(url_for("painel_admin"))
+
+
+@app.route("/admin/pedido/<int:pedido_id>/reenviar-email", methods=["POST"])
+def admin_reenviar_email_pedido(pedido_id):
+    if not admin():
+        return redirect(url_for("index"))
+
+    db = get_db()
+    pedido = buscar_pedido_admin(db, pedido_id)
+    if not pedido:
+        abort(404)
+
+    try:
+        email_status = enviar_alerta_novo_pedido(
+            pedido, url_for("painel_admin", _external=True)
+        )
+    except Exception:
+        app.logger.exception("Falha ao reenviar alerta administrativo de pedido")
+        email_status = "falhou"
+
+    registrar_status_email_pedido(db, pedido_id, email_status)
+    db.commit()
+    if email_status == "enviado":
+        flash(f"Alerta do pedido #{pedido_id} reenviado por e-mail.", "ok")
+    elif email_status == "aguardando_configuracao":
+        flash("Configure o e-mail administrativo antes de reenviar alertas.", "erro")
+    else:
+        flash(f"Nao foi possivel reenviar o alerta do pedido #{pedido_id}.", "erro")
+    return redirect(url_for("painel_admin") + f"#pedido-{pedido_id}")
 
 
 @app.route("/admin/comunicado", methods=["POST"])
