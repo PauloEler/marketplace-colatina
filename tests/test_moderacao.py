@@ -9,13 +9,18 @@ from werkzeug.security import generate_password_hash
 
 
 TEST_DIR = tempfile.mkdtemp(prefix="mercado-colatina-tests-")
+os.environ.pop("DATABASE_URL", None)
 os.environ["DATABASE_PATH"] = os.path.join(TEST_DIR, "test.db")
 os.environ["FLASK_ENV"] = "testing"
 os.environ["SECRET_KEY"] = "test-secret-key"
 
 import app as app_module  # noqa: E402
 from app import app  # noqa: E402
-from database import get_db  # noqa: E402
+from database import USE_PG, get_db  # noqa: E402
+
+
+if USE_PG:
+    raise RuntimeError("Os testes nunca podem usar PostgreSQL ou o banco de produção.")
 
 
 class ModeracaoTestCase(unittest.TestCase):
