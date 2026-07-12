@@ -620,6 +620,15 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.admin_id, admin=True)
         self.assertEqual(self.client.get("/admin").status_code, 200)
 
+    def test_home_destaca_promocoes_do_mercado_livre_com_aviso_de_afiliado(self):
+        pagina = self.client.get("/")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("OFERTAS NO MERCADO LIVRE".encode(), pagina.data)
+        self.assertIn("VER PROMOÇÕES NO MERCADO LIVRE".encode(), pagina.data)
+        self.assertIn("Você será direcionado para o Mercado Livre".encode(), pagina.data)
+        self.assertIn(b'rel="sponsored nofollow"', pagina.data)
+
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(
