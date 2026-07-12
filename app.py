@@ -139,7 +139,6 @@ def validar_configuracao_producao():
     if FLASK_ENV != "production":
         return
     obrigatorias = (
-        "DATABASE_URL",
         "CLOUDINARY_URL",
         "ADMIN_PASSWORD",
         "ADMIN_WHATSAPP",
@@ -147,6 +146,11 @@ def validar_configuracao_producao():
         "SUPPORT_WHATSAPP",
     )
     ausentes = [nome for nome in obrigatorias if not os.environ.get(nome, "").strip()]
+    if not any(
+        os.environ.get(nome, "").strip()
+        for nome in ("DATABASE_URL", "RESTORED_DATABASE_URL")
+    ):
+        ausentes.insert(0, "DATABASE_URL")
     if ausentes:
         raise RuntimeError(
             "Configuracao de producao incompleta. Defina: " + ", ".join(ausentes)
