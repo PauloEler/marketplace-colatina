@@ -268,6 +268,12 @@ def slug_loja(nome):
     return re.sub(r"[^a-z0-9]+", "-", texto).strip("-")[:80] or "loja"
 
 
+def normalizar_busca_loja(texto):
+    texto = unicodedata.normalize("NFKD", texto or "")
+    texto = texto.encode("ascii", "ignore").decode("ascii").lower()
+    return re.sub(r"\s+", " ", texto).strip()
+
+
 def url_loja_publica(usuario, externa=False):
     opcoes_url = {"_external": externa}
     if externa and FLASK_ENV == "production":
@@ -1066,11 +1072,94 @@ def loja_publica(loja_id, slug):
     if slug != slug_canonico:
         return redirect(url_loja_publica(loja), code=301)
 
-    anuncios = db.execute(
+    anuncios_ativos = list(db.execute(
         "SELECT * FROM anuncios WHERE usuario_id=? AND ativo=1 AND estoque>0 "
         "ORDER BY criado_em DESC, id DESC",
         (loja_id,),
-    ).fetchall()
+    ).fetchall())
+
+    busca = request.args.get("q", "").strip()[:100]
+    categoria = request.args.get("categoria", "").strip()
+    if categoria not in CATEGORIAS:
+        categoria = ""
+    preco_minimo_texto = request.args.get("preco_min", "").strip()[:20]
+    preco_maximo_texto = request.args.get("preco_max", "").strip()[:20]
+    ordem = request.args.get("ordem", "recentes")
+    ordens_validas = {"recentes", "mais_vistos", "menor_preco", "maior_preco"}
+    if ordem not in ordens_validas:
+        ordem = "recentes"
+
+    preco_minimo_normalizado = normalizar_preco(preco_minimo_texto)
+    preco_maximo_normalizado = normalizar_preco(preco_maximo_texto)
+    preco_minimo = (
+        preco_decimal(preco_minimo_normalizado) if preco_minimo_normalizado else None
+    )
+    preco_maximo = (
+        preco_decimal(preco_maximo_normalizado) if preco_maximo_normalizado else None
+    )
+    termo_busca = normalizar_busca_loja(busca)
+
+    anuncios = list(anuncios_ativos)
+    if termo_busca:
+        anuncios = [
+            anuncio
+            for anuncio in anuncios
+            if termo_busca
+            in normalizar_busca_loja(
+                f"{anuncio['titulo']} {anuncio['descricao']}"
+            )
+        ]
+    if categoria:
+        anuncios = [
+            anuncio
+            for anuncio in anuncios
+            if categoria_label(anuncio["categoria"]) == categoria
+        ]
+    if preco_minimo is not None:
+        anuncios = [
+            anuncio
+            for anuncio in anuncios
+            if preco_decimal(anuncio["preco"]) >= preco_minimo
+        ]
+    if preco_maximo is not None:
+        anuncios = [
+            anuncio
+            for anuncio in anuncios
+            if preco_decimal(anuncio["preco"]) <= preco_maximo
+        ]
+
+    if ordem == "mais_vistos":
+        anuncios.sort(
+            key=lambda anuncio: (
+                anuncio["visualizacoes"] or 0,
+                anuncio["criado_em"],
+                anuncio["id"],
+            ),
+            reverse=True,
+        )
+    elif ordem == "menor_preco":
+        anuncios.sort(
+            key=lambda anuncio: (preco_decimal(anuncio["preco"]), anuncio["id"])
+        )
+    elif ordem == "maior_preco":
+        anuncios.sort(
+            key=lambda anuncio: (preco_decimal(anuncio["preco"]), anuncio["id"]),
+            reverse=True,
+        )
+
+    categorias_loja = sorted(
+        {categoria_label(anuncio["categoria"]) for anuncio in anuncios_ativos}
+    )
+    total_visualizacoes = sum(
+        anuncio["visualizacoes"] or 0 for anuncio in anuncios_ativos
+    )
+    filtros_ativos = bool(
+        busca
+        or categoria
+        or preco_minimo_texto
+        or preco_maximo_texto
+        or ordem != "recentes"
+    )
     reputacao = calcular_reputacao_usuario(db, loja)["vendedor"]
     palavras_nome = [palavra for palavra in nome_publico.split() if palavra]
     logo_iniciais = "".join(palavra[0] for palavra in palavras_nome[:2]).upper()
@@ -1104,7 +1193,16 @@ def loja_publica(loja_id, slug):
         nome_publico=nome_publico,
         logo_iniciais=logo_iniciais or "MC",
         anuncios=anuncios,
-        total_anuncios=len(anuncios),
+        total_anuncios=len(anuncios_ativos),
+        total_resultados=len(anuncios),
+        total_visualizacoes=total_visualizacoes,
+        categorias_loja=categorias_loja,
+        busca_loja=busca,
+        categoria_selecionada=categoria,
+        preco_minimo=preco_minimo_texto,
+        preco_maximo=preco_maximo_texto,
+        ordem=ordem,
+        filtros_ativos=filtros_ativos,
         reputacao_publica=reputacao,
         produtos_vendidos=reputacao["vendas_concluidas"],
         whatsapp_url=whatsapp_url,
