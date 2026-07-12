@@ -8,14 +8,44 @@
   <header class="seller-dashboard-hero">
     <div>
       <div class="section-kicker">Gestão da sua loja</div>
-      <h1>Olá, {{ vendedor.nome }}</h1>
-      <p>Acompanhe seus anúncios, estoque e vendas em um só lugar.</p>
+      <h1>{{ vendedor.loja_nome or vendedor.nome }}</h1>
+      <p>{{ vendedor.loja_descricao or 'Acompanhe seus anúncios, estoque e vendas em um só lugar.' }}</p>
+      {% if vendedor.loja_nome %}<small class="seller-store-owner">Responsável: {{ vendedor.nome }}</small>{% endif %}
+      {% if vendedor.loja_bairro or vendedor.loja_whatsapp %}
+      <div class="seller-store-contact">
+        {% if vendedor.loja_bairro %}<span>{{ vendedor.loja_bairro }} · Colatina, ES</span>{% endif %}
+        {% if vendedor.loja_whatsapp %}<span>WhatsApp comercial: {{ vendedor.loja_whatsapp }}</span>{% endif %}
+      </div>
+      {% endif %}
     </div>
     <div class="seller-dashboard-actions">
       <a href="/criar" class="btn btn-verde">+ Novo anúncio</a>
       <a href="/pedidos" class="btn btn-cinza">Gerenciar pedidos</a>
     </div>
   </header>
+
+  <details class="seller-store-editor">
+    <summary>Editar perfil da loja</summary>
+    <form method="POST" action="/painel-vendedor/perfil">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="seller-store-form-grid">
+        <label>Nome da loja
+          <input name="loja_nome" maxlength="60" value="{{ vendedor.loja_nome or '' }}" placeholder="Ex.: Artesanatos do Roberto">
+          <small>Opcional e exclusivo. Se ficar vazio, usaremos seu nome.</small>
+        </label>
+        <label>Bairro
+          <input name="loja_bairro" maxlength="60" value="{{ vendedor.loja_bairro or '' }}" placeholder="Ex.: Centro">
+        </label>
+        <label>WhatsApp comercial
+          <input name="loja_whatsapp" maxlength="20" value="{{ vendedor.loja_whatsapp or '' }}" placeholder="{{ vendedor.whatsapp }}" inputmode="tel">
+        </label>
+        <label class="seller-store-description">Descrição curta
+          <textarea name="loja_descricao" maxlength="240" rows="3" placeholder="Conte brevemente o que sua loja oferece.">{{ vendedor.loja_descricao or '' }}</textarea>
+        </label>
+      </div>
+      <button class="btn btn-verde" type="submit">Salvar perfil da loja</button>
+    </form>
+  </details>
 
   <section aria-labelledby="resumo-loja">
     <div class="seller-section-heading">
@@ -61,7 +91,7 @@
             {% if a.estoque <= 0 %}<span class="badge seller-badge-soldout">Esgotado</span>
             {% elif a.ativo %}<span class="badge badge-verde">Ativo</span>
             {% else %}<span class="badge badge-cinza">Pausado</span>{% endif %}
-            <span>{{ a.visualizacoes }} visualização{{ '' if a.visualizacoes == 1 else 'ões' }}</span>
+            <span>{{ a.visualizacoes }} {{ 'visualização' if a.visualizacoes == 1 else 'visualizações' }}</span>
           </div>
           <h3>{{ a.titulo }}</h3>
           <strong class="seller-product-price">R$ {{ a.preco }}</strong>

@@ -380,6 +380,20 @@ def formatar_duracao_media(segundos):
     return f"{dias} dia{'s' if dias != 1 else ''}"
 
 
+def validar_perfil_loja(nome, descricao, bairro, whatsapp):
+    if nome and (len(nome) < 3 or len(nome) > 60):
+        return "O nome da loja deve ter entre 3 e 60 caracteres."
+    if nome and any(ord(char) < 32 for char in nome):
+        return "Informe um nome de loja válido."
+    if len(descricao) > 240:
+        return "A descrição da loja deve ter no máximo 240 caracteres."
+    if bairro and (len(bairro) < 2 or len(bairro) > 60):
+        return "Informe um bairro válido."
+    if whatsapp and len(limpar_whatsapp(whatsapp)) not in {10, 11}:
+        return "Informe um WhatsApp comercial com DDD."
+    return None
+
+
 def csrf_token():
     token = session.get("_csrf_token")
     if not token:
@@ -1613,7 +1627,8 @@ def painel_vendedor():
     db = get_db()
     usuario_id = session["usuario_id"]
     vendedor = db.execute(
-        "SELECT id, nome, criado_em FROM usuarios WHERE id=? AND ativo=1",
+        "SELECT id, nome, whatsapp, loja_nome, loja_descricao, loja_bairro, "
+        "loja_whatsapp, criado_em FROM usuarios WHERE id=? AND ativo=1",
         (usuario_id,),
     ).fetchone()
     if not vendedor:
@@ -1748,6 +1763,50 @@ def painel_vendedor():
         filtro=filtro,
         grupos_pedidos=grupos_pedidos,
     )
+
+
+@app.route("/painel-vendedor/perfil", methods=["POST"])
+def atualizar_perfil_loja():
+    if not logado():
+        return redirect(url_for("login"))
+
+    nome = re.sub(r"\s+", " ", request.form.get("loja_nome", "").strip())
+    descricao = re.sub(
+        r"\s+", " ", request.form.get("loja_descricao", "").strip()
+    )
+    bairro = re.sub(r"\s+", " ", request.form.get("loja_bairro", "").strip())
+    whatsapp = limpar_whatsapp(request.form.get("loja_whatsapp", ""))
+    erro = validar_perfil_loja(nome, descricao, bairro, whatsapp)
+    if erro:
+        flash(erro, "erro")
+        return redirect(url_for("painel_vendedor"))
+
+    db = get_db()
+    usuario_id = session["usuario_id"]
+    if nome:
+        nome_em_uso = db.execute(
+            "SELECT id FROM usuarios WHERE lower(loja_nome)=lower(?) AND id<>? LIMIT 1",
+            (nome, usuario_id),
+        ).fetchone()
+        if nome_em_uso:
+            flash("Este nome de loja já está em uso. Escolha outro.", "erro")
+            return redirect(url_for("painel_vendedor"))
+
+    try:
+        db.execute(
+            "UPDATE usuarios SET loja_nome=?, loja_descricao=?, loja_bairro=?, "
+            "loja_whatsapp=? WHERE id=? AND ativo=1",
+            (nome or None, descricao, bairro, whatsapp, usuario_id),
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        app.logger.exception("Falha ao atualizar perfil da loja")
+        flash("Não foi possível salvar o perfil da loja. Tente outro nome.", "erro")
+        return redirect(url_for("painel_vendedor"))
+
+    flash("Perfil da loja atualizado.", "ok")
+    return redirect(url_for("painel_vendedor"))
 
 
 @app.route("/comprar/<int:anuncio_id>", methods=["GET", "POST"])
