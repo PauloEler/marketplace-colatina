@@ -484,8 +484,12 @@ class ModeracaoTestCase(unittest.TestCase):
         ):
             painel = self.client.get("/admin")
 
-        self.assertIn("Nenhum pedido aguardando atenção.".encode(), painel.data)
-        self.assertIn("O serviço remetente ainda precisa ser ativado.".encode(), painel.data)
+        self.assertIn(
+            "Nenhum pedido aguardando atenção neste momento.".encode(), painel.data
+        )
+        self.assertIn("o serviço remetente ainda precisa ser ativado.".encode(), painel.data)
+        self.assertIn(b"admin-email-warning", painel.data)
+        self.assertIn("ATENÇÃO".encode(), painel.data)
         self.assertNotIn("atenÃ§Ã£o".encode(), painel.data)
 
     def test_cancelamento_nao_reativa_anuncio_retirado_pela_moderacao(self):
