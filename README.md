@@ -2,6 +2,12 @@
 
 Marketplace local em Flask para compra e venda em Colatina e região.
 
+## Documento principal
+
+O [Documento Mestre do Mercado Colatina](MERCADO_COLATINA_MASTER.md) é a referência oficial para missão, visão, valores, identidade, roadmap, regras permanentes e futuras evoluções do produto.
+
+A documentação operacional e os relatórios das missões estão organizados no [índice de documentação](docs/README.md).
+
 ## Estrutura de produção
 
 - Flask e Gunicorn para a aplicação.
@@ -43,7 +49,7 @@ O arquivo `render.yaml` cria um serviço web e um PostgreSQL permanente na regi�
 
 O processo de publicação executa os testes automaticamente e interrompe a atualização se algum fluxo essencial falhar.
 
-Use também o [checklist de lançamento](CHECKLIST_LANCAMENTO.md) para configurar e validar o ambiente real antes de abrir o marketplace ao público.
+Use também o [checklist de lançamento](docs/CHECKLIST_LANCAMENTO.md) para configurar e validar o ambiente real antes de abrir o marketplace ao público.
 
 Nunca salve senhas, chaves do banco ou a credencial do Cloudinary no repositório.
 
