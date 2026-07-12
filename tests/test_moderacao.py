@@ -1260,6 +1260,11 @@ class ModeracaoTestCase(unittest.TestCase):
             pagina.data,
         )
         self.assertIn("OFERTAS NO MERCADO LIVRE".encode(), pagina.data)
+        self.assertIn(
+            "Promoções incríveis selecionadas pelo Mercado Colatina".encode(),
+            pagina.data,
+        )
+        self.assertNotIn("Paulo Eler".encode(), pagina.data)
         self.assertIn("VER PROMOÇÕES NO MERCADO LIVRE".encode(), pagina.data)
         self.assertIn("Você será direcionado para o Mercado Livre".encode(), pagina.data)
         self.assertIn(b'rel="sponsored nofollow"', pagina.data)
