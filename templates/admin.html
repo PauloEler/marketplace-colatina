@@ -14,6 +14,55 @@
   <article><span>Denúncias pendentes</span><strong>{{ metricas.denuncias_pendentes }}</strong></article>
 </section>
 
+<section class="admin-communications" aria-labelledby="communications-title">
+  <div class="admin-section-heading">
+    <div><div class="section-kicker">Mensagem para todos</div><h3 id="communications-title">Comunicados do site</h3></div>
+    <span>O aviso ativo aparece em todas as páginas.</span>
+  </div>
+  <div class="admin-communications-grid">
+    <form class="form-box communication-form" method="POST" action="/admin/comunicado">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-grupo">
+        <label for="comunicado-titulo">Título</label>
+        <input id="comunicado-titulo" type="text" name="titulo" required minlength="3" maxlength="80" placeholder="Ex.: Atualização importante">
+      </div>
+      <div class="form-grupo">
+        <label for="comunicado-mensagem">Mensagem</label>
+        <textarea id="comunicado-mensagem" name="mensagem" required minlength="5" maxlength="500" rows="5" placeholder="Explique de forma clara o que os usuários precisam saber."></textarea>
+        <small>Até 500 caracteres. O texto será exibido como comunicado oficial.</small>
+      </div>
+      <div class="form-grupo">
+        <label for="comunicado-tipo">Tipo do aviso</label>
+        <select id="comunicado-tipo" name="tipo">
+          {% for valor, rotulo in comunicado_tipos.items() %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-verde full-button" type="submit">Publicar para todos</button>
+    </form>
+    <div class="communication-history" aria-label="Histórico de comunicados">
+      {% for comunicado in comunicados %}
+        <article class="communication-card {{ 'active' if comunicado.ativo else '' }}">
+          <div class="communication-card-top">
+            <span class="badge {{ 'badge-verde' if comunicado.ativo else 'badge-cinza' }}">{{ 'Ativo' if comunicado.ativo else 'Arquivado' }}</span>
+            <small>{{ comunicado.criado_em }}</small>
+          </div>
+          <strong>{{ comunicado.titulo }}</strong>
+          <p>{{ comunicado.mensagem }}</p>
+          <div class="communication-card-footer">
+            <small>Por {{ comunicado.autor_nome }} · {{ comunicado_tipos.get(comunicado.tipo, comunicado.tipo) }}</small>
+            <form method="POST" action="/admin/comunicado/{{ comunicado.id }}/toggle">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn {{ 'btn-cinza' if comunicado.ativo else 'btn-verde' }}" type="submit">{{ 'Arquivar' if comunicado.ativo else 'Reativar' }}</button>
+            </form>
+          </div>
+        </article>
+      {% else %}
+        <div class="empty-state compact">Nenhum comunicado publicado.</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
 <div class="form-box" style="margin-bottom:28px">
   <h3 style="margin-bottom:14px">Cadastrar novo usuário</h3>
   <form method="POST" action="/admin/usuario">

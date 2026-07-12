@@ -64,6 +64,15 @@
 {% block busca %}{% endblock %}
 
 <main>
+  {% if comunicado_global %}
+    <section class="site-announcement announcement-{{ comunicado_global.tipo }}" role="status" aria-label="Comunicado oficial do Mercado Colatina">
+      <div class="announcement-label">Comunicado oficial</div>
+      <div>
+        <strong>{{ comunicado_global.titulo }}</strong>
+        <p>{{ comunicado_global.mensagem }}</p>
+      </div>
+    </section>
+  {% endif %}
   {% with msgs = get_flashed_messages(with_categories=True) %}
     {% for cat, msg in msgs %}
       <div class="flash {{ cat }}" role="status">{{ msg }}</div>

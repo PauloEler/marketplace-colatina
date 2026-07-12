@@ -202,6 +202,19 @@ def _init_sqlite():
             janela_inicio INTEGER NOT NULL,
             bloqueado_ate INTEGER NOT NULL DEFAULT 0
         );
+        CREATE TABLE IF NOT EXISTS comunicados (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            titulo TEXT NOT NULL,
+            mensagem TEXT NOT NULL,
+            tipo TEXT NOT NULL DEFAULT 'informacao',
+            ativo INTEGER NOT NULL DEFAULT 1,
+            criado_por INTEGER NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            desativado_em TIMESTAMP,
+            FOREIGN KEY (criado_por) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_comunicados_ativo_criado
+            ON comunicados(ativo, criado_em);
         """
     )
     colunas = {
@@ -415,6 +428,24 @@ def _init_pg():
             bloqueado_ate BIGINT NOT NULL DEFAULT 0
         )
         """
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS comunicados (
+            id SERIAL PRIMARY KEY,
+            titulo TEXT NOT NULL,
+            mensagem TEXT NOT NULL,
+            tipo TEXT NOT NULL DEFAULT 'informacao',
+            ativo INTEGER NOT NULL DEFAULT 1,
+            criado_por INTEGER NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            desativado_em TIMESTAMP,
+            FOREIGN KEY (criado_por) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_comunicados_ativo_criado ON comunicados(ativo, criado_em)"
     )
     for coluna, tipo in {
         "termos_aceitos_em": "TIMESTAMP",
