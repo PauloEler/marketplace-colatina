@@ -1,20 +1,36 @@
 {% extends 'base.html' %}
-{% block title %}Criar Anuncio | Mercado Colatina{% endblock %}
+{% block title %}Criar Anúncio | Mercado Colatina{% endblock %}
 
-{% block voltar %}<a href="/meus-anuncios" class="voltar">Voltar aos meus anuncios</a>{% endblock %}
+{% block voltar %}<a href="/meus-anuncios" class="voltar">Voltar aos meus anúncios</a>{% endblock %}
 
 {% block content %}
+{% set draft = rascunho_neo|default({}) %}
+{% set selected_cat = request.form.get('categoria', draft.get('categoria', 'Eletrônicos')) %}
+{% set selected_condition = request.form.get('condicao', draft.get('condicao', 'Seminovo')) %}
 <div style="max-width:620px;margin:0 auto">
-  <h2 style="margin-bottom:18px">Criar anuncio</h2>
+  <h2 style="margin-bottom:18px">Criar anúncio</h2>
   {% if aviso %}
   <div style="background:#eef4f7;border:1px solid #b8ced9;border-radius:12px;padding:12px 14px;margin-bottom:16px">{{ aviso }}</div>
+  {% endif %}
+  {% if neo_configurado() %}
+  <section class="neo-card" aria-labelledby="neo-title">
+    <div class="neo-brand"><span>N</span><div><div class="section-kicker">Assistente de IA</div><h3 id="neo-title">Crie o rascunho com o Neo</h3></div></div>
+    <p>Conte o que deseja vender. O Neo organiza o título, a descrição e a categoria para você revisar.</p>
+    <form method="POST" action="/neo/anuncio">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="sr-only" for="neo-relato">O que você deseja vender?</label>
+      <textarea id="neo-relato" name="relato" required minlength="10" maxlength="800" placeholder="Ex.: Tenho uma bicicleta aro 29 usada, bem conservada, com freio a disco..."></textarea>
+      <button class="btn btn-neo" type="submit">Preparar com o Neo</button>
+    </form>
+    <small>A IA pode cometer erros. Você sempre revisa antes de publicar.</small>
+  </section>
   {% endif %}
   <div class="form-box">
     <form method="POST" enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-grupo">
         <label for="anuncio-titulo">Título do produto</label>
-        <input id="anuncio-titulo" type="text" name="titulo" required minlength="4" maxlength="120" placeholder="Ex.: iPhone 13 128 GB">
+        <input id="anuncio-titulo" type="text" name="titulo" required minlength="4" maxlength="120" placeholder="Ex.: iPhone 13 128 GB" value="{{ request.form.get('titulo', draft.get('titulo', '')) }}">
       </div>
       <div class="form-grupo">
         <label for="anuncio-preco">Preço</label>
@@ -23,26 +39,29 @@
       <div class="form-grupo">
         <label for="anuncio-categoria">Categoria</label>
         <select id="anuncio-categoria" name="categoria" required>
-          {% for c in categorias %}<option>{{ c }}</option>{% endfor %}
+          {% for c in categorias %}<option {% if c == selected_cat %}selected{% endif %}>{{ c }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-grupo">
         <label for="anuncio-condicao">Condição</label>
         <select id="anuncio-condicao" name="condicao" required>
-          <option>Novo</option>
-          <option selected>Seminovo</option>
-          <option>Usado</option>
+          {% for item in ['Novo', 'Seminovo', 'Usado'] %}<option {% if item == selected_condition %}selected{% endif %}>{{ item }}</option>{% endfor %}
         </select>
       </div>
       <div class="form-grupo">
         <label for="anuncio-descricao">Descrição</label>
-        <textarea id="anuncio-descricao" name="descricao" required minlength="10" maxlength="2000" placeholder="Estado, detalhes e o que está incluso"></textarea>
+        <textarea id="anuncio-descricao" name="descricao" required minlength="10" maxlength="2000" placeholder="Estado, detalhes e o que está incluso">{{ request.form.get('descricao', draft.get('descricao', '')) }}</textarea>
       </div>
       <div class="form-grupo">
-        <label for="anuncio-foto">Foto (opcional, máx. 5 MB)</label>
-        <input id="anuncio-foto" type="file" name="foto" accept=".jpg,.jpeg,.png,.webp">
+        <label for="anuncio-bairro">Bairro em Colatina</label>
+        <input id="anuncio-bairro" type="text" name="bairro" required minlength="2" maxlength="60" placeholder="Ex.: Centro">
       </div>
-      <button class="btn btn-verde" type="submit" style="width:100%">Publicar anuncio</button>
+      <div class="form-grupo">
+        <label for="anuncio-fotos">Fotos (até 5, máx. 5 MB no total)</label>
+        <input id="anuncio-fotos" type="file" name="fotos" accept=".jpg,.jpeg,.png,.webp" multiple>
+        <small>A primeira foto será usada como capa do anúncio.</small>
+      </div>
+      <button class="btn btn-verde" type="submit" style="width:100%">Publicar anúncio</button>
     </form>
   </div>
 </div>

@@ -6,15 +6,16 @@
 {% block content %}
 <div class="product-layout">
   <section class="product-main" aria-labelledby="product-title">
-    <div class="product-photo-wrap">
-      {% if a.foto %}<img src="{{ foto_url(a.foto, 1400) }}" alt="{{ a.titulo }}" class="product-photo">
+    <div class="product-gallery {{ 'single' if fotos|length <= 1 else '' }}">
+      {% if fotos %}
+        {% for foto in fotos %}<a href="{{ foto_url(foto.foto, 1600) }}" target="_blank" rel="noopener" class="gallery-item"><img src="{{ foto_url(foto.foto, 1000) }}" alt="Foto {{ loop.index }} de {{ a.titulo }}" class="product-photo" {% if not loop.first %}loading="lazy"{% endif %}></a>{% endfor %}
       {% else %}<div class="product-photo-empty"><span>MC</span>Imagem não enviada</div>{% endif %}
     </div>
     <div class="product-content">
       <div class="product-tags"><span>{{ a.condicao }}</span><span>{{ categoria_label(a.categoria) }}</span></div>
       <h1 id="product-title">{{ a.titulo }}</h1>
       <div class="product-price">R$ {{ a.preco }}</div>
-      <div class="product-meta"><span>Colatina, ES</span><span>{{ a.visualizacoes }} visualização(ões)</span></div>
+      <div class="product-meta"><span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span><span>{{ a.visualizacoes }} visualização(ões)</span></div>
       <div class="product-divider"></div>
       <h2>Descrição</h2>
       <div class="detalhe-desc">{{ a.descricao }}</div>
@@ -31,8 +32,7 @@
       {% if session.get('usuario_id') != a.usuario_id %}
       <a class="btn btn-comprar" href="/comprar/{{ a.id }}">Comprar</a>
       {% endif %}
-      <a class="btn btn-wpp" target="_blank" rel="noopener noreferrer"
-         href="https://wa.me/55{{ a.whatsapp|replace(' ','')|replace('-','')|replace('(','')|replace(')','') }}?text=Ol%C3%A1!%20Vi%20seu%20an%C3%BAncio%20{{ a.titulo|urlencode }}%20no%20Mercado%20Colatina.%20Ainda%20est%C3%A1%20dispon%C3%ADvel?">
+      <a class="btn btn-wpp" target="_blank" rel="noopener noreferrer" href="/anuncio/{{ a.id }}/contato">
         Conversar no WhatsApp
       </a>
       <p class="seller-note">O pedido organiza a negociação. Nenhum pagamento é cobrado automaticamente nesta etapa.</p>
@@ -42,6 +42,25 @@
       <div class="safety-icon">!</div>
       <div><strong>Negocie com segurança</strong><p>Não compartilhe senhas ou códigos. Prefira locais públicos para a entrega.</p><a href="/seguranca">Ver orientações</a></div>
     </div>
+
+    {% if session.get('usuario_id') and session.get('usuario_id') != a.usuario_id %}
+    <details class="report-card">
+      <summary>Denunciar este anúncio</summary>
+      <form method="POST" action="/anuncio/{{ a.id }}/denunciar">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="report-reason">Motivo</label>
+        <select id="report-reason" name="motivo" required>
+          <option value="">Selecione</option>
+          {% for valor, rotulo in denuncia_motivos.items() %}<option value="{{ valor }}">{{ rotulo }}</option>{% endfor %}
+        </select>
+        <label for="report-details">Detalhes <span>(opcional)</span></label>
+        <textarea id="report-details" name="detalhes" maxlength="500" rows="3" placeholder="Explique o que aconteceu"></textarea>
+        <button class="btn btn-cinza" type="submit">Enviar para análise</button>
+      </form>
+    </details>
+    {% elif not session.get('usuario_id') %}
+    <a class="report-login" href="/login">Entre para denunciar este anúncio</a>
+    {% endif %}
 
     {% if session.get('usuario_id') == a.usuario_id or session.get('is_admin') %}
     <div class="owner-card">

@@ -11,11 +11,11 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-grupo">
         <label for="cadastro-nome">Nome completo</label>
-        <input id="cadastro-nome" type="text" name="nome" required autofocus minlength="3" maxlength="80" placeholder="Seu nome" autocomplete="name">
+        <input id="cadastro-nome" type="text" name="nome" required autofocus minlength="3" maxlength="80" placeholder="Seu nome" autocomplete="name" value="{{ request.form.get('nome', '') }}">
       </div>
       <div class="form-grupo">
         <label for="cadastro-username">Nome de usuário</label>
-        <input id="cadastro-username" type="text" name="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Como você vai entrar" autocomplete="username">
+        <input id="cadastro-username" type="text" name="username" required minlength="3" maxlength="24" pattern="[A-Za-z0-9_]{3,24}" placeholder="Como você vai entrar" autocomplete="username" value="{{ request.form.get('username', '') }}">
       </div>
       <div class="form-grupo">
         <label for="cadastro-senha">Senha</label>
@@ -23,12 +23,16 @@
       </div>
       <div class="form-grupo">
         <label for="cadastro-whatsapp">WhatsApp com DDD</label>
-        <input id="cadastro-whatsapp" type="tel" name="whatsapp" required inputmode="numeric" minlength="10" maxlength="11" pattern="[0-9]{10,11}" placeholder="27999999999" autocomplete="tel">
+        <input id="cadastro-whatsapp" type="tel" name="whatsapp" required inputmode="numeric" minlength="10" maxlength="11" pattern="[0-9]{10,11}" placeholder="27999999999" autocomplete="tel" value="{{ request.form.get('whatsapp', '') }}">
       </div>
+      <label class="terms-check" for="cadastro-termos">
+        <input id="cadastro-termos" type="checkbox" name="aceite_termos" value="1" required {% if request.form.get('aceite_termos') %}checked{% endif %}>
+        <span>Li e aceito os <a href="/termos" target="_blank">Termos de Uso</a> e a <a href="/privacidade" target="_blank">Política de Privacidade</a>.</span>
+      </label>
       <button class="btn btn-verde" type="submit" style="width:100%">Criar conta</button>
     </form>
     <p style="text-align:center;margin-top:14px;font-size:.88rem">
-      Ja tem conta? <a href="/login" style="color:#1a6b3c">Entrar</a>
+      Já tem conta? <a href="/login" style="color:#1a6b3c">Entrar</a>
     </p>
   </div>
 </div>

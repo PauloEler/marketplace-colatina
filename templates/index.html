@@ -110,7 +110,7 @@
         <div class="card-titulo">{{ a.titulo }}</div>
         <div class="card-preco">R$ {{ a.preco }}</div>
         <div class="card-meta">
-          <span>Colatina, ES</span>
+          <span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span>
           <span>{{ a.vendedor_nome }}</span>
         </div>
       </div>
