@@ -26,6 +26,7 @@
         <div class="section-kicker">Loja no Mercado Colatina</div>
         <div class="public-store-title-line">
           <h1 id="store-name">{{ nome_publico }}</h1>
+          {% if loja.fundador %}<span class="founder-badge">🏅 Fundador do Mercado Colatina</span>{% endif %}
           {% if reputacao_publica.loja_verificada %}<span class="verified-store-badge">Loja verificada</span>{% endif %}
         </div>
         {% if loja.loja_bairro %}<p class="public-store-location">{{ loja.loja_bairro }} · Colatina, ES</p>{% else %}<p class="public-store-location">Colatina, ES</p>{% endif %}

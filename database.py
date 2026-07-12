@@ -120,6 +120,12 @@ def _init_sqlite():
             loja_whatsapp TEXT NOT NULL DEFAULT '',
             ultimo_acesso_em TIMESTAMP,
             loja_verificada INTEGER NOT NULL DEFAULT 0,
+            fundador INTEGER NOT NULL DEFAULT 0,
+            fundador_desde TIMESTAMP,
+            fundador_origem TEXT,
+            fundador_removido_em TIMESTAMP,
+            fundador_alterado_por INTEGER,
+            fundador_beneficios TEXT NOT NULL DEFAULT '{}',
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS anuncios (
@@ -283,6 +289,12 @@ def _init_sqlite():
         "loja_whatsapp": "TEXT NOT NULL DEFAULT ''",
         "ultimo_acesso_em": "TIMESTAMP",
         "loja_verificada": "INTEGER NOT NULL DEFAULT 0",
+        "fundador": "INTEGER NOT NULL DEFAULT 0",
+        "fundador_desde": "TIMESTAMP",
+        "fundador_origem": "TEXT",
+        "fundador_removido_em": "TIMESTAMP",
+        "fundador_alterado_por": "INTEGER",
+        "fundador_beneficios": "TEXT NOT NULL DEFAULT '{}'",
     }
     for nome, tipo in novas_colunas_usuarios.items():
         if nome not in colunas_usuarios:
@@ -291,6 +303,10 @@ def _init_sqlite():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_loja_nome "
         "ON usuarios(lower(loja_nome)) "
         "WHERE loja_nome IS NOT NULL AND loja_nome<>''"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_usuarios_fundador "
+        "ON usuarios(fundador, fundador_origem, criado_em)"
     )
     colunas_pedidos = {
         linha[1] for linha in db.execute("PRAGMA table_info(pedidos)").fetchall()
@@ -323,6 +339,7 @@ def _init_sqlite():
         "NULL, p.status, p.criado_em FROM pedidos p"
     )
     _seed_admin(db)
+    _backfill_fundadores(db)
     _hash_plain_passwords(db)
     db.commit()
     db.close()
@@ -349,6 +366,12 @@ def _init_pg():
             loja_whatsapp TEXT NOT NULL DEFAULT '',
             ultimo_acesso_em TIMESTAMP,
             loja_verificada INTEGER NOT NULL DEFAULT 0,
+            fundador INTEGER NOT NULL DEFAULT 0,
+            fundador_desde TIMESTAMP,
+            fundador_origem TEXT,
+            fundador_removido_em TIMESTAMP,
+            fundador_alterado_por INTEGER,
+            fundador_beneficios TEXT NOT NULL DEFAULT '{}',
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """
@@ -554,12 +577,22 @@ def _init_pg():
         "loja_whatsapp": "TEXT NOT NULL DEFAULT ''",
         "ultimo_acesso_em": "TIMESTAMP",
         "loja_verificada": "INTEGER NOT NULL DEFAULT 0",
+        "fundador": "INTEGER NOT NULL DEFAULT 0",
+        "fundador_desde": "TIMESTAMP",
+        "fundador_origem": "TEXT",
+        "fundador_removido_em": "TIMESTAMP",
+        "fundador_alterado_por": "INTEGER",
+        "fundador_beneficios": "TEXT NOT NULL DEFAULT '{}'",
     }.items():
         db.execute(f"ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS {coluna} {tipo}")
     db.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_loja_nome "
         "ON usuarios(lower(loja_nome)) "
         "WHERE loja_nome IS NOT NULL AND loja_nome<>''"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_usuarios_fundador "
+        "ON usuarios(fundador, fundador_origem, criado_em)"
     )
     for coluna, tipo in {
         "pagamento_status": "TEXT NOT NULL DEFAULT 'nao_iniciado'",
@@ -588,6 +621,7 @@ def _init_pg():
         "ON CONFLICT (pedido_id, tipo) DO NOTHING"
     )
     _seed_admin(db)
+    _backfill_fundadores(db)
     db.commit()
     db.close()
 
@@ -624,6 +658,35 @@ def _seed_admin(db):
                     admin_whatsapp,
                 ),
             )
+
+
+def _backfill_fundadores(db):
+    try:
+        limite = int(os.environ.get("FOUNDERS_LIMIT", "100"))
+    except ValueError:
+        limite = 100
+    limite = max(0, min(limite, 10000))
+    if not limite:
+        return
+
+    total = db.execute(
+        "SELECT COUNT(*) FROM usuarios WHERE fundador_origem='automatico'"
+    ).fetchone()[0]
+    vagas = max(0, limite - total)
+    if not vagas:
+        return
+
+    candidatos = db.execute(
+        "SELECT id FROM usuarios WHERE fundador=0 AND fundador_origem IS NULL "
+        "ORDER BY criado_em ASC, id ASC LIMIT ?",
+        (vagas,),
+    ).fetchall()
+    for usuario in candidatos:
+        db.execute(
+            "UPDATE usuarios SET fundador=1, fundador_desde=COALESCE(criado_em, "
+            "CURRENT_TIMESTAMP), fundador_origem='automatico' WHERE id=?",
+            (usuario["id"],),
+        )
 
 
 def _hash_plain_passwords(db):

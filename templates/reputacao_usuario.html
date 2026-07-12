@@ -4,7 +4,7 @@
 {% block content %}
 <div class="account-page admin-reputation-page">
   <div class="dashboard-heading">
-    <div><div class="section-kicker">Visão administrativa</div><h1>{{ usuario.nome }}</h1><p>@{{ usuario.username }} · indicadores completos e somente para consulta.</p></div>
+    <div><div class="section-kicker">Visão administrativa</div><h1>{{ usuario.nome }}</h1>{% if usuario.fundador %}<span class="founder-badge">🏅 Fundador do Mercado Colatina</span>{% endif %}<p>@{{ usuario.username }} · indicadores completos e somente para consulta.</p></div>
   </div>
   {% include '_reputacao_completa.html' %}
 </div>

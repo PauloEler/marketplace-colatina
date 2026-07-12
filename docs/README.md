@@ -15,6 +15,7 @@ Esta pasta reúne documentos operacionais e relatórios técnicos que complement
 - [Painel Profissional do Vendedor 1.0](RELATORIO_PAINEL_VENDEDOR_1_0.md)
 - [Sistema de Reputação 1.0](RELATORIO_REPUTACAO_1_0.md)
 - [Perfil Público da Loja](RELATORIO_PERFIL_PUBLICO_DA_LOJA.md)
+- [Programa Fundadores](RELATORIO_PROGRAMA_FUNDADORES.md)
 - [Organização do Documento Mestre](RELATORIO_DOCUMENTACAO_MASTER.md)
 
 ## Hierarquia documental

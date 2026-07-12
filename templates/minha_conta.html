@@ -6,7 +6,7 @@
 {% block content %}
 <div class="account-page">
   <div class="dashboard-heading">
-    <div><div class="section-kicker">Configurações</div><h1>Minha conta</h1><p>Atualize seus dados, sua segurança e seus recebimentos.</p></div>
+    <div><div class="section-kicker">Configurações</div><h1>Minha conta</h1>{% if usuario.fundador %}<span class="founder-badge">🏅 Fundador do Mercado Colatina</span>{% endif %}<p>Atualize seus dados, sua segurança e seus recebimentos.</p></div>
   </div>
   {% include '_reputacao_completa.html' %}
   <div class="account-grid">
