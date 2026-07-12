@@ -660,7 +660,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.vendedor_id)
         casos = (
             {"loja_nome": "AB"},
-            {"loja_nome": "Loja válida", "loja_descricao": "x" * 241},
+            {"loja_nome": "Loja válida", "loja_descricao": "x" * 601},
             {"loja_nome": "Loja válida", "loja_whatsapp": "123"},
         )
         for dados in casos:
@@ -676,6 +676,26 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIsNone(perfil["loja_nome"])
             self.assertEqual(perfil["loja_descricao"], "")
             self.assertEqual(perfil["loja_whatsapp"], "")
+
+    def test_descricao_da_loja_aceita_ate_600_caracteres(self):
+        self.autenticar_sessao(self.vendedor_id)
+        descricao = "x" * 600
+        resposta = self.client.post(
+            "/painel-vendedor/perfil",
+            data={
+                "csrf_token": "token-teste",
+                "loja_nome": "Loja do Vendedor",
+                "loja_descricao": descricao,
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 302)
+        with app.app_context():
+            perfil = get_db().execute(
+                "SELECT loja_descricao FROM usuarios WHERE id=?",
+                (self.vendedor_id,),
+            ).fetchone()
+            self.assertEqual(perfil["loja_descricao"], descricao)
 
     def test_painel_usa_nome_do_vendedor_quando_loja_nao_foi_nomeada(self):
         self.autenticar_sessao(self.vendedor_id)
