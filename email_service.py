@@ -56,7 +56,7 @@ def enviar_alerta_novo_pedido(pedido, painel_url):
         f"Vendedor: {pedido['vendedor_nome']}\n"
         f"Entrega: {pedido['entrega']}\n"
         f"Observacao: {pedido['observacao'] or '-'}\n\n"
-        f"Abra o painel administrativo: {painel_url}\n"
+        f"Abra o painel administrativo: {painel_url}\n",
     )
 
 
