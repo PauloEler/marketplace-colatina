@@ -17,7 +17,7 @@
 <script src="{{ url_for('static', filename='announcement.js') }}" defer></script>
 {% block head_extra %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 <header class="site-header">
   <div class="hi">
     <a href="/" class="logo" aria-label="Mercado Colatina, página inicial">
@@ -26,7 +26,7 @@
     </a>
     <nav class="desktop-nav" aria-label="Navegação principal">
       {% if session.get('usuario_id') %}
-        <a href="/criar" class="btn-anunciar">+ Anunciar</a>
+        <a href="/criar" class="btn-anunciar"><span class="legacy-plus" aria-hidden="true">+</span><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Anunciar</a>
         <a href="/painel-vendedor">Minha loja</a>
         <a href="/meus-anuncios">Meus anúncios</a>
         <a href="/pedidos">Pedidos</a>
@@ -39,14 +39,14 @@
       {% else %}
         <a href="/login">Entrar</a>
         <a href="/cadastro">Cadastrar</a>
-        <a href="/cadastro" class="btn-anunciar">+ Anunciar</a>
+        <a href="/cadastro" class="btn-anunciar"><span class="legacy-plus" aria-hidden="true">+</span><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Anunciar</a>
       {% endif %}
     </nav>
     <details class="mobile-nav">
-      <summary aria-label="Abrir menu principal">Menu</summary>
+      <summary aria-label="Abrir menu principal"><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"></path><path d="M4 6h16"></path><path d="M4 18h16"></path></svg>Menu</summary>
       <div class="mobile-nav-panel" aria-label="Menu principal do celular">
         {% if session.get('usuario_id') %}
-          <a href="/criar" class="mobile-primary">+ Anunciar</a>
+          <a href="/criar" class="mobile-primary"><span class="legacy-plus" aria-hidden="true">+</span><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Anunciar</a>
           <a href="/painel-vendedor">Minha loja</a>
           <a href="/meus-anuncios">Meus anúncios</a>
           <a href="/pedidos">Pedidos</a>
@@ -59,7 +59,7 @@
         {% else %}
           <a href="/login">Entrar</a>
           <a href="/cadastro">Criar conta</a>
-          <a href="/cadastro" class="mobile-primary">+ Anunciar</a>
+          <a href="/cadastro" class="mobile-primary"><span class="legacy-plus" aria-hidden="true">+</span><svg class="nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>Anunciar</a>
         {% endif %}
       </div>
     </details>
