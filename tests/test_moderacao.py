@@ -1170,9 +1170,7 @@ class ModeracaoTestCase(unittest.TestCase):
         caminho = self.preparar_loja_publica()
         pagina_inicial = self.client.get("/")
         self.assertEqual(pagina_inicial.status_code, 200)
-        self.assertIn(
-            f'href="{caminho}">Conhecer a loja</a>'.encode(), pagina_inicial.data
-        )
+        self.assertIn(f'href="{caminho}">Abrir loja</a>'.encode(), pagina_inicial.data)
 
     def test_loja_inexistente_ou_inativa_retorna_404(self):
         self.assertEqual(
@@ -2025,6 +2023,19 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Publicar um anúncio".encode(), pagina_autenticada.data)
         self.assertIn(b'href="#ofertas"', pagina_autenticada.data)
 
+    def test_home_aplica_mds_com_estrutura_semantica_e_acessivel(self):
+        pagina = self.client.get("/")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn('<body class="mds-home">', html)
+        self.assertIn("Compre. Venda. Valorize Colatina.", html)
+        self.assertIn('<label for="busca">Buscar produtos e serviços</label>', html)
+        self.assertIn('<label for="categoria">Categoria</label>', html)
+        self.assertIn('aria-current="page">Todos</a>', html)
+        self.assertIn('<h3 class="card-titulo">', html)
+        self.assertIn('aria-label="Informações do anúncio"', html)
+
     def test_home_apresenta_blocos_na_ordem_home_first(self):
         html = self.client.get("/").data.decode("utf-8")
         marcadores = (
@@ -2101,7 +2112,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Vendas</dt><dd>1", html)
         self.assertIn("Visualizações</dt><dd>12", html)
         self.assertIn(
-            f'href="/loja/{self.vendedor_id}-pedal-colatina">Visitar loja</a>',
+            f'href="/loja/{self.vendedor_id}-pedal-colatina">Abrir loja</a>',
             html,
         )
 
