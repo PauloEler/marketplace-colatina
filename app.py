@@ -296,9 +296,7 @@ def url_loja_publica(usuario, externa=False):
 
 
 def url_loja_publica_por_dados(usuario_id, loja_nome, nome):
-    return url_loja_publica(
-        {"id": usuario_id, "loja_nome": loja_nome, "nome": nome}
-    )
+    return url_loja_publica({"id": usuario_id, "loja_nome": loja_nome, "nome": nome})
 
 
 def reservar_selo_fundador(db):
@@ -1099,11 +1097,15 @@ def sitemap():
         f"<url><loc>{url_for(endpoint, _external=True)}</loc></url>"
         for endpoint in endpoints
     )
-    lojas = get_db().execute(
-        "SELECT DISTINCT u.id, u.nome, u.loja_nome FROM usuarios u "
-        "JOIN anuncios a ON a.usuario_id=u.id "
-        "WHERE u.ativo=1 AND a.ativo=1 AND a.estoque>0"
-    ).fetchall()
+    lojas = (
+        get_db()
+        .execute(
+            "SELECT DISTINCT u.id, u.nome, u.loja_nome FROM usuarios u "
+            "JOIN anuncios a ON a.usuario_id=u.id "
+            "WHERE u.ativo=1 AND a.ativo=1 AND a.estoque>0"
+        )
+        .fetchall()
+    )
     urls += "".join(
         f"<url><loc>{url_loja_publica(loja, externa=True)}</loc></url>"
         for loja in lojas
@@ -1114,10 +1116,14 @@ def sitemap():
 
 @app.route("/loja/<int:loja_id>")
 def loja_publica_por_id(loja_id):
-    loja = get_db().execute(
-        "SELECT id, nome, loja_nome FROM usuarios WHERE id=? AND ativo=1",
-        (loja_id,),
-    ).fetchone()
+    loja = (
+        get_db()
+        .execute(
+            "SELECT id, nome, loja_nome FROM usuarios WHERE id=? AND ativo=1",
+            (loja_id,),
+        )
+        .fetchone()
+    )
     if not loja:
         abort(404)
     return redirect(url_loja_publica(loja), code=301)
@@ -1140,11 +1146,13 @@ def loja_publica(loja_id, slug):
     if slug != slug_canonico:
         return redirect(url_loja_publica(loja), code=301)
 
-    anuncios_ativos = list(db.execute(
-        "SELECT * FROM anuncios WHERE usuario_id=? AND ativo=1 AND estoque>0 "
-        "ORDER BY criado_em DESC, id DESC",
-        (loja_id,),
-    ).fetchall())
+    anuncios_ativos = list(
+        db.execute(
+            "SELECT * FROM anuncios WHERE usuario_id=? AND ativo=1 AND estoque>0 "
+            "ORDER BY criado_em DESC, id DESC",
+            (loja_id,),
+        ).fetchall()
+    )
 
     busca = request.args.get("q", "").strip()[:100]
     categoria = request.args.get("categoria", "").strip()
@@ -1173,9 +1181,7 @@ def loja_publica(loja_id, slug):
             anuncio
             for anuncio in anuncios
             if termo_busca
-            in normalizar_busca_loja(
-                f"{anuncio['titulo']} {anuncio['descricao']}"
-            )
+            in normalizar_busca_loja(f"{anuncio['titulo']} {anuncio['descricao']}")
         ]
     if categoria:
         anuncios = [
@@ -1243,9 +1249,7 @@ def loja_publica(loja_id, slug):
     if len(numero_comercial) in {10, 11, 12, 13}:
         if not numero_comercial.startswith("55"):
             numero_comercial = f"55{numero_comercial}"
-        mensagem = quote(
-            f"Olá! Conheci a loja {nome_publico} no Mercado Colatina."
-        )
+        mensagem = quote(f"Olá! Conheci a loja {nome_publico} no Mercado Colatina.")
         whatsapp_url = f"https://wa.me/{numero_comercial}?text={mensagem}"
 
     loja_url = url_loja_publica(loja, externa=True)
@@ -2001,7 +2005,9 @@ def alternar_status_anuncio(anuncio_id):
     novo_status = 0 if anuncio_item["ativo"] else 1
     if novo_status:
         if anuncio_item["estoque"] <= 0:
-            flash("Informe uma quantidade em estoque antes de reativar o anuncio.", "erro")
+            flash(
+                "Informe uma quantidade em estoque antes de reativar o anuncio.", "erro"
+            )
             return redirect(url_for("meus_anuncios"))
         pode, _ = pode_criar_anuncio(anuncio_item["usuario_id"])
         if not pode:
@@ -2247,9 +2253,7 @@ def atualizar_perfil_loja():
         return redirect(url_for("login"))
 
     nome = re.sub(r"\s+", " ", request.form.get("loja_nome", "").strip())
-    descricao = re.sub(
-        r"\s+", " ", request.form.get("loja_descricao", "").strip()
-    )
+    descricao = re.sub(r"\s+", " ", request.form.get("loja_descricao", "").strip())
     bairro = re.sub(r"\s+", " ", request.form.get("loja_bairro", "").strip())
     whatsapp = limpar_whatsapp(request.form.get("loja_whatsapp", ""))
     erro = validar_perfil_loja(nome, descricao, bairro, whatsapp)
@@ -2529,13 +2533,23 @@ def atualizar_pedido(pedido_id, acao):
                 "SELECT estoque FROM anuncios WHERE id=?", (pedido["anuncio_id"],)
             ).fetchone()["estoque"]
             registrar_evento_pedido(
-                db, pedido_id, "VENDEDOR_CONFIRMOU", "Vendedor confirmou o pedido",
-                usuario_id, papel, "aguardando", "confirmado"
+                db,
+                pedido_id,
+                "VENDEDOR_CONFIRMOU",
+                "Vendedor confirmou o pedido",
+                usuario_id,
+                papel,
+                "aguardando",
+                "confirmado",
             )
             registrar_evento_pedido(
-                db, pedido_id, "ESTOQUE_RESERVADO",
-                "Uma unidade foi reservada no estoque", papel_usuario="sistema",
-                estado_anterior="confirmado", estado_posterior="confirmado",
+                db,
+                pedido_id,
+                "ESTOQUE_RESERVADO",
+                "Uma unidade foi reservada no estoque",
+                papel_usuario="sistema",
+                estado_anterior="confirmado",
+                estado_posterior="confirmado",
                 dados_adicionais={"estoque_restante": estoque_atual},
             )
             if estoque_atual <= 0:
@@ -2544,13 +2558,16 @@ def atualizar_pedido(pedido_id, acao):
                     "WHERE anuncio_id=? AND id<>? AND status='aguardando'",
                     (pedido["anuncio_id"], pedido_id),
                 )
-                mensagem = "Pedido confirmado. Última unidade reservada e anúncio pausado."
+                mensagem = (
+                    "Pedido confirmado. Última unidade reservada e anúncio pausado."
+                )
             else:
                 mensagem = "Pedido confirmado e 1 unidade reservada."
         elif acao == "recusar":
             recusa = db.execute(
                 "UPDATE pedidos SET status='recusado', atualizado_em=CURRENT_TIMESTAMP "
-                "WHERE id=? AND status='aguardando'", (pedido_id,)
+                "WHERE id=? AND status='aguardando'",
+                (pedido_id,),
             )
             if recusa.rowcount != 1:
                 db.rollback()
@@ -2561,15 +2578,22 @@ def atualizar_pedido(pedido_id, acao):
             estava_confirmado = pedido["status"] in {"confirmado", "em_analise"}
             cancelamento = db.execute(
                 "UPDATE pedidos SET status='cancelado', atualizado_em=CURRENT_TIMESTAMP "
-                "WHERE id=? AND status=?", (pedido_id, pedido["status"])
+                "WHERE id=? AND status=?",
+                (pedido_id, pedido["status"]),
             )
             if cancelamento.rowcount != 1:
                 db.rollback()
                 flash("Este pedido já foi atualizado.", "erro")
                 return redirect(url_for("pedidos"))
             registrar_evento_pedido(
-                db, pedido_id, "PEDIDO_CANCELADO", "Pedido cancelado",
-                usuario_id, papel, pedido["status"], "cancelado"
+                db,
+                pedido_id,
+                "PEDIDO_CANCELADO",
+                "Pedido cancelado",
+                usuario_id,
+                papel,
+                pedido["status"],
+                "cancelado",
             )
             if estava_confirmado:
                 db.execute(
@@ -2577,9 +2601,13 @@ def atualizar_pedido(pedido_id, acao):
                     (pedido["anuncio_id"],),
                 )
                 registrar_evento_pedido(
-                    db, pedido_id, "ESTOQUE_DEVOLVIDO",
-                    "Uma unidade foi devolvida ao estoque", papel_usuario="sistema",
-                    estado_anterior="cancelado", estado_posterior="cancelado",
+                    db,
+                    pedido_id,
+                    "ESTOQUE_DEVOLVIDO",
+                    "Uma unidade foi devolvida ao estoque",
+                    papel_usuario="sistema",
+                    estado_anterior="cancelado",
+                    estado_posterior="cancelado",
                 )
                 anuncio_moderado = db.execute(
                     "SELECT id FROM denuncias WHERE anuncio_id=? AND status='resolvida' LIMIT 1",
@@ -2589,8 +2617,16 @@ def atualizar_pedido(pedido_id, acao):
                     "SELECT ativo FROM usuarios WHERE id=?", (pedido["vendedor_id"],)
                 ).fetchone()
                 pode_reativar, _ = pode_criar_anuncio(pedido["vendedor_id"])
-                if vendedor and vendedor["ativo"] and not anuncio_moderado and pode_reativar:
-                    db.execute("UPDATE anuncios SET ativo=1 WHERE id=?", (pedido["anuncio_id"],))
+                if (
+                    vendedor
+                    and vendedor["ativo"]
+                    and not anuncio_moderado
+                    and pode_reativar
+                ):
+                    db.execute(
+                        "UPDATE anuncios SET ativo=1 WHERE id=?",
+                        (pedido["anuncio_id"],),
+                    )
                     mensagem = "Pedido cancelado e anúncio disponibilizado novamente."
                 else:
                     mensagem = "Pedido cancelado. O anúncio permaneceu pausado para revisão do vendedor."
@@ -2609,15 +2645,23 @@ def atualizar_pedido(pedido_id, acao):
                 flash("Este pedido já foi atualizado.", "erro")
                 return redirect(url_for("pedidos"))
             registrar_evento_pedido(
-                db, pedido_id, "PROBLEMA_RELATADO",
+                db,
+                pedido_id,
+                "PROBLEMA_RELATADO",
                 f"Problema relatado: {PROBLEMA_MOTIVOS[motivo]}",
-                usuario_id, papel, "confirmado", "em_analise",
+                usuario_id,
+                papel,
+                "confirmado",
+                "em_analise",
                 dados_adicionais={"motivo": motivo},
             )
             registrar_evento_pedido(
-                db, pedido_id, "PEDIDO_EM_ANALISE",
+                db,
+                pedido_id,
+                "PEDIDO_EM_ANALISE",
                 "Pedido encaminhado para análise do administrador",
-                papel_usuario="sistema", estado_anterior="confirmado",
+                papel_usuario="sistema",
+                estado_anterior="confirmado",
                 estado_posterior="em_analise",
             )
             mensagem = "Pedido enviado para análise do administrador."
@@ -2631,19 +2675,33 @@ def atualizar_pedido(pedido_id, acao):
                     (pedido_id,),
                 )
                 registrar_evento_pedido(
-                    db, pedido_id, "VENDA_MARCADA_COMO_REALIZADA",
+                    db,
+                    pedido_id,
+                    "VENDA_MARCADA_COMO_REALIZADA",
                     "Administrador confirmou a realização da venda",
-                    usuario_id, "administrador", "confirmado", "confirmado",
+                    usuario_id,
+                    "administrador",
+                    "confirmado",
+                    "confirmado",
                 )
                 registrar_evento_pedido(
-                    db, pedido_id, "COMPRADOR_CONFIRMOU_RECEBIMENTO",
+                    db,
+                    pedido_id,
+                    "COMPRADOR_CONFIRMOU_RECEBIMENTO",
                     "Administrador confirmou o recebimento pelo comprador",
-                    usuario_id, "administrador", "confirmado", "confirmado",
+                    usuario_id,
+                    "administrador",
+                    "confirmado",
+                    "confirmado",
                 )
                 mensagem = "Pedido concluído pelo administrador."
             else:
                 comprador_agiu = pedido["comprador_id"] == usuario_id
-                campo = "comprador_confirmou_em" if comprador_agiu else "vendedor_confirmou_em"
+                campo = (
+                    "comprador_confirmou_em"
+                    if comprador_agiu
+                    else "vendedor_confirmou_em"
+                )
                 db.execute(
                     f"UPDATE pedidos SET {campo}=COALESCE({campo}, CURRENT_TIMESTAMP), "
                     "atualizado_em=CURRENT_TIMESTAMP WHERE id=? AND status='confirmado'",
@@ -2651,15 +2709,25 @@ def atualizar_pedido(pedido_id, acao):
                 )
                 if comprador_agiu:
                     registrar_evento_pedido(
-                        db, pedido_id, "COMPRADOR_CONFIRMOU_RECEBIMENTO",
+                        db,
+                        pedido_id,
+                        "COMPRADOR_CONFIRMOU_RECEBIMENTO",
                         "Comprador informou que recebeu o produto",
-                        usuario_id, "comprador", "confirmado", "confirmado",
+                        usuario_id,
+                        "comprador",
+                        "confirmado",
+                        "confirmado",
                     )
                 else:
                     registrar_evento_pedido(
-                        db, pedido_id, "VENDA_MARCADA_COMO_REALIZADA",
+                        db,
+                        pedido_id,
+                        "VENDA_MARCADA_COMO_REALIZADA",
                         "Vendedor marcou a venda como realizada",
-                        usuario_id, "vendedor", "confirmado", "confirmado",
+                        usuario_id,
+                        "vendedor",
+                        "confirmado",
+                        "confirmado",
                     )
                 mensagem = (
                     "Recebimento registrado. Aguardando confirmação do vendedor."
@@ -2670,14 +2738,22 @@ def atualizar_pedido(pedido_id, acao):
                 "SELECT vendedor_confirmou_em, comprador_confirmou_em FROM pedidos WHERE id=?",
                 (pedido_id,),
             ).fetchone()
-            if pedido_atualizado["vendedor_confirmou_em"] and pedido_atualizado["comprador_confirmou_em"]:
+            if (
+                pedido_atualizado["vendedor_confirmou_em"]
+                and pedido_atualizado["comprador_confirmou_em"]
+            ):
                 db.execute(
                     "UPDATE pedidos SET status='concluido', atualizado_em=CURRENT_TIMESTAMP "
-                    "WHERE id=? AND status='confirmado'", (pedido_id,)
+                    "WHERE id=? AND status='confirmado'",
+                    (pedido_id,),
                 )
                 registrar_evento_pedido(
-                    db, pedido_id, "PEDIDO_CONCLUIDO", "Pedido concluído",
-                    papel_usuario="sistema", estado_anterior="confirmado",
+                    db,
+                    pedido_id,
+                    "PEDIDO_CONCLUIDO",
+                    "Pedido concluído",
+                    papel_usuario="sistema",
+                    estado_anterior="confirmado",
                     estado_posterior="concluido",
                 )
                 if not e_admin:
@@ -3080,7 +3156,10 @@ def admin_testar_email():
     elif email_status == "aguardando_configuracao":
         flash("Configure o e-mail administrativo antes de enviar o teste.", "erro")
     else:
-        flash("Nao foi possivel enviar o e-mail de teste. Confira o Render e o Gmail.", "erro")
+        flash(
+            "Nao foi possivel enviar o e-mail de teste. Confira o Render e o Gmail.",
+            "erro",
+        )
     return redirect(url_for("painel_admin"))
 
 

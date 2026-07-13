@@ -231,11 +231,15 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertEqual(resposta.status_code, 302)
         with app.app_context():
-            usuario = get_db().execute(
-                "SELECT fundador, fundador_desde, fundador_origem, "
-                "fundador_beneficios FROM usuarios WHERE username=?",
-                ("fundadora_auto",),
-            ).fetchone()
+            usuario = (
+                get_db()
+                .execute(
+                    "SELECT fundador, fundador_desde, fundador_origem, "
+                    "fundador_beneficios FROM usuarios WHERE username=?",
+                    ("fundadora_auto",),
+                )
+                .fetchone()
+            )
         self.assertEqual(usuario["fundador"], 1)
         self.assertIsNotNone(usuario["fundador_desde"])
         self.assertEqual(usuario["fundador_origem"], "automatico")
@@ -268,19 +272,24 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertEqual(resposta.status_code, 302)
         with app.app_context():
-            usuario = get_db().execute(
-                "SELECT fundador, fundador_desde, fundador_origem, "
-                "fundador_removido_em FROM usuarios "
-                "WHERE username=?",
-                ("sem_selo",),
-            ).fetchone()
+            usuario = (
+                get_db()
+                .execute(
+                    "SELECT fundador, fundador_desde, fundador_origem, "
+                    "fundador_removido_em FROM usuarios "
+                    "WHERE username=?",
+                    ("sem_selo",),
+                )
+                .fetchone()
+            )
         self.assertEqual(usuario["fundador"], 0)
         self.assertIsNone(usuario["fundador_desde"])
         self.assertIsNone(usuario["fundador_origem"])
 
     def test_migracao_incorpora_primeiros_usuarios_sem_ultrapassar_limite(self):
-        with app.app_context(), patch.dict(
-            os.environ, {"FOUNDERS_LIMIT": "2"}, clear=False
+        with (
+            app.app_context(),
+            patch.dict(os.environ, {"FOUNDERS_LIMIT": "2"}, clear=False),
         ):
             db = get_db()
             db.execute(
@@ -307,18 +316,22 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         self.assertEqual(conceder.status_code, 302)
         with app.app_context():
-            usuario = get_db().execute(
-                "SELECT fundador, fundador_origem, fundador_alterado_por "
-                "FROM usuarios WHERE id=?",
-                (self.vendedor_id,),
-            ).fetchone()
+            usuario = (
+                get_db()
+                .execute(
+                    "SELECT fundador, fundador_origem, fundador_alterado_por "
+                    "FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()
+            )
         self.assertEqual(usuario["fundador"], 1)
         self.assertEqual(usuario["fundador_origem"], "manual")
         self.assertEqual(usuario["fundador_alterado_por"], self.admin_id)
 
         painel = self.client.get("/admin?usuarios_filtro=fundadores")
         self.assertIn("Fundadores do Mercado Colatina".encode(), painel.data)
-        self.assertIn(b'usuarios_filtro=fundadores', painel.data)
+        self.assertIn(b"usuarios_filtro=fundadores", painel.data)
         self.assertIn(b"Remover Fundador", painel.data)
 
         remover = self.client.post(
@@ -327,11 +340,15 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         self.assertEqual(remover.status_code, 302)
         with app.app_context():
-            usuario = get_db().execute(
-                "SELECT fundador, fundador_desde, fundador_origem, "
-                "fundador_removido_em FROM usuarios WHERE id=?",
-                (self.vendedor_id,),
-            ).fetchone()
+            usuario = (
+                get_db()
+                .execute(
+                    "SELECT fundador, fundador_desde, fundador_origem, "
+                    "fundador_removido_em FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()
+            )
         self.assertEqual(usuario["fundador"], 0)
         self.assertIsNotNone(usuario["fundador_desde"])
         self.assertEqual(usuario["fundador_origem"], "manual")
@@ -347,9 +364,13 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(resposta.status_code, 302)
         self.assertTrue(resposta.headers["Location"].endswith("/"))
         with app.app_context():
-            fundador = get_db().execute(
-                "SELECT fundador FROM usuarios WHERE id=?", (self.vendedor_id,)
-            ).fetchone()[0]
+            fundador = (
+                get_db()
+                .execute(
+                    "SELECT fundador FROM usuarios WHERE id=?", (self.vendedor_id,)
+                )
+                .fetchone()[0]
+            )
         self.assertEqual(fundador, 0)
 
     def test_selo_de_fundador_aparece_na_loja_painel_e_perfil(self):
@@ -639,10 +660,12 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             return [
                 linha["tipo"]
-                for linha in get_db().execute(
+                for linha in get_db()
+                .execute(
                     "SELECT tipo FROM pedido_eventos WHERE pedido_id=? ORDER BY id",
                     (pedido_id,),
-                ).fetchall()
+                )
+                .fetchall()
             ]
 
     def preparar_dados_painel_vendedor(self):
@@ -677,10 +700,34 @@ class ModeracaoTestCase(unittest.TestCase):
                     ),
                 )
             pedidos = (
-                ("aguardando", None, None, "2026-02-01 10:00:00", "2026-02-01 10:00:00"),
-                ("confirmado", "2026-02-02 12:00:00", None, "2026-02-02 10:00:00", "2026-02-02 12:00:00"),
-                ("em_analise", None, None, "2026-02-03 10:00:00", "2026-02-03 13:00:00"),
-                ("concluido", "2026-02-05 10:00:00", "2026-02-05 10:00:00", "2026-02-04 10:00:00", "2026-02-05 10:00:00"),
+                (
+                    "aguardando",
+                    None,
+                    None,
+                    "2026-02-01 10:00:00",
+                    "2026-02-01 10:00:00",
+                ),
+                (
+                    "confirmado",
+                    "2026-02-02 12:00:00",
+                    None,
+                    "2026-02-02 10:00:00",
+                    "2026-02-02 12:00:00",
+                ),
+                (
+                    "em_analise",
+                    None,
+                    None,
+                    "2026-02-03 10:00:00",
+                    "2026-02-03 13:00:00",
+                ),
+                (
+                    "concluido",
+                    "2026-02-05 10:00:00",
+                    "2026-02-05 10:00:00",
+                    "2026-02-04 10:00:00",
+                    "2026-02-05 10:00:00",
+                ),
                 ("cancelado", None, None, "2026-02-06 10:00:00", "2026-02-06 11:00:00"),
             )
             for status, vendedor_em, comprador_em, criado_em, atualizado_em in pedidos:
@@ -776,10 +823,15 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertEqual(resposta.status_code, 302)
         with app.app_context():
-            perfil = get_db().execute(
-                "SELECT loja_nome, loja_descricao, loja_bairro, loja_whatsapp "
-                "FROM usuarios WHERE id=?", (self.vendedor_id,)
-            ).fetchone()
+            perfil = (
+                get_db()
+                .execute(
+                    "SELECT loja_nome, loja_descricao, loja_bairro, loja_whatsapp "
+                    "FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(perfil["loja_nome"], "Pedal Colatina")
             self.assertEqual(perfil["loja_bairro"], "Centro")
             self.assertEqual(perfil["loja_whatsapp"], "27999999991")
@@ -809,9 +861,13 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertIn("Este nome de loja já está em uso".encode(), resposta.data)
         with app.app_context():
-            nome = get_db().execute(
-                "SELECT loja_nome FROM usuarios WHERE id=?", (self.vendedor_id,)
-            ).fetchone()[0]
+            nome = (
+                get_db()
+                .execute(
+                    "SELECT loja_nome FROM usuarios WHERE id=?", (self.vendedor_id,)
+                )
+                .fetchone()[0]
+            )
             self.assertIsNone(nome)
 
     def test_perfil_da_loja_valida_nome_descricao_e_whatsapp(self):
@@ -827,10 +883,14 @@ class ModeracaoTestCase(unittest.TestCase):
                 resposta = self.client.post("/painel-vendedor/perfil", data=dados)
                 self.assertEqual(resposta.status_code, 302)
         with app.app_context():
-            perfil = get_db().execute(
-                "SELECT loja_nome, loja_descricao, loja_whatsapp FROM usuarios WHERE id=?",
-                (self.vendedor_id,),
-            ).fetchone()
+            perfil = (
+                get_db()
+                .execute(
+                    "SELECT loja_nome, loja_descricao, loja_whatsapp FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()
+            )
             self.assertIsNone(perfil["loja_nome"])
             self.assertEqual(perfil["loja_descricao"], "")
             self.assertEqual(perfil["loja_whatsapp"], "")
@@ -849,10 +909,14 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertEqual(resposta.status_code, 302)
         with app.app_context():
-            perfil = get_db().execute(
-                "SELECT loja_descricao FROM usuarios WHERE id=?",
-                (self.vendedor_id,),
-            ).fetchone()
+            perfil = (
+                get_db()
+                .execute(
+                    "SELECT loja_descricao FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(perfil["loja_descricao"], descricao)
 
     def test_painel_usa_nome_do_vendedor_quando_loja_nao_foi_nomeada(self):
@@ -890,7 +954,9 @@ class ModeracaoTestCase(unittest.TestCase):
                     self.assertIn(titulo, vitrine)
                 for titulo in todos_titulos - set(presentes):
                     self.assertNotIn(titulo, vitrine)
-        mais_vistos = self.client.get("/painel-vendedor?filtro=mais_vistos").data.decode("utf-8")
+        mais_vistos = self.client.get(
+            "/painel-vendedor?filtro=mais_vistos"
+        ).data.decode("utf-8")
         inicio = mais_vistos.index('<div class="seller-products-grid">')
         fim = mais_vistos.index("</section>", inicio)
         vitrine_mais_vistos = mais_vistos[inicio:fim]
@@ -1007,7 +1073,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Vendas concluídas</span><strong>1", html)
         self.assertIn("Produtos vendidos</span><strong>1", html)
         self.assertIn("Visualizações dos anúncios</span><strong>12", html)
-        self.assertLess(html.index("Anúncio mais recente"), html.index("Anúncio mais antigo"))
+        self.assertLess(
+            html.index("Anúncio mais recente"), html.index("Anúncio mais antigo")
+        )
         self.assertNotIn("Anúncio privado pausado", html)
 
     def test_loja_publica_filtra_busca_categoria_preco_e_ordenacao(self):
@@ -1023,31 +1091,31 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Anúncio mais recente", categoria)
         self.assertNotIn("Anúncio mais antigo", categoria)
 
-        faixa = self.client.get(
-            f"{caminho}?preco_min=200&preco_max=300"
-        ).data.decode("utf-8")
+        faixa = self.client.get(f"{caminho}?preco_min=200&preco_max=300").data.decode(
+            "utf-8"
+        )
         self.assertIn("Anúncio mais recente", faixa)
         self.assertNotIn("Anúncio mais antigo", faixa)
 
-        mais_vistos = self.client.get(
-            f"{caminho}?ordem=mais_vistos"
-        ).data.decode("utf-8")
+        mais_vistos = self.client.get(f"{caminho}?ordem=mais_vistos").data.decode(
+            "utf-8"
+        )
         self.assertLess(
             mais_vistos.index("Anúncio mais antigo"),
             mais_vistos.index("Anúncio mais recente"),
         )
 
-        menor_preco = self.client.get(
-            f"{caminho}?ordem=menor_preco"
-        ).data.decode("utf-8")
+        menor_preco = self.client.get(f"{caminho}?ordem=menor_preco").data.decode(
+            "utf-8"
+        )
         self.assertLess(
             menor_preco.index("Anúncio mais recente"),
             menor_preco.index("Anúncio mais antigo"),
         )
 
-        maior_preco = self.client.get(
-            f"{caminho}?ordem=maior_preco"
-        ).data.decode("utf-8")
+        maior_preco = self.client.get(f"{caminho}?ordem=maior_preco").data.decode(
+            "utf-8"
+        )
         self.assertLess(
             maior_preco.index("Anúncio mais antigo"),
             maior_preco.index("Anúncio mais recente"),
@@ -1064,7 +1132,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertTrue(slug_incorreto.headers["Location"].endswith(caminho))
         self.assertEqual(somente_id.status_code, 301)
         self.assertTrue(somente_id.headers["Location"].endswith(caminho))
-        self.assertEqual(app_module.slug_loja("Pedal Ágil Colatina"), "pedal-agil-colatina")
+        self.assertEqual(
+            app_module.slug_loja("Pedal Ágil Colatina"), "pedal-agil-colatina"
+        )
 
     def test_loja_publica_nao_expoe_dados_privados_ou_administrativos(self):
         caminho = self.preparar_loja_publica()
@@ -1084,8 +1154,12 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina = self.client.get(caminho)
         html = pagina.data.decode("utf-8")
 
-        self.assertIn("<title>Pedal Ágil Colatina | Loja no Mercado Colatina</title>", html)
-        self.assertIn('property="og:title" content="Pedal Ágil Colatina | Mercado Colatina"', html)
+        self.assertIn(
+            "<title>Pedal Ágil Colatina | Loja no Mercado Colatina</title>", html
+        )
+        self.assertIn(
+            'property="og:title" content="Pedal Ágil Colatina | Mercado Colatina"', html
+        )
         self.assertIn('property="og:image"', html)
         self.assertIn("mercado-colatina-social.svg", html)
         self.assertIn(f'data-share-url="http://localhost{caminho}"', html)
@@ -1096,10 +1170,14 @@ class ModeracaoTestCase(unittest.TestCase):
         caminho = self.preparar_loja_publica()
         pagina_inicial = self.client.get("/")
         self.assertEqual(pagina_inicial.status_code, 200)
-        self.assertIn(f'href="{caminho}">Conhecer a loja</a>'.encode(), pagina_inicial.data)
+        self.assertIn(
+            f'href="{caminho}">Conhecer a loja</a>'.encode(), pagina_inicial.data
+        )
 
     def test_loja_inexistente_ou_inativa_retorna_404(self):
-        self.assertEqual(self.client.get("/loja/999999-loja-inexistente").status_code, 404)
+        self.assertEqual(
+            self.client.get("/loja/999999-loja-inexistente").status_code, 404
+        )
         with app.app_context():
             db = get_db()
             db.execute("UPDATE usuarios SET ativo=0 WHERE id=?", (self.vendedor_id,))
@@ -1121,7 +1199,9 @@ class ModeracaoTestCase(unittest.TestCase):
             css = estilos.read()
         self.assertIn("@media(max-width:840px){.public-store-stats", css)
         self.assertIn("@media(max-width:640px){.public-store-cover", css)
-        self.assertIn(".public-store-page{display:grid;gap:30px;min-width:0;max-width:100%", css)
+        self.assertIn(
+            ".public-store-page{display:grid;gap:30px;min-width:0;max-width:100%", css
+        )
         self.assertIn(".public-store-filters{grid-template-columns:1fr", css)
 
     def test_sitemap_inclui_loja_publica_com_anuncio_ativo(self):
@@ -1134,8 +1214,18 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             pedidos = (
-                ("concluido", "2026-03-01 10:00:00", "2026-03-02 10:00:00", "2026-03-01 22:00:00"),
-                ("concluido", "2026-03-03 10:00:00", "2026-03-05 10:00:00", "2026-03-04 10:00:00"),
+                (
+                    "concluido",
+                    "2026-03-01 10:00:00",
+                    "2026-03-02 10:00:00",
+                    "2026-03-01 22:00:00",
+                ),
+                (
+                    "concluido",
+                    "2026-03-03 10:00:00",
+                    "2026-03-05 10:00:00",
+                    "2026-03-04 10:00:00",
+                ),
                 ("cancelado", "2026-03-06 10:00:00", "2026-03-06 12:00:00", None),
                 ("em_analise", "2026-03-07 10:00:00", "2026-03-07 13:00:00", None),
             )
@@ -1230,7 +1320,12 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Membro desde", reputacao_publica)
         self.assertIn("Vendas concluídas", reputacao_publica)
         self.assertIn("Taxa de conclusão", reputacao_publica)
-        for privado in ("Último acesso", "Pedidos cancelados", "Pedidos em análise", "Tempo médio"):
+        for privado in (
+            "Último acesso",
+            "Pedidos cancelados",
+            "Pedidos em análise",
+            "Tempo médio",
+        ):
             self.assertNotIn(privado, reputacao_publica)
 
     def test_usuario_nao_pode_editar_indicadores_de_reputacao(self):
@@ -1247,12 +1342,22 @@ class ModeracaoTestCase(unittest.TestCase):
             },
         )
         with app.app_context():
-            verificada = get_db().execute(
-                "SELECT loja_verificada FROM usuarios WHERE id=?", (self.vendedor_id,)
-            ).fetchone()[0]
-            pedidos = get_db().execute(
-                "SELECT COUNT(*) FROM pedidos WHERE vendedor_id=?", (self.vendedor_id,)
-            ).fetchone()[0]
+            verificada = (
+                get_db()
+                .execute(
+                    "SELECT loja_verificada FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()[0]
+            )
+            pedidos = (
+                get_db()
+                .execute(
+                    "SELECT COUNT(*) FROM pedidos WHERE vendedor_id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()[0]
+            )
         self.assertEqual(verificada, 0)
         self.assertEqual(pedidos, 0)
 
@@ -1269,9 +1374,14 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         self.assertEqual(falha.status_code, 200)
         with app.app_context():
-            antes = get_db().execute(
-                "SELECT ultimo_acesso_em FROM usuarios WHERE id=?", (self.vendedor_id,)
-            ).fetchone()[0]
+            antes = (
+                get_db()
+                .execute(
+                    "SELECT ultimo_acesso_em FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()[0]
+            )
         self.assertIsNone(antes)
 
         sucesso = self.client.post(
@@ -1284,18 +1394,27 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         self.assertEqual(sucesso.status_code, 302)
         with app.app_context():
-            depois = get_db().execute(
-                "SELECT ultimo_acesso_em FROM usuarios WHERE id=?", (self.vendedor_id,)
-            ).fetchone()[0]
+            depois = (
+                get_db()
+                .execute(
+                    "SELECT ultimo_acesso_em FROM usuarios WHERE id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()[0]
+            )
         self.assertIsNotNone(depois)
 
     def test_criacao_do_pedido_gera_evento_inicial(self):
         pedido_id = self.criar_pedido_de_teste()
         with app.app_context():
-            evento = get_db().execute(
-                "SELECT * FROM pedido_eventos WHERE pedido_id=? AND tipo='PEDIDO_CRIADO'",
-                (pedido_id,),
-            ).fetchone()
+            evento = (
+                get_db()
+                .execute(
+                    "SELECT * FROM pedido_eventos WHERE pedido_id=? AND tipo='PEDIDO_CRIADO'",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertIsNotNone(evento)
             self.assertEqual(evento["usuario_id"], self.comprador_id)
             self.assertEqual(evento["papel_usuario"], "comprador")
@@ -1311,10 +1430,15 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("VENDEDOR_CONFIRMOU", tipos)
         self.assertIn("ESTOQUE_RESERVADO", tipos)
         with app.app_context():
-            evento_sistema = get_db().execute(
-                "SELECT papel_usuario FROM pedido_eventos "
-                "WHERE pedido_id=? AND tipo='ESTOQUE_RESERVADO'", (pedido_id,)
-            ).fetchone()
+            evento_sistema = (
+                get_db()
+                .execute(
+                    "SELECT papel_usuario FROM pedido_eventos "
+                    "WHERE pedido_id=? AND tipo='ESTOQUE_RESERVADO'",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(evento_sistema["papel_usuario"], "sistema")
 
     def test_dupla_confirmacao_registra_eventos_e_conclusao(self):
@@ -1335,10 +1459,15 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("COMPRADOR_CONFIRMOU_RECEBIMENTO", tipos)
         self.assertIn("PEDIDO_CONCLUIDO", tipos)
         with app.app_context():
-            conclusao = get_db().execute(
-                "SELECT papel_usuario FROM pedido_eventos "
-                "WHERE pedido_id=? AND tipo='PEDIDO_CONCLUIDO'", (pedido_id,)
-            ).fetchone()
+            conclusao = (
+                get_db()
+                .execute(
+                    "SELECT papel_usuario FROM pedido_eventos "
+                    "WHERE pedido_id=? AND tipo='PEDIDO_CONCLUIDO'",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(conclusao["papel_usuario"], "sistema")
 
     def test_vendedor_sozinho_nao_conclui_pedido(self):
@@ -1353,10 +1482,14 @@ class ModeracaoTestCase(unittest.TestCase):
             data={"csrf_token": "token-teste"},
         )
         with app.app_context():
-            pedido = get_db().execute(
-                "SELECT status, vendedor_confirmou_em, comprador_confirmou_em FROM pedidos WHERE id=?",
-                (pedido_id,),
-            ).fetchone()
+            pedido = (
+                get_db()
+                .execute(
+                    "SELECT status, vendedor_confirmou_em, comprador_confirmou_em FROM pedidos WHERE id=?",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(pedido["status"], "confirmado")
             self.assertIsNotNone(pedido["vendedor_confirmou_em"])
             self.assertIsNone(pedido["comprador_confirmou_em"])
@@ -1375,9 +1508,13 @@ class ModeracaoTestCase(unittest.TestCase):
         )
 
         with app.app_context():
-            anuncio = get_db().execute(
-                "SELECT estoque, ativo FROM anuncios WHERE id=?", (self.anuncio_id,)
-            ).fetchone()
+            anuncio = (
+                get_db()
+                .execute(
+                    "SELECT estoque, ativo FROM anuncios WHERE id=?", (self.anuncio_id,)
+                )
+                .fetchone()
+            )
             self.assertEqual(anuncio["estoque"], 1)
             self.assertEqual(anuncio["ativo"], 1)
 
@@ -1396,9 +1533,13 @@ class ModeracaoTestCase(unittest.TestCase):
         )
 
         with app.app_context():
-            anuncio = get_db().execute(
-                "SELECT estoque, ativo FROM anuncios WHERE id=?", (self.anuncio_id,)
-            ).fetchone()
+            anuncio = (
+                get_db()
+                .execute(
+                    "SELECT estoque, ativo FROM anuncios WHERE id=?", (self.anuncio_id,)
+                )
+                .fetchone()
+            )
             self.assertEqual(anuncio["estoque"], 1)
             self.assertEqual(anuncio["ativo"], 1)
         tipos = self.tipos_eventos(pedido_id)
@@ -1425,7 +1566,8 @@ class ModeracaoTestCase(unittest.TestCase):
             db = get_db()
             pedido = db.execute(
                 "SELECT status, problema_motivo, problema_descricao, problema_relator_id "
-                "FROM pedidos WHERE id=?", (pedido_id,)
+                "FROM pedidos WHERE id=?",
+                (pedido_id,),
             ).fetchone()
             self.assertEqual(pedido["status"], "em_analise")
             self.assertEqual(pedido["problema_motivo"], "PRODUTO_NAO_ENTREGUE")
@@ -1459,9 +1601,14 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(sem_motivo.status_code, 302)
         self.assertEqual(outro_sem_descricao.status_code, 302)
         with app.app_context():
-            pedido = get_db().execute(
-                "SELECT status, problema_motivo FROM pedidos WHERE id=?", (pedido_id,)
-            ).fetchone()
+            pedido = (
+                get_db()
+                .execute(
+                    "SELECT status, problema_motivo FROM pedidos WHERE id=?",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(pedido["status"], "confirmado")
             self.assertIsNone(pedido["problema_motivo"])
         self.assertNotIn("PROBLEMA_RELATADO", self.tipos_eventos(pedido_id))
@@ -1473,18 +1620,22 @@ class ModeracaoTestCase(unittest.TestCase):
             f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
         )
         with app.app_context():
-            estoque_antes = get_db().execute(
-                "SELECT estoque FROM anuncios WHERE id=?", (self.anuncio_id,)
-            ).fetchone()[0]
+            estoque_antes = (
+                get_db()
+                .execute("SELECT estoque FROM anuncios WHERE id=?", (self.anuncio_id,))
+                .fetchone()[0]
+            )
         self.autenticar_sessao(self.comprador_id)
         self.client.post(
             f"/pedido/{pedido_id}/problema",
             data={"csrf_token": "token-teste", "motivo": "VENDEDOR_NAO_RESPONDE"},
         )
         with app.app_context():
-            estoque_depois = get_db().execute(
-                "SELECT estoque FROM anuncios WHERE id=?", (self.anuncio_id,)
-            ).fetchone()[0]
+            estoque_depois = (
+                get_db()
+                .execute("SELECT estoque FROM anuncios WHERE id=?", (self.anuncio_id,))
+                .fetchone()[0]
+            )
             self.assertEqual(estoque_depois, estoque_antes)
 
     def test_historico_respeita_permissoes_de_comprador_vendedor_e_admin(self):
@@ -1505,7 +1656,12 @@ class ModeracaoTestCase(unittest.TestCase):
             db = get_db()
             db.execute(
                 "INSERT INTO usuarios (nome, username, senha, whatsapp) VALUES (?,?,?,?)",
-                ("Pessoa alheia", "alheio", generate_password_hash("senha-segura"), "27999999994"),
+                (
+                    "Pessoa alheia",
+                    "alheio",
+                    generate_password_hash("senha-segura"),
+                    "27999999994",
+                ),
             )
             alheio_id = db.execute(
                 "SELECT id FROM usuarios WHERE username='alheio'"
@@ -1531,7 +1687,11 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         with app.app_context():
             db = get_db()
-            for tipo in ("VENDEDOR_CONFIRMOU", "ESTOQUE_RESERVADO", "VENDA_MARCADA_COMO_REALIZADA"):
+            for tipo in (
+                "VENDEDOR_CONFIRMOU",
+                "ESTOQUE_RESERVADO",
+                "VENDA_MARCADA_COMO_REALIZADA",
+            ):
                 total = db.execute(
                     "SELECT COUNT(*) FROM pedido_eventos WHERE pedido_id=? AND tipo=?",
                     (pedido_id, tipo),
@@ -1548,17 +1708,28 @@ class ModeracaoTestCase(unittest.TestCase):
             db.execute(
                 "INSERT INTO pedidos (anuncio_id, comprador_id, vendedor_id, valor, status) "
                 "VALUES (?,?,?,?,?)",
-                (self.anuncio_id, self.comprador_id, self.vendedor_id, "1.200,00", "aguardando"),
+                (
+                    self.anuncio_id,
+                    self.comprador_id,
+                    self.vendedor_id,
+                    "1.200,00",
+                    "aguardando",
+                ),
             )
             pedido_id = db.execute("SELECT MAX(id) FROM pedidos").fetchone()[0]
             db.commit()
         init_db()
         self.assertEqual(self.tipos_eventos(pedido_id), ["PEDIDO_CRIADO"])
         with app.app_context():
-            evento = get_db().execute(
-                "SELECT usuario_id, papel_usuario, dados_adicionais FROM pedido_eventos "
-                "WHERE pedido_id=?", (pedido_id,)
-            ).fetchone()
+            evento = (
+                get_db()
+                .execute(
+                    "SELECT usuario_id, papel_usuario, dados_adicionais FROM pedido_eventos "
+                    "WHERE pedido_id=?",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertIsNone(evento["usuario_id"])
             self.assertEqual(evento["papel_usuario"], "sistema")
             self.assertIn('"legado":true', evento["dados_adicionais"])
@@ -1567,9 +1738,11 @@ class ModeracaoTestCase(unittest.TestCase):
             f"/pedido/{pedido_id}/confirmar", data={"csrf_token": "token-teste"}
         )
         with app.app_context():
-            status = get_db().execute(
-                "SELECT status FROM pedidos WHERE id=?", (pedido_id,)
-            ).fetchone()[0]
+            status = (
+                get_db()
+                .execute("SELECT status FROM pedidos WHERE id=?", (pedido_id,))
+                .fetchone()[0]
+            )
             self.assertEqual(status, "confirmado")
 
     def test_novo_pedido_dispara_email_administrativo_e_registra_envio(self):
@@ -1580,10 +1753,14 @@ class ModeracaoTestCase(unittest.TestCase):
 
         enviar.assert_called_once()
         with app.app_context():
-            pedido = get_db().execute(
-                "SELECT admin_email_status, admin_email_enviado_em FROM pedidos WHERE id=?",
-                (pedido_id,),
-            ).fetchone()
+            pedido = (
+                get_db()
+                .execute(
+                    "SELECT admin_email_status, admin_email_enviado_em FROM pedidos WHERE id=?",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(pedido["admin_email_status"], "enviado")
             self.assertIsNotNone(pedido["admin_email_enviado_em"])
 
@@ -1612,7 +1789,9 @@ class ModeracaoTestCase(unittest.TestCase):
         enviar.assert_called_once()
 
     def test_admin_pode_reenviar_alerta_de_pedido(self):
-        with patch.object(app_module, "enviar_alerta_novo_pedido", return_value="falhou"):
+        with patch.object(
+            app_module, "enviar_alerta_novo_pedido", return_value="falhou"
+        ):
             pedido_id = self.criar_pedido_de_teste()
 
         self.autenticar_sessao(self.admin_id, admin=True)
@@ -1627,24 +1806,28 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(resposta.status_code, 302)
         enviar.assert_called_once()
         with app.app_context():
-            pedido = get_db().execute(
-                "SELECT admin_email_status, admin_email_enviado_em FROM pedidos WHERE id=?",
-                (pedido_id,),
-            ).fetchone()
+            pedido = (
+                get_db()
+                .execute(
+                    "SELECT admin_email_status, admin_email_enviado_em FROM pedidos WHERE id=?",
+                    (pedido_id,),
+                )
+                .fetchone()
+            )
             self.assertEqual(pedido["admin_email_status"], "enviado")
             self.assertIsNotNone(pedido["admin_email_enviado_em"])
 
     def test_admin_exibe_texto_do_email_com_acentuacao_correta(self):
         self.autenticar_sessao(self.admin_id, admin=True)
-        with patch.dict(
-            os.environ, {"ADMIN_NOTIFICATION_EMAIL": "pelers@gmail.com"}
-        ):
+        with patch.dict(os.environ, {"ADMIN_NOTIFICATION_EMAIL": "pelers@gmail.com"}):
             painel = self.client.get("/admin")
 
         self.assertIn(
             "Nenhum pedido aguardando atenção neste momento.".encode(), painel.data
         )
-        self.assertIn("o serviço remetente ainda precisa ser ativado.".encode(), painel.data)
+        self.assertIn(
+            "o serviço remetente ainda precisa ser ativado.".encode(), painel.data
+        )
         self.assertIn(b"admin-email-warning", painel.data)
         self.assertIn("ATENÇÃO".encode(), painel.data)
         self.assertNotIn("atenÃ§Ã£o".encode(), painel.data)
@@ -1786,7 +1969,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Ofertas no Mercado Livre".encode(), pagina.data)
         self.assertNotIn("Paulo Eler".encode(), pagina.data)
         self.assertIn("Ver ofertas no Mercado Livre".encode(), pagina.data)
-        self.assertIn("Você será direcionado para o Mercado Livre".encode(), pagina.data)
+        self.assertIn(
+            "Você será direcionado para o Mercado Livre".encode(), pagina.data
+        )
         self.assertIn(b'rel="sponsored nofollow"', pagina.data)
         html = pagina.data.decode("utf-8")
         self.assertLess(html.index('id="ofertas"'), html.index('id="achados"'))
