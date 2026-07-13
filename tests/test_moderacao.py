@@ -181,6 +181,53 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(painel.status_code, 200)
         self.assertIn(b"admin-section-heading", painel.data)
 
+    def test_pagina_produto_aplica_mds_premium_e_cta_principal(self):
+        pagina = self.client.get(f"/anuncio/{self.anuncio_id}")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn('<body class="mds-product">', html)
+        self.assertEqual(html.count("<h1"), 1)
+        self.assertIn('class="product-premium"', html)
+        self.assertIn('aria-label="Fotos do produto"', html)
+        self.assertIn('aria-label="Informações principais do produto"', html)
+        self.assertIn('class="btn product-primary-action"', html)
+        self.assertIn("Solicitar compra", html)
+        self.assertIn(f'href="/comprar/{self.anuncio_id}"', html)
+        self.assertIn(f'href="/anuncio/{self.anuncio_id}/contato"', html)
+
+        marcadores = (
+            'class="product-intro"',
+            'class="product-gallery',
+            'class="product-purchase-panel"',
+            'class="product-details-layout"',
+        )
+        posicoes = [html.index(marcador) for marcador in marcadores]
+        self.assertEqual(posicoes, sorted(posicoes))
+
+        with open(
+            os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
+        ) as arquivo_css:
+            css = arquivo_css.read()
+        for estado in (
+            ".product-primary-action:hover",
+            ".product-primary-action:active",
+            ".product-primary-action:disabled",
+            ".product-primary-action:focus-visible",
+        ):
+            self.assertIn(estado, css)
+
+    def test_dono_visualiza_cta_de_compra_desabilitado_com_motivo(self):
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get(f"/anuncio/{self.anuncio_id}")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("product-primary-action", html)
+        self.assertIn("disabled", html)
+        self.assertIn('aria-describedby="purchase-owner-help"', html)
+        self.assertIn("Este é o seu anúncio", html)
+
     def test_cadastro_exige_e_registra_aceite_dos_termos(self):
         with self.client.session_transaction() as sessao:
             sessao["_csrf_token"] = "token-teste"
