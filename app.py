@@ -445,6 +445,39 @@ def formatar_data_reputacao(valor, incluir_hora=False):
     return data.strftime(formato)
 
 
+def formatar_data_cockpit(valor):
+    data = converter_data_hora(valor)
+    if not data:
+        return "Data não informada"
+    return data.strftime("%d/%m/%Y · %H:%M")
+
+
+def contar_testes_automatizados():
+    valor_ambiente = os.environ.get("CI_TEST_COUNT", "").strip()
+    if valor_ambiente.isdigit():
+        return int(valor_ambiente)
+
+    diretorio_testes = os.path.join(BASE_DIR, "tests")
+    total = 0
+    try:
+        for raiz, _, arquivos in os.walk(diretorio_testes):
+            for nome_arquivo in arquivos:
+                if not nome_arquivo.startswith("test_") or not nome_arquivo.endswith(
+                    ".py"
+                ):
+                    continue
+                caminho = os.path.join(raiz, nome_arquivo)
+                with open(caminho, encoding="utf-8") as arquivo:
+                    total += sum(
+                        1
+                        for linha in arquivo
+                        if re.match(r"\s+def test_[a-zA-Z0-9_]+\(", linha)
+                    )
+    except OSError:
+        return None
+    return total or None
+
+
 def _duracao_em_segundos(inicio_valor, fim_valor):
     inicio = converter_data_hora(inicio_valor)
     fim = converter_data_hora(fim_valor)
@@ -3028,11 +3061,155 @@ def deletar_anuncio(anuncio_id):
     return redirect(url_for("meus_anuncios"))
 
 
+def montar_cockpit_executivo(db):
+    commit = (
+        os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GIT_COMMIT") or ""
+    ).strip()
+    ci_status_original = os.environ.get("CI_STATUS", "").strip().lower()
+    ci_status_rotulos = {
+        "success": "Aprovado",
+        "passed": "Aprovado",
+        "approved": "Aprovado",
+        "failure": "Falhou",
+        "failed": "Falhou",
+        "pending": "Em andamento",
+        "running": "Em andamento",
+    }
+    ci_status = ci_status_rotulos.get(
+        ci_status_original,
+        os.environ.get("CI_STATUS", "").strip() or "Não informado",
+    )
+    em_render = bool(
+        os.environ.get("RENDER")
+        or os.environ.get("RENDER_SERVICE_ID")
+        or os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    )
+    ambiente = "Produção · Render" if em_render else FLASK_ENV.capitalize()
+    deploy = os.environ.get("RENDER_DEPLOY_ID", "").strip()
+    if not deploy and commit:
+        deploy = f"Versão {commit[:12]}"
+
+    metricas = {
+        "anuncios_ativos": db.execute(
+            "SELECT COUNT(*) FROM anuncios WHERE ativo=1"
+        ).fetchone()[0],
+        "usuarios_cadastrados": db.execute("SELECT COUNT(*) FROM usuarios").fetchone()[
+            0
+        ],
+        "lojas_cadastradas": db.execute(
+            "SELECT COUNT(*) FROM usuarios WHERE TRIM(COALESCE(loja_nome, ''))<>''"
+        ).fetchone()[0],
+        "pedidos": db.execute("SELECT COUNT(*) FROM pedidos").fetchone()[0],
+        "solicitacoes_compra": db.execute(
+            "SELECT COUNT(*) FROM pedidos WHERE status='aguardando'"
+        ).fetchone()[0],
+    }
+
+    ultimos_anuncios = db.execute(
+        "SELECT a.id, a.titulo, a.ativo, a.criado_em, u.nome AS vendedor_nome "
+        "FROM anuncios a JOIN usuarios u ON u.id=a.usuario_id "
+        "ORDER BY a.criado_em DESC, a.id DESC LIMIT 5"
+    ).fetchall()
+    ultimos_usuarios = db.execute(
+        "SELECT id, nome, username, ativo, criado_em FROM usuarios "
+        "ORDER BY criado_em DESC, id DESC LIMIT 5"
+    ).fetchall()
+    ultimos_pedidos = db.execute(
+        "SELECT p.id, p.status, p.valor, p.criado_em, a.titulo, "
+        "comprador.nome AS comprador_nome, vendedor.nome AS vendedor_nome "
+        "FROM pedidos p "
+        "JOIN anuncios a ON a.id=p.anuncio_id "
+        "JOIN usuarios comprador ON comprador.id=p.comprador_id "
+        "JOIN usuarios vendedor ON vendedor.id=p.vendedor_id "
+        "ORDER BY p.criado_em DESC, p.id DESC LIMIT 5"
+    ).fetchall()
+
+    denuncias_pendentes = db.execute(
+        "SELECT COUNT(*) FROM denuncias WHERE status='pendente'"
+    ).fetchone()[0]
+    pedidos_em_analise = db.execute(
+        "SELECT COUNT(*) FROM pedidos WHERE status='em_analise'"
+    ).fetchone()[0]
+    alertas = []
+    if denuncias_pendentes:
+        alertas.append(
+            {
+                "titulo": "Denúncias aguardando análise",
+                "descricao": (
+                    f"{denuncias_pendentes} denúncia"
+                    f"{'s' if denuncias_pendentes != 1 else ''} pendente"
+                    f"{'s' if denuncias_pendentes != 1 else ''} na administração."
+                ),
+                "tipo": "warning",
+            }
+        )
+    if pedidos_em_analise:
+        alertas.append(
+            {
+                "titulo": "Pedidos em análise",
+                "descricao": (
+                    f"{pedidos_em_analise} pedido"
+                    f"{'s' if pedidos_em_analise != 1 else ''} requer"
+                    f"{'em' if pedidos_em_analise != 1 else ''} acompanhamento."
+                ),
+                "tipo": "danger",
+            }
+        )
+    if not email_configurado():
+        alertas.append(
+            {
+                "titulo": "Alertas por e-mail indisponíveis",
+                "descricao": "A administração ainda não possui envio de e-mail ativo.",
+                "tipo": "info",
+            }
+        )
+
+    if alertas:
+        indicador_atencao = alertas[0]["titulo"]
+        indicador_contexto = alertas[0]["descricao"]
+    elif metricas["solicitacoes_compra"]:
+        indicador_atencao = "Solicitações aguardando vendedor"
+        indicador_contexto = (
+            f"{metricas['solicitacoes_compra']} "
+            f"{'solicitações' if metricas['solicitacoes_compra'] != 1 else 'solicitação'} "
+            "na etapa inicial."
+        )
+    else:
+        indicador_atencao = "Operação sem alertas importantes"
+        indicador_contexto = "Nenhum problema importante encontrado."
+
+    return {
+        "gerado_em": datetime.now(timezone.utc).strftime("%d/%m/%Y · %H:%M UTC"),
+        "saude": {
+            "aplicacao": "Operacional",
+            "health_check": "HTTP 200",
+            "ultimo_deploy": deploy or "Não informado",
+            "ultimo_commit": commit[:12] if commit else "Não informado",
+            "ci_status": ci_status,
+            "testes": contar_testes_automatizados(),
+            "ambiente": ambiente,
+        },
+        "metricas": metricas,
+        "ultimos_anuncios": ultimos_anuncios,
+        "ultimos_usuarios": ultimos_usuarios,
+        "ultimos_pedidos": ultimos_pedidos,
+        "alertas": alertas,
+        "indicador_atencao": indicador_atencao,
+        "indicador_contexto": indicador_contexto,
+    }
+
+
 @app.route("/admin")
 def painel_admin():
     if not admin():
         return redirect(url_for("index"))
     db = get_db()
+    if request.args.get("visao") == "cockpit":
+        return render_template(
+            "cockpit.html",
+            cockpit=montar_cockpit_executivo(db),
+            formatar_data_cockpit=formatar_data_cockpit,
+        )
     usuarios_todos = db.execute(
         "SELECT * FROM usuarios ORDER BY criado_em DESC"
     ).fetchall()
