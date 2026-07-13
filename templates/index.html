@@ -20,90 +20,35 @@
 
 {% block content %}
 {% if not busca and not cat_sel %}
-<section class="hero-marketplace" aria-labelledby="hero-title">
+<section class="hero-marketplace home-hero" aria-labelledby="hero-title">
   <div class="hero-main">
-    <div class="eyebrow">Marketplace de Colatina</div>
     <h1 id="hero-title">Boas oportunidades, bem perto de você.</h1>
     <p>Compre e venda produtos e serviços com pessoas da sua região. Contato direto, negociação simples e sem intermediários.</p>
-    {% if not session.get('usuario_id') %}
-    <div class="hero-signup-promo" role="note" aria-label="Convite para anunciar gratuitamente">
-      <strong>Cadastre-se grátis e publique até {{ limite_gratis }} anúncios</strong>
-      <span>Crie sua conta agora e comece a vender em Colatina e região.</span>
-    </div>
-    {% endif %}
     <div class="hero-actions">
       {% if session.get('usuario_id') %}
       <a href="/criar" class="btn btn-amarelo">Publicar um anúncio</a>
-      <a href="/meus-anuncios" class="btn btn-ghost">Ver meus anúncios</a>
+      <a href="#ofertas" class="btn btn-ghost">Explorar ofertas</a>
       {% else %}
-      <a href="/cadastro" class="btn btn-amarelo">Criar conta e anunciar grátis</a>
+      <a href="/cadastro" class="btn btn-amarelo">Anunciar grátis</a>
       <a href="#ofertas" class="btn btn-ghost">Explorar ofertas</a>
       {% endif %}
     </div>
   </div>
-  <aside class="hero-panel" aria-label="Resumo do marketplace">
-    <div>
-      <div class="hero-panel-label">Agora em Colatina e na Região Noroeste do Espírito Santo!</div>
-      <div class="hero-number">{{ anuncios|length }}</div>
-      <h2>Anúncio{{ '' if anuncios|length == 1 else 's' }} disponíve{{ 'l' if anuncios|length == 1 else 'is' }}</h2>
-      <p>Novas oportunidades podem aparecer a qualquer momento.</p>
-      <div class="access-counter" aria-label="{{ total_acessos_formatado }} visitas registradas no site">
-        <span class="access-counter-dot" aria-hidden="true"></span>
-        <strong>{{ total_acessos_formatado }}</strong>
-        <span>visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
-      </div>
-    </div>
-    <ul class="trust-list">
-      <li>Contato direto pelo WhatsApp</li>
-      <li>Cadastro rápido e gratuito</li>
-      <li>Negociação local</li>
-    </ul>
-  </aside>
 </section>
 {% endif %}
 
-{% if not busca and not cat_sel and lojas_destaque %}
-<section class="home-stores" aria-labelledby="home-stores-title">
-  <div class="section-head">
-    <div>
-      <div class="section-kicker">Comércio local</div>
-      <h2 id="home-stores-title">Lojas do Mercado Colatina</h2>
-      <p class="home-stores-lead">Conheça os vendedores e visite suas vitrines antes de comprar.</p>
-    </div>
-    <span class="result-count">{{ lojas_destaque|length }} loja{{ '' if lojas_destaque|length == 1 else 's' }}</span>
+<section class="home-categories" aria-labelledby="categories-title">
+  <div class="home-categories-heading">
+    <div class="section-kicker">Encontre mais rápido</div>
+    <h2 id="categories-title">Explore por categoria</h2>
   </div>
-  <div class="home-stores-grid">
-    {% for loja in lojas_destaque %}
-    <article class="home-store-card">
-      <div class="home-store-header">
-        <div class="home-store-avatar" aria-hidden="true">{{ loja.logo_iniciais }}</div>
-        <div>
-          <h3>{{ loja.nome_publico }}</h3>
-          <p>{{ loja.bairro ~ ' · ' if loja.bairro else '' }}Colatina, ES</p>
-        </div>
-        <div class="home-store-badges">{% if loja.loja_oficial %}<span class="official-store-badge">Loja oficial</span>{% endif %}{% if loja.fundador %}<span class="founder-badge compact">🏅 Fundador</span>{% endif %}{% if loja.loja_verificada %}<span class="verified-store-badge">Verificada</span>{% endif %}</div>
-      </div>
-      <dl class="home-store-metrics">
-        <div><dt>Anúncios</dt><dd>{{ loja.total_anuncios }}</dd></div>
-        <div><dt>Vendas</dt><dd>{{ loja.vendas_concluidas }}</dd></div>
-        <div><dt>Visualizações</dt><dd>{{ loja.total_visualizacoes }}</dd></div>
-      </dl>
-      <div class="home-store-footer">
-        <small>Membro desde {{ loja.membro_desde }}</small>
-        <a class="btn btn-verde" href="{{ url_loja_publica(loja) }}">Visitar loja</a>
-      </div>
-    </article>
+  <nav class="category-strip" aria-label="Categorias de anúncios">
+    <a class="category-chip {{ 'active' if not cat_sel else '' }}" href="/">Todos</a>
+    {% for c in categorias %}
+    <a class="category-chip {{ 'active' if c == cat_sel else '' }}" href="{{ url_for('index', categoria=c) }}">{{ c }}</a>
     {% endfor %}
-  </div>
+  </nav>
 </section>
-{% endif %}
-
-<nav class="category-strip" aria-label="Categorias de anúncios">
-  <a class="category-chip {{ 'active' if not cat_sel else '' }}" href="/">Todos</a>
-  {% for c in categorias %}
-  <a class="category-chip {{ 'active' if c == cat_sel else '' }}" href="{{ url_for('index', categoria=c) }}">{{ c }}</a>
-  {% endfor %}
-</nav>
 
 {% if info_plano %}
   {% if info_plano.restam > 0 %}
@@ -111,19 +56,6 @@
   {% else %}
   <div class="plan-notice limit"><strong>Seu limite foi atingido.</strong> Assine por <strong>{{ valor_plano }}/mês</strong> para continuar anunciando. <a href="/assinar">Ver plano</a></div>
   {% endif %}
-{% endif %}
-
-{% if not busca and not cat_sel %}
-<section id="achados" class="affiliate-profile" aria-labelledby="achados-title">
-  <div class="affiliate-profile-mark" aria-hidden="true">OFERTA</div>
-  <div class="affiliate-profile-content">
-    <div class="affiliate-featured-label">OFERTAS NO MERCADO LIVRE</div>
-    <h2 id="achados-title">Promoções incríveis selecionadas pelo Mercado Colatina</h2>
-    <p>Veja produtos em promoção e compre diretamente no Mercado Livre.</p>
-    <small>Você será direcionado para o Mercado Livre. Este é um link de afiliado e o Mercado Colatina pode receber uma comissão, sem custo adicional para você.</small>
-  </div>
-  <a class="btn affiliate-profile-button" href="{{ mercado_livre_afiliado_url }}" rel="sponsored nofollow">VER PROMOÇÕES NO MERCADO LIVRE →</a>
-</section>
 {% endif %}
 
 <section id="ofertas" class="listing-section" aria-labelledby="ofertas-title">
@@ -172,6 +104,42 @@
   {% endif %}
 </section>
 
+{% if not busca and not cat_sel and lojas_destaque %}
+<section class="home-stores" aria-labelledby="home-stores-title">
+  <div class="section-head">
+    <div>
+      <div class="section-kicker">Comércio local</div>
+      <h2 id="home-stores-title">Lojas em destaque</h2>
+      <p class="home-stores-lead">Conheça os vendedores e visite suas vitrines.</p>
+    </div>
+    <span class="result-count">{{ lojas_destaque|length }} loja{{ '' if lojas_destaque|length == 1 else 's' }}</span>
+  </div>
+  <div class="home-stores-grid">
+    {% for loja in lojas_destaque %}
+    <article class="home-store-card">
+      <div class="home-store-header">
+        <div class="home-store-avatar" aria-hidden="true">{{ loja.logo_iniciais }}</div>
+        <div>
+          <h3>{{ loja.nome_publico }}</h3>
+          <p>{{ loja.bairro ~ ' · ' if loja.bairro else '' }}Colatina, ES</p>
+        </div>
+        <div class="home-store-badges">{% if loja.loja_oficial %}<span class="official-store-badge">Loja oficial</span>{% endif %}{% if loja.fundador %}<span class="founder-badge compact">🏅 Fundador</span>{% endif %}{% if loja.loja_verificada %}<span class="verified-store-badge">Verificada</span>{% endif %}</div>
+      </div>
+      <dl class="home-store-metrics">
+        <div><dt>Anúncios</dt><dd>{{ loja.total_anuncios }}</dd></div>
+        <div><dt>Vendas</dt><dd>{{ loja.vendas_concluidas }}</dd></div>
+        <div><dt>Visualizações</dt><dd>{{ loja.total_visualizacoes }}</dd></div>
+      </dl>
+      <div class="home-store-footer">
+        <small>Membro desde {{ loja.membro_desde }}</small>
+        <a class="btn btn-verde" href="{{ url_loja_publica(loja) }}">Visitar loja</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 {% if not busca and not cat_sel %}
 <section id="como-funciona" class="content-block" aria-labelledby="como-title">
   <div class="section-head">
@@ -184,7 +152,18 @@
   </div>
 </section>
 
-<section id="planos" class="content-block" aria-labelledby="planos-title">
+<section id="achados" class="affiliate-profile affiliate-profile-compact" aria-labelledby="achados-title">
+  <div class="affiliate-profile-mark" aria-hidden="true">ML</div>
+  <div class="affiliate-profile-content">
+    <div class="affiliate-featured-label">Parceiro</div>
+    <h2 id="achados-title">Ofertas no Mercado Livre</h2>
+    <p>Veja promoções selecionadas em nosso parceiro.</p>
+    <small>Você será direcionado para o Mercado Livre. Este é um link de afiliado e o Mercado Colatina pode receber uma comissão, sem custo adicional para você.</small>
+  </div>
+  <a class="btn affiliate-profile-button" href="{{ mercado_livre_afiliado_url }}" rel="sponsored nofollow">Ver ofertas no Mercado Livre</a>
+</section>
+
+<section id="planos" class="content-block home-plans" aria-labelledby="planos-title">
   <div class="section-head"><div><div class="section-kicker">Para cada momento</div><h2 id="planos-title">Planos para anunciar</h2></div></div>
   <div class="plans-wrap">
     <article class="plan-card">

@@ -14,6 +14,7 @@
 <title>{% block title %}Mercado Colatina{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 <script src="{{ url_for('static', filename='password-toggle.js') }}" defer></script>
+<script src="{{ url_for('static', filename='announcement.js') }}" defer></script>
 {% block head_extra %}{% endblock %}
 </head>
 <body>
@@ -69,11 +70,21 @@
 
 <main>
   {% if comunicado_global %}
-    <section class="site-announcement announcement-{{ comunicado_global.tipo }}" role="status" aria-label="Comunicado oficial do Mercado Colatina">
-      <div class="announcement-label">Comunicado oficial</div>
-      <div>
-        <strong>{{ comunicado_global.titulo }}</strong>
-        <p>{{ comunicado_global.mensagem }}</p>
+    {% set announcement_message = comunicado_global.mensagem|replace(comunicado_global.titulo, '', 1)|trim %}
+    <section class="site-announcement announcement-{{ comunicado_global.tipo }}" role="status" aria-label="Comunicado oficial do Mercado Colatina" data-announcement-id="{{ comunicado_global.id }}">
+      <div class="announcement-summary">
+        <span class="announcement-icon" aria-hidden="true">
+          {% if 'Fundador' in comunicado_global.titulo %}🏅{% elif comunicado_global.tipo == 'atencao' %}!{% elif comunicado_global.tipo == 'novidade' %}✦{% else %}i{% endif %}
+        </span>
+        <div class="announcement-copy">
+          <strong>{{ comunicado_global.titulo }}</strong>
+          <span>{{ announcement_message|truncate(105, true, '…') }}</span>
+          <details class="announcement-details">
+            <summary><span class="announcement-read">Ler comunicado</span><span class="announcement-hide">Ocultar comunicado</span></summary>
+            <p>{{ announcement_message }}</p>
+          </details>
+        </div>
+        <button class="announcement-close" type="button" data-announcement-dismiss aria-label="Fechar comunicado">×</button>
       </div>
     </section>
   {% endif %}

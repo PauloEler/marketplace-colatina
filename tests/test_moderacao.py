@@ -1778,23 +1778,18 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.admin_id, admin=True)
         self.assertEqual(self.client.get("/admin").status_code, 200)
 
-    def test_home_destaca_promocoes_do_mercado_livre_com_aviso_de_afiliado(self):
+    def test_home_mantem_parceiro_identificado_sem_priorizar_sobre_ofertas(self):
         pagina = self.client.get("/")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn(
-            "Agora em Colatina e na Região Noroeste do Espírito Santo!".encode(),
-            pagina.data,
-        )
-        self.assertIn("OFERTAS NO MERCADO LIVRE".encode(), pagina.data)
-        self.assertIn(
-            "Promoções incríveis selecionadas pelo Mercado Colatina".encode(),
-            pagina.data,
-        )
+        self.assertIn("Parceiro".encode(), pagina.data)
+        self.assertIn("Ofertas no Mercado Livre".encode(), pagina.data)
         self.assertNotIn("Paulo Eler".encode(), pagina.data)
-        self.assertIn("VER PROMOÇÕES NO MERCADO LIVRE".encode(), pagina.data)
+        self.assertIn("Ver ofertas no Mercado Livre".encode(), pagina.data)
         self.assertIn("Você será direcionado para o Mercado Livre".encode(), pagina.data)
         self.assertIn(b'rel="sponsored nofollow"', pagina.data)
+        html = pagina.data.decode("utf-8")
+        self.assertLess(html.index('id="ofertas"'), html.index('id="achados"'))
 
     def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):
         with app.app_context():
@@ -1830,18 +1825,57 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina = self.client.get("/")
         self.assertIn("Até 10 anúncios ativos".encode(), pagina.data)
 
-    def test_home_convida_visitante_a_publicar_dez_anuncios_gratis(self):
+    def test_home_convida_visitante_a_anunciar_com_hero_compacto(self):
         pagina = self.client.get("/")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn("Cadastre-se grátis e publique até 10 anúncios".encode(), pagina.data)
-        self.assertIn("Criar conta e anunciar grátis".encode(), pagina.data)
+        self.assertIn("Anunciar grátis".encode(), pagina.data)
+        self.assertIn("Explorar ofertas".encode(), pagina.data)
         self.assertIn(b'href="/cadastro"', pagina.data)
-        self.assertIn(b'class="hero-signup-promo"', pagina.data)
+        self.assertNotIn(b'class="hero-signup-promo"', pagina.data)
+        self.assertNotIn(b'class="hero-panel"', pagina.data)
 
         self.autenticar_sessao(self.comprador_id)
         pagina_autenticada = self.client.get("/")
-        self.assertNotIn(b'class="hero-signup-promo"', pagina_autenticada.data)
+        self.assertIn("Publicar um anúncio".encode(), pagina_autenticada.data)
+        self.assertIn(b'href="#ofertas"', pagina_autenticada.data)
+
+    def test_home_apresenta_blocos_na_ordem_home_first(self):
+        html = self.client.get("/").data.decode("utf-8")
+        marcadores = (
+            'class="hero-marketplace home-hero"',
+            'class="home-categories"',
+            'id="ofertas"',
+            'id="home-stores-title"',
+            'id="como-funciona"',
+            'id="achados"',
+            'id="planos"',
+        )
+        posicoes = [html.index(marcador) for marcador in marcadores]
+        self.assertEqual(posicoes, sorted(posicoes))
+
+    def test_comunicado_global_renderiza_compacto_expansivel_e_fechavel(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO comunicados "
+                "(titulo, mensagem, tipo, criado_por, ativo) VALUES (?,?,?,?,1)",
+                (
+                    "🏅 Programa Fundadores",
+                    "Você faz parte dos primeiros usuários. Comunicado completo.",
+                    "informacao",
+                    self.admin_id,
+                ),
+            )
+            db.commit()
+
+        pagina = self.client.get("/")
+        html = pagina.data.decode("utf-8")
+        self.assertIn('class="announcement-details"', html)
+        self.assertIn("Ler comunicado", html)
+        self.assertIn("Ocultar comunicado", html)
+        self.assertIn("data-announcement-dismiss", html)
+        self.assertIn("Fechar comunicado", html)
 
     def test_home_exibe_secao_propria_com_as_lojas_ativas(self):
         with app.app_context():
@@ -1875,7 +1909,7 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.data.decode("utf-8")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn('id="home-stores-title">Lojas do Mercado Colatina', html)
+        self.assertIn('id="home-stores-title">Lojas em destaque', html)
         self.assertIn("Pedal Colatina", html)
         self.assertIn("Centro · Colatina, ES", html)
         self.assertIn("Anúncios</dt><dd>1", html)
