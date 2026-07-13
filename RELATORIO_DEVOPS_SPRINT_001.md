@@ -136,6 +136,20 @@ Nenhum HTML, CSS, JavaScript, arquivo Python da aplicação, banco, migration ou
 
 Os hashes, URLs e resultados finais são registrados na entrega da Sprint após a conclusão das validações remotas.
 
+### Correção inicial do ambiente de produção
+
+Antes da integração desta Sprint, o painel do Render foi corrigido para observar `master`. A alteração iniciou automaticamente um deploy corretivo do hash então vigente na `master`, `7edfd223bcf1bf9da0564096bc0ae956cf518b68`, com os seguintes resultados:
+
+- build concluído com sucesso;
+- Gunicorn iniciado com dois workers;
+- serviço marcado como `live`;
+- verificações internas de `/health` retornando HTTP 200;
+- Health Check externo retornando HTTP 200 e `{"status":"ok"}`;
+- Home retornando HTTP 200;
+- nenhum `ERROR`, `Traceback`, `Exception` ou HTTP 500 identificado nos logs observados.
+
+Em seguida, o auto-deploy do serviço foi alterado de `On Commit` para `After CI Checks Pass`, preparando o fluxo definitivo que será consolidado pelo `render.yaml` desta Sprint.
+
 ## 7. Riscos eliminados
 
 - deploy acidental ao usar uma branch técnica para CI;
