@@ -34,6 +34,7 @@
         <a href="/pedidos">Pedidos</a>
         <a href="/minha-conta">Conta</a>
         {% if session.get('is_admin') %}
+          <a href="{{ url_for('painel_admin', visao='dashboard') }}" class="dashboard-link"{% if request.args.get('visao') == 'dashboard' %} aria-current="page"{% endif %}>Dashboard</a>
           <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="cockpit-link">Cockpit</a>
           <a href="/admin" class="admin-link">Admin</a>
         {% endif %}
@@ -57,6 +58,7 @@
           <a href="/pedidos">Pedidos</a>
           <a href="/minha-conta">Minha conta</a>
           {% if session.get('is_admin') %}
+            <a href="{{ url_for('painel_admin', visao='dashboard') }}" class="mobile-admin"{% if request.args.get('visao') == 'dashboard' %} aria-current="page"{% endif %}>Dashboard Executivo</a>
             <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="mobile-admin">Cockpit Executivo</a>
             <a href="/admin" class="mobile-admin">Painel Admin</a>
           {% endif %}

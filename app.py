@@ -3199,11 +3199,51 @@ def montar_cockpit_executivo(db):
     }
 
 
+def montar_dashboard_executivo(db):
+    dashboard = montar_cockpit_executivo(db)
+
+    categorias_agrupadas = {}
+    categorias = db.execute(
+        "SELECT categoria, COUNT(*) AS total FROM anuncios "
+        "WHERE ativo=1 GROUP BY categoria"
+    ).fetchall()
+    for categoria in categorias:
+        nome = categoria_label(categoria["categoria"])
+        categorias_agrupadas[nome] = (
+            categorias_agrupadas.get(nome, 0) + categoria["total"]
+        )
+
+    dashboard["categorias_mais_utilizadas"] = [
+        {"nome": nome, "total": total}
+        for nome, total in sorted(
+            categorias_agrupadas.items(), key=lambda item: (-item[1], item[0])
+        )[:5]
+    ]
+    dashboard["produtos_mais_recentes"] = db.execute(
+        "SELECT a.id, a.titulo, a.preco, a.categoria, a.criado_em, "
+        "u.id AS vendedor_id, u.nome AS vendedor_nome, u.loja_nome "
+        "FROM anuncios a JOIN usuarios u ON u.id=a.usuario_id "
+        "WHERE a.ativo=1 ORDER BY a.criado_em DESC, a.id DESC LIMIT 5"
+    ).fetchall()
+    dashboard["lojas_mais_recentes"] = db.execute(
+        "SELECT id, nome, loja_nome, loja_bairro, criado_em FROM usuarios "
+        "WHERE TRIM(COALESCE(loja_nome, ''))<>'' "
+        "ORDER BY criado_em DESC, id DESC LIMIT 5"
+    ).fetchall()
+    return dashboard
+
+
 @app.route("/admin")
 def painel_admin():
     if not admin():
         return redirect(url_for("index"))
     db = get_db()
+    if request.args.get("visao") == "dashboard":
+        return render_template(
+            "dashboard_executivo.html",
+            dashboard=montar_dashboard_executivo(db),
+            formatar_data_cockpit=formatar_data_cockpit,
+        )
     if request.args.get("visao") == "cockpit":
         return render_template(
             "cockpit.html",

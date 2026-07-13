@@ -293,6 +293,132 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("@media(max-width:639px)", css)
         self.assertIn("@media(prefers-reduced-motion:reduce)", css)
 
+    def test_dashboard_executivo_e_exclusivo_para_admin_e_preserva_rotas(self):
+        visitante = self.client.get("/admin?visao=dashboard")
+        self.assertEqual(visitante.status_code, 302)
+        self.assertEqual(visitante.headers["Location"], "/")
+
+        self.autenticar_sessao(self.comprador_id)
+        usuario = self.client.get("/admin?visao=dashboard")
+        self.assertEqual(usuario.status_code, 302)
+        self.assertEqual(usuario.headers["Location"], "/")
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        dashboard = self.client.get("/admin?visao=dashboard")
+        painel = self.client.get("/admin")
+        html_dashboard = dashboard.data.decode("utf-8")
+        conteudo_dashboard = html_dashboard.split('id="dashboard-conteudo"', 1)[1]
+
+        self.assertEqual(dashboard.status_code, 200)
+        self.assertIn('<body class="mds-dashboard">', html_dashboard)
+        self.assertEqual(html_dashboard.count("<h1"), 1)
+        self.assertIn("Dashboard Executivo", html_dashboard)
+        self.assertIn("Dados somente de leitura", html_dashboard)
+        self.assertNotIn("<form", conteudo_dashboard)
+        self.assertIn("Painel admin".encode(), painel.data)
+        self.assertNotIn(b'class="dashboard-shell"', painel.data)
+        self.assertNotIn(
+            "/dashboard", {regra.rule for regra in app.url_map.iter_rules()}
+        )
+
+    def test_dashboard_exibe_metricas_atividade_marketplace_e_sistema_sem_escrita(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome=?, loja_bairro=? WHERE id=?",
+                ("Loja da Ponte", "Centro", self.vendedor_id),
+            )
+            db.execute(
+                "INSERT INTO anuncios "
+                "(usuario_id, titulo, descricao, preco, categoria, condicao) "
+                "VALUES (?,?,?,?,?,?)",
+                (
+                    self.vendedor_id,
+                    "Notebook para trabalho",
+                    "Equipamento revisado",
+                    "2.500,00",
+                    "Eletronicos",
+                    "Usado",
+                ),
+            )
+            db.execute(
+                "INSERT INTO pedidos "
+                "(anuncio_id, comprador_id, vendedor_id, valor, status) "
+                "VALUES (?,?,?,?,?)",
+                (
+                    self.anuncio_id,
+                    self.comprador_id,
+                    self.vendedor_id,
+                    "1.200,00",
+                    "aguardando",
+                ),
+            )
+            db.commit()
+            antes = tuple(
+                db.execute(f"SELECT COUNT(*) FROM {tabela}").fetchone()[0]
+                for tabela in ("usuarios", "anuncios", "pedidos")
+            )
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        ambiente = {
+            "RENDER": "true",
+            "RENDER_GIT_COMMIT": "abcdef1234567890abcdef1234567890abcdef12",
+            "RENDER_DEPLOY_ID": "dep-teste-009",
+            "CI_STATUS": "success",
+            "CI_TEST_COUNT": "88",
+        }
+        with patch.dict(os.environ, ambiente, clear=False):
+            pagina = self.client.get("/admin?visao=dashboard")
+        html = pagina.data.decode("utf-8")
+
+        with app.app_context():
+            db = get_db()
+            depois = tuple(
+                db.execute(f"SELECT COUNT(*) FROM {tabela}").fetchone()[0]
+                for tabela in ("usuarios", "anuncios", "pedidos")
+            )
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertEqual(antes, depois)
+        for indicador, valor in (
+            ("usuarios_cadastrados", 3),
+            ("lojas_cadastradas", 1),
+            ("anuncios_ativos", 2),
+            ("pedidos", 1),
+            ("solicitacoes_compra", 1),
+        ):
+            self.assertIn(
+                f'data-dashboard-metric="{indicador}" data-value="{valor}"', html
+            )
+        for texto in (
+            "Bicicleta aro 29",
+            "Notebook para trabalho",
+            "Loja da Ponte",
+            "Centro",
+            'data-category="Eletrônicos" data-value="1"',
+            "dep-teste-009",
+            "abcdef123456",
+            "Aprovado",
+            ">88<",
+            "HTTP 200",
+        ):
+            self.assertIn(texto, html)
+        for titulo in (
+            "dashboard-overview-title",
+            "dashboard-activity-title",
+            "dashboard-market-title",
+            "dashboard-system-title",
+        ):
+            self.assertIn(f'aria-labelledby="{titulo}"', html)
+
+        with open(
+            os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
+        ) as arquivo_css:
+            css = arquivo_css.read()
+        self.assertIn(".mds-dashboard", css)
+        self.assertIn(".dashboard-market-grid", css)
+        self.assertIn("@media(max-width:639px)", css)
+
     def test_pagina_produto_aplica_mds_premium_e_cta_principal(self):
         pagina = self.client.get(f"/anuncio/{self.anuncio_id}")
         html = pagina.data.decode("utf-8")
