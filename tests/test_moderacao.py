@@ -2055,19 +2055,21 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina = self.client.get("/")
         self.assertIn("Até 10 anúncios ativos".encode(), pagina.data)
 
-    def test_home_convida_visitante_a_anunciar_com_hero_compacto(self):
+    def test_home_destaca_busca_compra_e_publicacao_no_hero_premium(self):
         pagina = self.client.get("/")
 
         self.assertEqual(pagina.status_code, 200)
         self.assertIn("Anunciar grátis".encode(), pagina.data)
-        self.assertIn("Explorar ofertas".encode(), pagina.data)
+        self.assertIn("Comprar em Colatina".encode(), pagina.data)
+        self.assertIn('class="home-premium-search"'.encode(), pagina.data)
         self.assertIn(b'href="/cadastro"', pagina.data)
         self.assertNotIn(b'class="hero-signup-promo"', pagina.data)
         self.assertNotIn(b'class="hero-panel"', pagina.data)
 
         self.autenticar_sessao(self.comprador_id)
         pagina_autenticada = self.client.get("/")
-        self.assertIn("Publicar um anúncio".encode(), pagina_autenticada.data)
+        self.assertIn("Publicar anúncio".encode(), pagina_autenticada.data)
+        self.assertIn(b'href="/criar"', pagina_autenticada.data)
         self.assertIn(b'href="#ofertas"', pagina_autenticada.data)
 
     def test_home_aplica_mds_com_estrutura_semantica_e_acessivel(self):
@@ -2075,24 +2077,38 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.data.decode("utf-8")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn('<body class="mds-home">', html)
-        self.assertIn("Compre. Venda. Valorize Colatina.", html)
+        self.assertIn('<body class="mds-home mx-home-premium">', html)
+        self.assertEqual(html.count("<h1"), 1)
+        self.assertIn("Compre e venda perto de você.", html)
         self.assertIn('<label for="busca">Buscar produtos e serviços</label>', html)
         self.assertIn('<label for="categoria">Categoria</label>', html)
-        self.assertIn('aria-current="page">Todos</a>', html)
+        self.assertIn('aria-label="Buscar no Mercado Colatina"', html)
+        self.assertIn('class="home-category-card active"', html)
         self.assertIn('<h3 class="card-titulo">', html)
         self.assertIn('aria-label="Informações do anúncio"', html)
+        self.assertIn("Ver produto", html)
+
+    def test_home_premium_aplica_identidade_categorias_cta_e_rodape(self):
+        html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("mercado-colatina-logo-v0.9.svg", html)
+        self.assertIn('class="home-category-grid"', html)
+        self.assertEqual(html.count('class="home-category-card'), 10)
+        self.assertIn('id="planos" class="home-seller-callout"', html)
+        self.assertIn("Transforme o que você tem em uma nova oportunidade.", html)
+        self.assertIn('class="site-footer home-premium-footer"', html)
+        self.assertIn("A praça digital para comprar, vender", html)
 
     def test_home_apresenta_blocos_na_ordem_home_first(self):
         html = self.client.get("/").data.decode("utf-8")
         marcadores = (
-            'class="hero-marketplace home-hero"',
-            'class="home-categories"',
+            'class="home-premium-hero',
+            'class="home-category-section"',
             'id="ofertas"',
+            'id="planos"',
             'id="home-stores-title"',
             'id="como-funciona"',
             'id="achados"',
-            'id="planos"',
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
         self.assertEqual(posicoes, sorted(posicoes))

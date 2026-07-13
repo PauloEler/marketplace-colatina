@@ -21,8 +21,10 @@
 <header class="site-header">
   <div class="hi">
     <a href="/" class="logo" aria-label="Mercado Colatina, página inicial">
-      <span class="logo-mark">MC</span>
+      {% block header_brand %}
+      <span class="logo-mark" aria-hidden="true">MC</span>
       <span class="logo-name">Mercado<strong>Colatina</strong></span>
+      {% endblock %}
     </a>
     <nav class="desktop-nav" aria-label="Navegação principal">
       {% if session.get('usuario_id') %}
@@ -98,6 +100,7 @@
   {% block content %}{% endblock %}
 </main>
 
+{% block footer %}
 <footer class="site-footer">
   <div class="footer-inner">
     <div>
@@ -118,6 +121,7 @@
     <span class="footer-accesses">{{ total_acessos_formatado }} visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
   </div>
 </footer>
+{% endblock %}
 {% block scripts %}{% endblock %}
 </body>
 </html>

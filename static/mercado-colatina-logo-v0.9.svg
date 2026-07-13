@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 128" role="img" aria-labelledby="logo-title logo-description">
+  <title id="logo-title">Mercado Colatina</title>
+  <desc id="logo-description">Logo provisória v0.9 com monograma MC, ponte, Rio Doce e referência ao monumento de Colatina.</desc>
+  <g aria-hidden="true">
+    <path fill="#083821" d="M10 105V22c0-6 4-10 10-10h15l30 34 30-34h15c6 0 10 4 10 10v83H96V49L65 81 34 49v56H10Z"/>
+    <path fill="#17633D" d="M171 27c-15-17-43-21-62-9-24 14-32 45-19 68 14 25 47 34 72 19l-13-19c-14 8-32 4-39-10-7-13-3-30 10-38 12-7 28-5 37 6l14-17Z"/>
+    <path fill="#6FC2E8" d="M16 96c28-8 55-11 81-7 23 4 42 14 63 9 7-2 14-5 21-10-5 9-13 16-23 20-22 9-42-1-64-5-25-5-51-3-78 4V96Z"/>
+    <path fill="#6FC2E8" d="M43 96V61h5v35h-5Zm2-33-23 27 3 2 20-23 20 23 3-2-23-27Zm0 9-15 20 3 2 12-16 13 16 3-2-16-20Z"/>
+    <path fill="#17633D" d="M124 104c8-13 18-21 30-25 13 5 22 13 29 25h-59Z"/>
+    <path fill="#17633D" d="M151 79V66h5v13h-5Zm-7-14h19v4h-19v-4Z"/>
+  </g>
+  <g font-family="Inter, Segoe UI, Arial, sans-serif">
+    <text x="202" y="55" fill="#17211B" font-size="31" font-weight="600" letter-spacing="-1">Mercado</text>
+    <text x="202" y="91" fill="#17633D" font-size="34" font-weight="800" letter-spacing="-1.2">Colatina</text>
+    <text x="203" y="111" fill="#65716A" font-size="9.5" font-weight="700" letter-spacing="1.35">TECNOLOGIA QUE APROXIMA PESSOAS</text>
+  </g>
+</svg>
