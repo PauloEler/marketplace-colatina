@@ -84,7 +84,7 @@
       {% for a in anuncios %}
       <article class="seller-product-card" data-ad-id="{{ a.id }}">
         <div class="seller-product-media">
-          {% if a.foto %}<img src="{{ foto_url(a.foto, 500) }}" alt="{{ a.titulo }}">
+          {% if a.foto %}<img src="{{ foto_url(a.foto, 500) }}" alt="{{ a.titulo }}" loading="lazy" decoding="async">
           {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
         </div>
         <div class="seller-product-body">
@@ -109,7 +109,11 @@
       {% endfor %}
     </div>
     {% else %}
-    <div class="seller-empty"><strong>Nenhum anúncio neste filtro.</strong><span>Escolha outro filtro ou publique um novo produto.</span></div>
+    <div class="seller-empty empty-state compact">
+      <h3>Não há anúncios neste filtro</h3>
+      <p>Veja todos os anúncios da loja ou publique um novo produto para ampliar sua vitrine.</p>
+      <div class="empty-actions"><a class="btn btn-cinza" href="/painel-vendedor?filtro=todos#anuncios-loja">Ver todos os anúncios</a><a class="btn btn-verde" href="/criar">Publicar novo anúncio</a></div>
+    </div>
     {% endif %}
   </section>
 
@@ -137,7 +141,7 @@
           </article>
           {% endfor %}
         </div>
-        {% else %}<p class="seller-order-empty">Nenhum pedido nesta etapa.</p>{% endif %}
+        {% else %}<p class="seller-order-empty"><strong>Nenhum pedido em {{ titulo|lower }}</strong><span>Quando uma negociação chegar a esta etapa, ela aparecerá aqui.</span></p>{% endif %}
       </section>
       {% endfor %}
     </div>

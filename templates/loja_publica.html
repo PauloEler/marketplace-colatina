@@ -91,7 +91,7 @@
       {% for a in anuncios %}
       <a href="/anuncio/{{ a.id }}" class="card" aria-label="Ver anúncio: {{ a.titulo }} por R$ {{ a.preco }}">
         <div class="card-media">
-          {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy">
+          {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy" decoding="async">
           {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
           <span class="card-condition">{{ a.condicao }}</span>
         </div>

@@ -14,7 +14,7 @@
   {% for a in anuncios %}
   <article class="owner-listing">
     <div class="owner-listing-media">
-      {% if a.foto %}<img src="{{ foto_url(a.foto, 600) }}" alt="{{ a.titulo }}">
+      {% if a.foto %}<img src="{{ foto_url(a.foto, 600) }}" alt="{{ a.titulo }}" loading="lazy" decoding="async">
       {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
     </div>
     <div class="owner-listing-body">
