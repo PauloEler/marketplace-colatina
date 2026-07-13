@@ -1,15 +1,32 @@
 {% extends 'base.html' %}
-{% block title %}Mercado Colatina | Compre e venda perto de você{% endblock %}
-{% block body_class %}mds-home{% endblock %}
+{% block title %}Mercado Colatina | A praça digital da cidade{% endblock %}
+{% block meta_description %}Encontre produtos, lojas e oportunidades perto de você. Compre e venda na praça digital de Colatina.{% endblock %}
+{% block body_class %}mds-home mx-home-premium{% endblock %}
+{% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
-{% block busca %}
-<div class="busca-bar">
-  <form class="busca-inner" method="GET" action="/" role="search">
+{% block content %}
+<section class="home-premium-hero {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
+  <div class="home-hero-copy">
+    <img class="home-hero-logo" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="330" height="92">
+    <div class="home-local-kicker">
+      <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+      Praça Digital de Colatina
+    </div>
+    {% if busca or cat_sel %}
+    <h1 id="hero-title">Resultados locais para sua busca.</h1>
+    <p>Refine o que procura e encontre ofertas disponíveis em Colatina.</p>
+    {% else %}
+    <h1 id="hero-title">Compre e venda perto de você.</h1>
+    <p>Encontre produtos, descubra lojas locais e anuncie para pessoas que estão perto.</p>
+    {% endif %}
+  </div>
+
+  <form class="home-premium-search" method="GET" action="/" role="search" aria-label="Buscar no Mercado Colatina">
     <div class="search-field search-field-query">
       <label for="busca">Buscar produtos e serviços</label>
       <div class="search-control">
         <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="busca" type="search" name="q" placeholder="O que você procura em Colatina?" value="{{ busca }}">
+        <input id="busca" type="search" name="q" placeholder="O que você procura em Colatina?" value="{{ busca }}" autocomplete="off">
       </div>
     </div>
     <div class="search-field search-field-category">
@@ -26,37 +43,63 @@
       Buscar
     </button>
   </form>
-</div>
-{% endblock %}
 
-{% block content %}
-{% if not busca and not cat_sel %}
-<section class="hero-marketplace home-hero" aria-labelledby="hero-title">
-  <div class="hero-main">
-    <h1 id="hero-title">Compre. Venda. Valorize Colatina.</h1>
-    <p>Produtos, serviços e lojas da nossa região, com contato direto e negociação simples.</p>
-    <div class="hero-actions">
+  {% if not busca and not cat_sel %}
+  <div class="home-journey-row">
+    <div class="home-hero-actions" aria-label="Principais caminhos">
+      <a href="#ofertas" class="btn btn-verde">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        Comprar em Colatina
+      </a>
       {% if session.get('usuario_id') %}
-      <a href="/criar" class="btn btn-verde">Publicar um anúncio</a>
-      <a href="#ofertas" class="btn btn-outline">Explorar ofertas</a>
+      <a href="/criar" class="btn btn-outline">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        Publicar anúncio
+      </a>
       {% else %}
-      <a href="/cadastro" class="btn btn-verde">Anunciar grátis</a>
-      <a href="#ofertas" class="btn btn-outline">Explorar ofertas</a>
+      <a href="/cadastro" class="btn btn-outline">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        Anunciar grátis
+      </a>
       {% endif %}
     </div>
+    <ul class="home-assurance-list" aria-label="Diferenciais do Mercado Colatina">
+      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"></path><path d="M21 12c0 1.66-4.03 7-9 7s-9-5.34-9-7 4.03-7 9-7 9 5.34 9 7Z"></path></svg>Ofertas locais</li>
+      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path></svg>Contato direto</li>
+      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg>Negociação organizada</li>
+    </ul>
   </div>
+  {% endif %}
 </section>
-{% endif %}
 
-<section class="home-categories" aria-labelledby="categories-title">
-  <div class="home-categories-heading">
-    <div class="section-kicker">Encontre mais rápido</div>
-    <h2 id="categories-title">Explore por categoria</h2>
+<section class="home-category-section" aria-labelledby="categories-title">
+  <div class="home-section-heading">
+    <div>
+      <div class="section-kicker">Navegue do seu jeito</div>
+      <h2 id="categories-title">Encontre por categoria</h2>
+    </div>
+    <p>Atalhos para chegar mais rápido ao que você precisa.</p>
   </div>
-  <nav class="category-strip" aria-label="Categorias de anúncios">
-    <a class="category-chip {{ 'active' if not cat_sel else '' }}" href="/" {% if not cat_sel %}aria-current="page"{% endif %}>Todos</a>
+  <nav class="home-category-grid" aria-label="Categorias de anúncios">
+    <a class="home-category-card {{ 'active' if not cat_sel else '' }}" href="/" {% if not cat_sel %}aria-current="page"{% endif %}>
+      <span class="home-category-icon"><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg></span>
+      <span>Todos</span>
+    </a>
     {% for c in categorias %}
-    <a class="category-chip {{ 'active' if c == cat_sel else '' }}" href="{{ url_for('index', categoria=c) }}" {% if c == cat_sel %}aria-current="page"{% endif %}>{{ c }}</a>
+    <a class="home-category-card {{ 'active' if c == cat_sel else '' }}" href="{{ url_for('index', categoria=c) }}" {% if c == cat_sel %}aria-current="page"{% endif %}>
+      <span class="home-category-icon">
+        {% if c == 'Eletrônicos' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2"></rect><path d="M12 18h.01"></path></svg>
+        {% elif c == 'Móveis' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"></path><path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z"></path><path d="M5 18v2"></path><path d="M19 18v2"></path></svg>
+        {% elif c == 'Roupas e Calçados' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46 2 8l4 2v10h12V10l4-2-1.62-4.54Z"></path></svg>
+        {% elif c == 'Veículos' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 17-2-2V9l2-5h14l2 5v6l-2 2"></path><path d="M5 17h14"></path><circle cx="7" cy="17" r="2"></circle><circle cx="17" cy="17" r="2"></circle><path d="M3 9h18"></path></svg>
+        {% elif c == 'Eletrodomésticos' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="20" x="3" y="2" rx="2"></rect><circle cx="12" cy="14" r="5"></circle><path d="M8 6h.01"></path><path d="M11 6h.01"></path></svg>
+        {% elif c == 'Imóveis' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 9-8 9 8"></path><path d="M5 10v10h14V10"></path><path d="M9 20v-6h6v6"></path></svg>
+        {% elif c == 'Serviços' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5-5L7.6 3.4l3 3 2.1-2.1a4 4 0 0 0 2 2Z"></path><path d="m5 8-3 3 10 10 3-3"></path><path d="m14 14 6-6"></path><path d="m17 5 2 2"></path></svg>
+        {% elif c == 'Alimentos' %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2-3-7-3-9 1-3 6 4 15 9 15s12-9 9-15c-2-4-7-4-9-1Z"></path><path d="M12 6c0-3 2-5 5-5"></path></svg>
+        {% else %}<svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.16.37.37.7.6 1 .3.32.68.5 1.1.5H21v4h-.09c-.42 0-.8.18-1.1.5-.23.3-.44.63-.6 1Z"></path></svg>{% endif %}
+      </span>
+      <span>{{ c }}</span>
+    </a>
     {% endfor %}
   </nav>
 </section>
@@ -69,31 +112,35 @@
   {% endif %}
 {% endif %}
 
-<section id="ofertas" class="listing-section" aria-labelledby="ofertas-title">
+<section id="ofertas" class="listing-section home-product-showcase" aria-labelledby="ofertas-title">
   <div class="section-head">
     <div>
       <div class="section-kicker">Vitrine local</div>
-      <h2 id="ofertas-title">{% if busca or cat_sel %}Resultados da busca{% else %}Ofertas perto de você{% endif %}</h2>
+      <h2 id="ofertas-title">{% if busca or cat_sel %}Resultados da busca{% else %}Produtos em destaque{% endif %}</h2>
+      <p class="section-description">{% if busca or cat_sel %}Ofertas que correspondem aos filtros selecionados.{% else %}Descubra o que está disponível perto de você agora.{% endif %}</p>
     </div>
-    <div>
+    <div class="section-result-summary">
       <span class="result-count">{{ anuncios|length }} resultado{{ '' if anuncios|length == 1 else 's' }}</span>
-      {% if busca or cat_sel %}<span aria-hidden="true"> · </span><a href="/" class="clear-link">Limpar filtros</a>{% endif %}
+      {% if busca or cat_sel %}<a href="/" class="clear-link">Limpar filtros</a>{% endif %}
     </div>
   </div>
 
   {% if anuncios %}
   <div class="grid">
     {% for a in anuncios %}
-    <article class="card">
+    <article class="card home-product-card">
       <a href="/anuncio/{{ a.id }}" class="card-main-link" aria-label="Ver anúncio: {{ a.titulo }} por R$ {{ a.preco }}">
         <div class="card-media">
-          {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy">
+          {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" loading="lazy" decoding="async">
           {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
           <span class="card-condition">{{ a.condicao }}</span>
         </div>
         <div class="card-body">
           <div class="card-cat">{{ categoria_label(a.categoria) }}</div>
-          <div class="card-preco">R$ {{ a.preco }}</div>
+          <div class="card-price-row">
+            <div class="card-preco">R$ {{ a.preco }}</div>
+            <span class="card-stock">{{ a.estoque }} {{ 'disponível' if a.estoque == 1 else 'disponíveis' }}</span>
+          </div>
           <h3 class="card-titulo">{{ a.titulo }}</h3>
           <ul class="card-meta" aria-label="Informações do anúncio">
             <li>
@@ -101,14 +148,11 @@
               <span>{{ a.bairro ~ ' · ' if a.bairro else '' }}Colatina, ES</span>
             </li>
             <li>
-              <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
-              <span>{{ a.estoque }} {{ 'disponível' if a.estoque == 1 else 'disponíveis' }}</span>
-            </li>
-            <li>
               <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l2-5h14l2 5"></path><path d="M5 13v7h14v-7"></path><path d="M3 9h18v4a2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2 2 2 0 0 1-2 2 2 2 0 0 1-2-2Z"></path></svg>
               <span>{{ a.loja_nome or a.vendedor_nome }}</span>
             </li>
           </ul>
+          <span class="card-product-cta" aria-hidden="true">Ver produto <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></span>
         </div>
       </a>
       <a class="card-store-link" href="{{ url_loja_publica_por_dados(a.usuario_id, a.loja_nome, a.vendedor_nome) }}">Abrir loja</a>
@@ -117,20 +161,40 @@
   </div>
   {% else %}
   <div class="empty-state">
+    <svg class="empty-state-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path></svg>
     <h3>Nenhum anúncio encontrado</h3>
-    <p>Tente outro termo ou explore todas as categorias.</p>
-    {% if session.get('usuario_id') %}<a href="/criar" class="btn btn-verde">Publicar um anúncio</a>{% else %}<a href="/" class="btn btn-verde">Ver todos os anúncios</a>{% endif %}
+    <p>Tente outro termo, escolha uma categoria diferente ou volte para todas as ofertas.</p>
+    <a href="/" class="btn btn-verde">Ver todos os anúncios</a>
   </div>
   {% endif %}
 </section>
 
-{% if not busca and not cat_sel and lojas_destaque %}
+{% if not busca and not cat_sel %}
+<section id="planos" class="home-seller-callout" aria-labelledby="seller-callout-title">
+  <div class="home-seller-copy">
+    <div class="section-kicker">Venda para a sua cidade</div>
+    <h2 id="seller-callout-title">Transforme o que você tem em uma nova oportunidade.</h2>
+    <p>Crie um anúncio claro, alcance pessoas de Colatina e organize a negociação em um só lugar.</p>
+    <ul>
+      <li>Até {{ limite_gratis }} anúncios ativos</li>
+      <li>Contato direto com interessados</li>
+      <li>Presença na vitrine local</li>
+    </ul>
+  </div>
+  <div class="home-seller-action">
+    <span>Leva poucos minutos para começar.</span>
+    {% if session.get('usuario_id') %}<a href="/criar" class="btn seller-primary-button">Publicar novo anúncio</a>{% else %}<a href="/cadastro" class="btn seller-primary-button">Publicar primeiro anúncio</a>{% endif %}
+    <a href="/ajuda" class="seller-help-link">Entender como funciona</a>
+  </div>
+</section>
+
+{% if lojas_destaque %}
 <section class="home-stores" aria-labelledby="home-stores-title">
   <div class="section-head">
     <div>
       <div class="section-kicker">Comércio local</div>
       <h2 id="home-stores-title">Lojas em destaque</h2>
-      <p class="home-stores-lead">Conheça os vendedores e visite suas vitrines.</p>
+      <p class="home-stores-lead">Conheça quem vende na cidade e visite cada vitrine.</p>
     </div>
     <span class="result-count">{{ lojas_destaque|length }} loja{{ '' if lojas_destaque|length == 1 else 's' }}</span>
   </div>
@@ -165,15 +229,14 @@
 </section>
 {% endif %}
 
-{% if not busca and not cat_sel %}
-<section id="como-funciona" class="content-block" aria-labelledby="como-title">
+<section id="como-funciona" class="content-block home-how" aria-labelledby="como-title">
   <div class="section-head">
-    <div><div class="section-kicker">Simples e direto</div><h2 id="como-title">Como funciona</h2></div>
+    <div><div class="section-kicker">Simples e direto</div><h2 id="como-title">Da descoberta à negociação</h2></div>
   </div>
   <div class="steps-grid">
-    <article class="step-card"><div class="step-number">01</div><h3>Crie sua conta</h3><p>Cadastre-se gratuitamente com seus dados de contato.</p></article>
-    <article class="step-card"><div class="step-number">02</div><h3>Publique seu anúncio</h3><p>Adicione foto, preço e uma descrição clara do produto.</p></article>
-    <article class="step-card"><div class="step-number">03</div><h3>Converse e negocie</h3><p>Comprador e vendedor combinam tudo diretamente pelo WhatsApp.</p></article>
+    <article class="step-card"><div class="step-number">01</div><h3>Encontre perto</h3><p>Busque produtos e lojas de Colatina em poucos segundos.</p></article>
+    <article class="step-card"><div class="step-number">02</div><h3>Veja com clareza</h3><p>Confira preço, disponibilidade, localização e perfil do vendedor.</p></article>
+    <article class="step-card"><div class="step-number">03</div><h3>Negocie diretamente</h3><p>Solicite a compra e combine os próximos passos com o vendedor.</p></article>
   </div>
 </section>
 
@@ -187,21 +250,38 @@
   </div>
   <a class="btn affiliate-profile-button" href="{{ mercado_livre_afiliado_url }}" rel="sponsored nofollow">Ver ofertas no Mercado Livre</a>
 </section>
-
-<section id="planos" class="content-block home-plans" aria-labelledby="planos-title">
-  <div class="section-head"><div><div class="section-kicker">Para cada momento</div><h2 id="planos-title">Planos para anunciar</h2></div></div>
-  <div class="plans-wrap">
-    <article class="plan-card">
-      <div class="plan-name">Gratuito</div><div class="plan-price">R$ 0</div>
-      <ul><li>Até {{ limite_gratis }} anúncios ativos</li><li>Contato direto por WhatsApp</li><li>Presença em todas as categorias</li></ul>
-      {% if not session.get('usuario_id') %}<a href="/cadastro" class="btn btn-verde">Começar gratuitamente</a>{% else %}<a href="/criar" class="btn btn-verde">Criar anúncio</a>{% endif %}
-    </article>
-    <article class="plan-card featured">
-      <div class="plan-name">Plano mensal</div><div class="plan-price">{{ valor_plano }}<span>/mês</span></div>
-      <ul><li>Anúncios ilimitados</li><li>Contato direto por WhatsApp</li><li>Mais liberdade para vender</li></ul>
-      <a href="/assinar" class="btn btn-verde">Conhecer o plano</a>
-    </article>
-  </div>
-</section>
 {% endif %}
+{% endblock %}
+
+{% block footer %}
+<footer class="site-footer home-premium-footer">
+  <div class="home-footer-grid">
+    <div class="home-footer-brand">
+      <img src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="Mercado Colatina" width="250" height="70">
+      <p>A praça digital para comprar, vender e fortalecer o comércio de Colatina.</p>
+    </div>
+    <nav aria-label="Comprar no Mercado Colatina">
+      <strong>Comprar</strong>
+      <a href="/#ofertas">Produtos em destaque</a>
+      <a href="/#categories-title">Categorias</a>
+      <a href="/#home-stores-title">Lojas locais</a>
+    </nav>
+    <nav aria-label="Vender no Mercado Colatina">
+      <strong>Vender</strong>
+      {% if session.get('usuario_id') %}<a href="/criar">Publicar anúncio</a><a href="/painel-vendedor">Minha loja</a>{% else %}<a href="/cadastro">Criar conta</a><a href="/cadastro">Publicar anúncio</a>{% endif %}
+      <a href="/ajuda">Como funciona</a>
+    </nav>
+    <nav aria-label="Informações institucionais">
+      <strong>Institucional</strong>
+      <a href="/seguranca">Segurança</a>
+      <a href="/privacidade">Privacidade</a>
+      <a href="/termos">Termos de uso</a>
+      <a href="/ajuda">Central de ajuda</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <span>Mercado Colatina · Colatina, Espírito Santo</span>
+    <span class="footer-accesses">{{ total_acessos_formatado }} visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
+  </div>
+</footer>
 {% endblock %}
