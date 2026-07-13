@@ -12,7 +12,7 @@
   <div class="checkout-layout">
     <section class="checkout-product" aria-label="Resumo do produto">
       <div class="checkout-product-media">
-        {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}">
+        {% if a.foto %}<img src="{{ foto_url(a.foto, 700) }}" alt="{{ a.titulo }}" decoding="async">
         {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
       </div>
       <div class="checkout-product-body">

@@ -180,13 +180,14 @@ class ModeracaoTestCase(unittest.TestCase):
         painel = self.client.get("/admin")
         self.assertEqual(painel.status_code, 200)
         self.assertIn(b"admin-section-heading", painel.data)
+        self.assertIn(b"<h1>Painel administrativo</h1>", painel.data)
 
     def test_pagina_produto_aplica_mds_premium_e_cta_principal(self):
         pagina = self.client.get(f"/anuncio/{self.anuncio_id}")
         html = pagina.data.decode("utf-8")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn('<body class="mds-product">', html)
+        self.assertIn('<body class="mds-experience mds-product">', html)
         self.assertEqual(html.count("<h1"), 1)
         self.assertIn('class="product-premium"', html)
         self.assertIn('aria-label="Fotos do produto"', html)
@@ -840,7 +841,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertNotIn("Bicicleta aro 29".encode(), pagina.data)
         self.assertNotIn("Produto pausado".encode(), pagina.data)
         self.assertNotIn("Vendedor".encode(), pagina.data)
-        self.assertIn("Nenhum anúncio neste filtro".encode(), pagina.data)
+        self.assertIn("Não há anúncios neste filtro".encode(), pagina.data)
 
     def test_painel_vendedor_exige_login(self):
         resposta = self.client.get("/painel-vendedor")
@@ -2077,7 +2078,7 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.data.decode("utf-8")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn('<body class="mds-home mx-home-premium">', html)
+        self.assertIn('<body class="mds-experience mds-home mx-home-premium">', html)
         self.assertEqual(html.count("<h1"), 1)
         self.assertIn("Compre e venda perto de você.", html)
         self.assertIn('<label for="busca">Buscar produtos e serviços</label>', html)
@@ -2098,6 +2099,37 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Transforme o que você tem em uma nova oportunidade.", html)
         self.assertIn('class="site-footer home-premium-footer"', html)
         self.assertIn("A praça digital para comprar, vender", html)
+
+    def test_marketplace_experience_padroniza_feedback_foco_e_loading(self):
+        with self.client.session_transaction() as sessao:
+            sessao["_flashes"] = [
+                ("ok", "Alteração concluída."),
+                ("erro", "Revise os dados informados."),
+            ]
+
+        html = self.client.get("/login").data.decode("utf-8")
+
+        self.assertIn('<body class="mds-experience">', html)
+        self.assertIn('class="skip-link" href="#conteudo-principal"', html)
+        self.assertIn('id="conteudo-principal" tabindex="-1"', html)
+        self.assertIn("experience.js", html)
+        self.assertIn('class="flash ok" role="status"', html)
+        self.assertIn('class="flash erro" role="alert"', html)
+
+        with open(
+            os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
+        ) as arquivo_css:
+            css = arquivo_css.read()
+        self.assertIn("/* MX-003 - Marketplace Experience */", css)
+        self.assertIn(".is-image-loading::after", css)
+        self.assertIn(".is-submitting::after", css)
+
+        with open(
+            os.path.join(app.root_path, "static", "experience.js"), encoding="utf-8"
+        ) as arquivo_js:
+            javascript = arquivo_js.read()
+        self.assertIn("form[method='POST']", javascript)
+        self.assertIn('setAttribute("aria-busy", "true")', javascript)
 
     def test_home_apresenta_blocos_na_ordem_home_first(self):
         html = self.client.get("/").data.decode("utf-8")

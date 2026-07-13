@@ -6,7 +6,7 @@
 {% macro pedido_card(p, tipo) %}
 <article class="order-card">
   <div class="order-media">
-    {% if p.foto %}<img src="{{ foto_url(p.foto, 500) }}" alt="{{ p.titulo }}">
+    {% if p.foto %}<img src="{{ foto_url(p.foto, 500) }}" alt="{{ p.titulo }}" loading="lazy" decoding="async">
     {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
   </div>
   <div class="order-body">

@@ -15,9 +15,12 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 <script src="{{ url_for('static', filename='password-toggle.js') }}" defer></script>
 <script src="{{ url_for('static', filename='announcement.js') }}" defer></script>
+<script src="{{ url_for('static', filename='experience.js') }}?v=mx003" defer></script>
 {% block head_extra %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
+{% set page_body_class %}{% block body_class %}{% endblock %}{% endset %}
+<body class="mds-experience{% if page_body_class|trim %} {{ page_body_class|trim }}{% endif %}">
+<a class="skip-link" href="#conteudo-principal">Pular para o conteúdo principal</a>
 <header class="site-header">
   <div class="hi">
     <a href="/" class="logo" aria-label="Mercado Colatina, página inicial">
@@ -70,7 +73,7 @@
 
 {% block busca %}{% endblock %}
 
-<main>
+<main id="conteudo-principal" tabindex="-1">
   {% if comunicado_global %}
     {% set announcement_message = comunicado_global.mensagem|replace(comunicado_global.titulo, '', 1)|trim %}
     <section class="site-announcement announcement-{{ comunicado_global.tipo }}" role="status" aria-label="Comunicado oficial do Mercado Colatina" data-announcement-id="{{ comunicado_global.id }}">
@@ -92,7 +95,20 @@
   {% endif %}
   {% with msgs = get_flashed_messages(with_categories=True) %}
     {% for cat, msg in msgs %}
-      <div class="flash {{ cat }}" role="status">{{ msg }}</div>
+      <div class="flash {{ cat }}" role="{{ 'alert' if cat == 'erro' else 'status' }}" aria-live="{{ 'assertive' if cat == 'erro' else 'polite' }}" aria-atomic="true" data-feedback-type="{{ cat }}">
+        <span class="flash-icon" aria-hidden="true">
+          {% if cat == 'erro' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
+          {% elif cat in ('aviso', 'atencao') %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 2.9 1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          {% elif cat == 'info' %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          {% else %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+          {% endif %}
+        </span>
+        <span>{{ msg }}</span>
+      </div>
     {% endfor %}
   {% endwith %}
 

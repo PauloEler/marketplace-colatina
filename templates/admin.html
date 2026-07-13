@@ -4,7 +4,7 @@
 {% block voltar %}<a href="/" class="voltar">Voltar ao início</a>{% endblock %}
 
 {% block content %}
-<h2 style="margin-bottom:22px">Painel admin</h2>
+<header class="admin-page-heading"><div class="section-kicker">Operação do marketplace</div><h1>Painel administrativo</h1><p>Acompanhe os pontos que exigem atenção e mantenha a comunidade organizada.</p></header>
 
 <section class="admin-email-tools" aria-label="Ferramentas de e-mail">
   <div>
@@ -22,7 +22,7 @@
   <div class="admin-sales-alert-icon">!</div>
   <div>
     <div class="section-kicker">Alerta de venda</div>
-    <h3 id="sales-alert-title">{{ pedidos_atencao|length }} pedido{{ '' if pedidos_atencao|length == 1 else 's' }} precisa{{ '' if pedidos_atencao|length == 1 else 'm' }} da sua atenção</h3>
+    <h2 id="sales-alert-title">{{ pedidos_atencao|length }} pedido{{ '' if pedidos_atencao|length == 1 else 's' }} precisa{{ '' if pedidos_atencao|length == 1 else 'm' }} da sua atenção</h2>
     <p>Confira o comprador, o vendedor e o pagamento. Os pedidos continuam registrados no banco mesmo que o e-mail falhe.</p>
     <div class="admin-sales-alert-list">
       {% for pedido in pedidos_atencao[:3] %}
@@ -47,7 +47,7 @@
   <div class="admin-sales-alert-icon">!</div>
   <div>
     <div class="admin-warning-label">ATENÇÃO</div>
-    <h3 id="email-warning-title">Alertas por e-mail ainda não estão ativos</h3>
+    <h2 id="email-warning-title">Alertas por e-mail ainda não estão ativos</h2>
     <p>Nenhum pedido aguardando atenção neste momento. O destino está definido como <strong>{{ admin_notification_email or 'não informado' }}</strong>, mas o serviço remetente ainda precisa ser ativado.</p>
   </div>
 </section>
@@ -70,21 +70,21 @@
 
 <section class="admin-founders" aria-labelledby="admin-founders-title">
   <div class="admin-section-heading">
-    <div><div class="section-kicker">Comunidade</div><h3 id="admin-founders-title">Fundadores do Mercado Colatina</h3></div>
+    <div><div class="section-kicker">Comunidade</div><h2 id="admin-founders-title">Fundadores do Mercado Colatina</h2></div>
     <span>{{ fundadores|length }} de {{ limite_fundadores }} vagas automáticas ocupadas</span>
   </div>
   <div class="admin-founder-list">
     {% for fundador in fundadores %}
     <article><span class="founder-badge">🏅 Fundador</span><strong>{{ fundador.nome }}</strong><small>@{{ fundador.username }} · desde {{ fundador.fundador_desde }}</small></article>
     {% else %}
-    <div class="empty-state compact">Nenhum Fundador registrado.</div>
+    <div class="empty-state compact"><h3>A comunidade de Fundadores ainda está vazia</h3><p>Os usuários elegíveis aparecerão aqui assim que receberem o reconhecimento.</p></div>
     {% endfor %}
   </div>
 </section>
 
 <section class="admin-communications" aria-labelledby="communications-title">
   <div class="admin-section-heading">
-    <div><div class="section-kicker">Mensagem para todos</div><h3 id="communications-title">Comunicados do site</h3></div>
+    <div><div class="section-kicker">Mensagem para todos</div><h2 id="communications-title">Comunicados do site</h2></div>
     <span>O aviso ativo aparece em todas as páginas.</span>
   </div>
   <div class="admin-communications-grid">
@@ -125,14 +125,14 @@
           </div>
         </article>
       {% else %}
-        <div class="empty-state compact">Nenhum comunicado publicado.</div>
+        <div class="empty-state compact"><h3>Nenhum comunicado publicado</h3><p>Use o formulário ao lado para criar o primeiro aviso para a comunidade.</p></div>
       {% endfor %}
     </div>
   </div>
 </section>
 
 <div class="form-box" style="margin-bottom:28px">
-  <h3 style="margin-bottom:14px">Cadastrar novo usuário</h3>
+  <h2 style="margin-bottom:14px">Cadastrar novo usuário</h2>
   <form method="POST" action="/admin/usuario">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
@@ -151,7 +151,7 @@
 </div>
 
 <div class="admin-users-heading">
-  <h3>Usuários ({{ usuarios|length }})</h3>
+  <h2>Usuários ({{ usuarios|length }})</h2>
   <nav class="admin-user-filters" aria-label="Filtrar usuários">
     <a class="{{ 'active' if usuarios_filtro == 'todos' else '' }}" href="/admin?usuarios_filtro=todos">Todos</a>
     <a class="{{ 'active' if usuarios_filtro == 'fundadores' else '' }}" href="/admin?usuarios_filtro=fundadores">Fundadores</a>
@@ -206,7 +206,7 @@
 </div>
 
 <div class="admin-section-heading">
-  <h3>Moderação ({{ denuncias|selectattr('status', 'equalto', 'pendente')|list|length }} pendente(s))</h3>
+  <h2>Moderação ({{ denuncias|selectattr('status', 'equalto', 'pendente')|list|length }} pendente(s))</h2>
   <span>Denúncias enviadas pela comunidade</span>
 </div>
 <div style="overflow-x:auto">
@@ -237,13 +237,13 @@
     </td>
   </tr>
   {% else %}
-  <tr><td colspan="7">Nenhuma denúncia recebida.</td></tr>
+  <tr><td colspan="7"><div class="table-empty"><strong>Nenhuma denúncia recebida</strong><span>Quando alguém solicitar uma análise, o registro aparecerá nesta lista.</span></div></td></tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
 
-<h3 style="margin-bottom:10px">Pagamentos PIX ({{ pagamentos|length }})</h3>
+<h2 style="margin-bottom:10px">Pagamentos PIX ({{ pagamentos|length }})</h2>
 <div style="overflow-x:auto">
 <table>
   <thead><tr><th>Usuário</th><th>Valor</th><th>Referência</th><th>Solicitado</th><th>Status</th><th>Ações</th></tr></thead>
@@ -271,13 +271,13 @@
     </td>
   </tr>
   {% else %}
-  <tr><td colspan="6">Nenhuma solicitação de pagamento.</td></tr>
+  <tr><td colspan="6"><div class="table-empty"><strong>Nenhuma solicitação de pagamento</strong><span>As próximas solicitações aparecerão aqui para conferência.</span></div></td></tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
 
-<h3 style="margin-bottom:10px">Central de pedidos ({{ pedidos|length }})</h3>
+<h2 style="margin-bottom:10px">Central de pedidos ({{ pedidos|length }})</h2>
 <div style="overflow-x:auto">
 <table>
   <thead><tr><th>Nº</th><th>Produto</th><th>Comprador</th><th>Vendedor</th><th>Valor</th><th>Entrega</th><th>Pedido</th><th>Pagamento</th><th>Conclusao</th><th>E-mail</th><th>Data</th><th>Rastreabilidade</th><th>Acoes</th></tr></thead>
@@ -325,13 +325,13 @@
     </td>
   </tr>
   {% else %}
-  <tr><td colspan="13">Nenhum pedido registrado.</td></tr>
+  <tr><td colspan="13"><div class="table-empty"><strong>Nenhum pedido registrado</strong><span>Os pedidos criados no marketplace aparecerão aqui com seus estados e históricos.</span></div></td></tr>
   {% endfor %}
   </tbody>
 </table>
 </div>
 
-<h3 style="margin-bottom:10px">Anúncios ({{ anuncios|length }})</h3>
+<h2 style="margin-bottom:10px">Anúncios ({{ anuncios|length }})</h2>
 <div style="overflow-x:auto">
 <table>
   <thead><tr><th>Título</th><th>Vendedor</th><th>Preço</th><th>Categoria</th><th>Estoque</th><th>Vistas</th><th>Contatos</th><th>Status</th><th>Ação</th></tr></thead>
