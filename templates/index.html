@@ -1,32 +1,68 @@
 {% extends 'base.html' %}
 {% block title %}Mercado Colatina | A praça digital da cidade{% endblock %}
 {% block meta_description %}Encontre produtos, lojas e oportunidades perto de você. Compre e venda na praça digital de Colatina.{% endblock %}
-{% block body_class %}mds-home mx-home-premium{% endblock %}
+{% block body_class %}mds-home mx-home-premium home-next{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
 <section class="home-premium-hero {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
-  <div class="home-hero-copy">
-    <img class="home-hero-logo" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="330" height="92">
-    <div class="home-local-kicker">
-      <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-      Praça Digital de Colatina
+  <div class="home-next-hero-stage">
+    <div class="home-hero-copy">
+      <img class="home-hero-logo" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="330" height="92">
+      <div class="home-local-kicker">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        A praça digital de Colatina
+      </div>
+      {% if busca or cat_sel %}
+      <h1 id="hero-title">Resultados locais para sua busca.</h1>
+      <p>Refine o que procura e encontre ofertas disponíveis em Colatina.</p>
+      {% else %}
+      <h1 id="hero-title">Tudo o que Colatina oferece, mais perto de você.</h1>
+      <p>Compre, venda e descubra negócios locais em uma experiência simples e confiável.</p>
+      <div class="home-hero-actions" aria-label="Principais caminhos">
+        <a href="#ofertas" class="btn btn-verde">
+          <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          Explorar produtos
+        </a>
+        {% if session.get('usuario_id') %}
+        <a href="/criar" class="btn btn-outline">
+          <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+          Publicar anúncio
+        </a>
+        {% else %}
+        <a href="/cadastro" class="btn btn-outline">
+          <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+          Anunciar grátis
+        </a>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
-    {% if busca or cat_sel %}
-    <h1 id="hero-title">Resultados locais para sua busca.</h1>
-    <p>Refine o que procura e encontre ofertas disponíveis em Colatina.</p>
-    {% else %}
-    <h1 id="hero-title">Compre e venda perto de você.</h1>
-    <p>Encontre produtos, descubra lojas locais e anuncie para pessoas que estão perto.</p>
+
+    {% if not busca and not cat_sel %}
+    <aside class="home-next-trust" aria-label="Compromisso do Mercado Colatina">
+      <span class="home-next-trust-label">Feito para Colatina</span>
+      <strong>Experiência local.<br>Padrão profissional.</strong>
+      <p>Uma vitrine organizada para aproximar pessoas, produtos e negócios da cidade.</p>
+      <ul>
+        <li><span aria-hidden="true">01</span> Descoberta simples</li>
+        <li><span aria-hidden="true">02</span> Negociação direta</li>
+        <li><span aria-hidden="true">03</span> Comércio fortalecido</li>
+      </ul>
+    </aside>
     {% endif %}
   </div>
 
   <form class="home-premium-search" method="GET" action="/" role="search" aria-label="Buscar no Mercado Colatina">
+    <div class="home-next-search-intro">
+      <span>Comece pela busca</span>
+      <small>Produtos, serviços e oportunidades da cidade em um só lugar.</small>
+    </div>
     <div class="search-field search-field-query">
       <label for="busca">Buscar produtos e serviços</label>
       <div class="search-control">
         <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="busca" type="search" name="q" placeholder="O que você procura em Colatina?" value="{{ busca }}" autocomplete="off">
+        <input id="busca" type="search" name="q" placeholder="Busque por produto, serviço ou loja" value="{{ busca }}" autocomplete="off">
       </div>
     </div>
     <div class="search-field search-field-category">
@@ -46,27 +82,10 @@
 
   {% if not busca and not cat_sel %}
   <div class="home-journey-row">
-    <div class="home-hero-actions" aria-label="Principais caminhos">
-      <a href="#ofertas" class="btn btn-verde">
-        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-        Comprar em Colatina
-      </a>
-      {% if session.get('usuario_id') %}
-      <a href="/criar" class="btn btn-outline">
-        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
-        Publicar anúncio
-      </a>
-      {% else %}
-      <a href="/cadastro" class="btn btn-outline">
-        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
-        Anunciar grátis
-      </a>
-      {% endif %}
-    </div>
     <ul class="home-assurance-list" aria-label="Diferenciais do Mercado Colatina">
-      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"></path><path d="M21 12c0 1.66-4.03 7-9 7s-9-5.34-9-7 4.03-7 9-7 9 5.34 9 7Z"></path></svg>Ofertas locais</li>
-      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path></svg>Contato direto</li>
-      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg>Negociação organizada</li>
+      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"></path><path d="M21 12c0 1.66-4.03 7-9 7s-9-5.34-9-7 4.03-7 9-7 9 5.34 9 7Z"></path></svg><span><strong>Oferta local</strong> perto de você</span></li>
+      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path></svg><span><strong>Contato direto</strong> com quem vende</span></li>
+      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg><span><strong>Negociação clara</strong> do início ao fim</span></li>
     </ul>
   </div>
   {% endif %}
