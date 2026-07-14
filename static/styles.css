@@ -3249,7 +3249,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   font-size:clamp(1rem,1.4vw,1.2rem);
   line-height:1.7;
 }
-.home-official .home-hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.5rem}
+.home-official .home-hero-actions{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:1.5rem;transform:translateY(-.875rem)}
 .home-official .home-hero-actions .btn{
   min-width:8.75rem;
   min-height:3.35rem;
