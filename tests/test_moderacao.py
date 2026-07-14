@@ -2298,8 +2298,10 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertEqual(pagina.status_code, 200)
         self.assertIn("Anunciar grátis".encode(), pagina.data)
-        self.assertIn("Comprar em Colatina".encode(), pagina.data)
+        self.assertIn("Explorar produtos".encode(), pagina.data)
         self.assertIn('class="home-premium-search"'.encode(), pagina.data)
+        self.assertIn('class="home-next-search-intro"'.encode(), pagina.data)
+        self.assertIn('class="home-next-trust"'.encode(), pagina.data)
         self.assertIn(b'href="/cadastro"', pagina.data)
         self.assertNotIn(b'class="hero-signup-promo"', pagina.data)
         self.assertNotIn(b'class="hero-panel"', pagina.data)
@@ -2315,9 +2317,9 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.data.decode("utf-8")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn('<body class="mds-home mx-home-premium">', html)
+        self.assertIn('<body class="mds-home mx-home-premium home-next">', html)
         self.assertEqual(html.count("<h1"), 1)
-        self.assertIn("Compre e venda perto de você.", html)
+        self.assertIn("Tudo o que Colatina oferece, mais perto de você.", html)
         self.assertIn('<label for="busca">Buscar produtos e serviços</label>', html)
         self.assertIn('<label for="categoria">Categoria</label>', html)
         self.assertIn('aria-label="Buscar no Mercado Colatina"', html)
@@ -2336,6 +2338,16 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Transforme o que você tem em uma nova oportunidade.", html)
         self.assertIn('class="site-footer home-premium-footer"', html)
         self.assertIn("A praça digital para comprar, vender", html)
+        with open(
+            os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
+        ) as arquivo_css:
+            css = arquivo_css.read()
+        self.assertIn("/* OS 011 - Home Premium Next */", css)
+        self.assertIn("@media(max-width:1023px)", css)
+        self.assertIn("@media(max-width:839px)", css)
+        self.assertIn("@media(max-width:639px)", css)
+        self.assertIn("@media(max-width:359px)", css)
+        self.assertIn("@media(prefers-reduced-motion:reduce)", css)
 
     def test_home_apresenta_blocos_na_ordem_home_first(self):
         html = self.client.get("/").data.decode("utf-8")
