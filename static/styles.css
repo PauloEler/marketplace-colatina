@@ -3197,8 +3197,9 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 }
 .home-official .home-premium-hero:after{display:none}
 .home-official .home-official-hero-stage{
+  --ho-search-dock:11rem;
   position:relative;
-  min-height:47.5rem;
+  min-height:49rem;
   overflow:hidden;
   border:1px solid #e2e0d8;
   border-radius:1.1rem;
@@ -3263,7 +3264,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   top:0;
   right:0;
   width:68%;
-  height:100%;
+  height:calc(100% - var(--ho-search-dock));
   margin:0;
   overflow:hidden;
   clip-path:polygon(30% 0,100% 0,100% 100%,4% 100%,18% 57%);
@@ -3302,7 +3303,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   position:absolute;
   z-index:5;
   right:clamp(1.5rem,5vw,4.5rem);
-  bottom:2.25rem;
+  bottom:1.75rem;
   left:clamp(1.5rem,5vw,4.5rem);
   display:grid;
   grid-template-columns:minmax(10rem,.8fr) minmax(18rem,2fr) minmax(11rem,.8fr) auto;
@@ -3313,7 +3314,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   border:1px solid rgba(18,63,45,.12);
   border-radius:1rem;
   background:#fff;
-  box-shadow:0 24px 55px rgba(29,52,42,.18);
+  box-shadow:0 12px 30px rgba(29,52,42,.09);
 }
 .home-official .home-search-heading{display:grid;align-content:center;align-self:stretch;gap:.2rem;padding:0 .65rem}
 .home-official .home-search-heading span{color:var(--ho-terracotta);font-size:.67rem;font-weight:800;letter-spacing:.11em;text-transform:uppercase}
@@ -3528,7 +3529,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-premium-footer .footer-accesses{color:var(--ho-muted)}
 
 @media(max-width:1199px){
-  .home-official .home-official-hero-stage{min-height:44rem}
+  .home-official .home-official-hero-stage{min-height:48rem}
   .home-official .home-official-copy{width:53%;padding-bottom:10rem}
   .home-official .home-premium-hero h1{font-size:clamp(3.8rem,7vw,5.5rem)}
   .home-official .home-official-panorama{width:65%}
@@ -3538,7 +3539,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-category-card:nth-child(-n+5){border-bottom:1px solid var(--ho-line)}
 }
 @media(max-width:1023px){
-  .home-official .home-official-hero-stage{min-height:45rem}
+  .home-official .home-official-hero-stage{--ho-search-dock:14.25rem;min-height:50rem}
   .home-official .home-official-copy{width:58%;padding-left:3rem}
   .home-official .home-official-panorama{width:63%;clip-path:polygon(38% 0,100% 0,100% 100%,8% 100%,25% 55%)}
   .home-official .home-official-search{grid-template-columns:minmax(0,1.5fr) minmax(11rem,.75fr) auto}
@@ -3552,7 +3553,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 }
 @media(max-width:839px){
   .home-official main{padding-top:1.25rem}
-  .home-official .home-official-hero-stage{min-height:0;overflow:visible;padding-bottom:2rem;background:var(--ho-ivory)}
+  .home-official .home-official-hero-stage{--ho-search-dock:0;min-height:0;overflow:visible;padding-bottom:1.5rem;background:var(--ho-ivory)}
   .home-official .home-official-copy{width:100%;padding:2rem 2.5rem 1.5rem}
   .home-official .home-hero-logo{width:11.5rem;margin-bottom:1rem}
   .home-official .home-local-kicker{margin-bottom:.9rem}
@@ -3561,7 +3562,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-hero-actions{margin-top:1.25rem}
   .home-official .home-official-panorama{position:relative;width:100%;height:17rem;clip-path:polygon(0 15%,100% 0,100% 100%,0 100%)}
   .home-official .home-official-panorama img{object-position:center 52%}
-  .home-official .home-official-search{position:relative;right:auto;bottom:auto;left:auto;grid-template-columns:minmax(0,1.5fr) minmax(10rem,.75fr) auto;width:calc(100% - 3rem);margin:-4.5rem auto 0}
+  .home-official .home-official-search{position:relative;right:auto;bottom:auto;left:auto;grid-template-columns:minmax(0,1.5fr) minmax(10rem,.75fr) auto;width:calc(100% - 3rem);margin:1.25rem auto 0}
   .home-official .home-search-heading{grid-column:1/-1}
   .home-official .home-seller-callout{grid-template-columns:1fr}
 }
@@ -3580,7 +3581,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-hero-actions .btn{width:100%;min-width:0;min-height:3.1rem}
   .home-official .home-official-panorama{height:16.5rem;clip-path:polygon(0 13%,100% 0,100% 100%,0 100%)}
   .home-official .home-official-panorama figcaption{right:.55rem;bottom:.55rem;max-width:72%;font-size:.52rem;text-align:right}
-  .home-official .home-official-search{grid-template-columns:1fr;width:calc(100% - 1.5rem);gap:.7rem;margin-top:-3.25rem;padding:.9rem;border-radius:.8rem}
+  .home-official .home-official-search{grid-template-columns:1fr;width:calc(100% - 1.5rem);gap:.7rem;margin-top:1rem;padding:.9rem;border-radius:.8rem}
   .home-official .home-search-heading{display:grid;gap:.15rem;padding:.15rem .1rem}
   .home-official .home-search-heading strong{font-size:1.05rem}
   .home-official .home-official-search input,
