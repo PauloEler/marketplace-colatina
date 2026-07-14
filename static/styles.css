@@ -3303,7 +3303,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   position:absolute;
   z-index:5;
   right:clamp(1.5rem,5vw,4.5rem);
-  bottom:1.75rem;
+  bottom:.25rem;
   left:clamp(1.5rem,5vw,4.5rem);
   display:grid;
   grid-template-columns:minmax(10rem,.8fr) minmax(18rem,2fr) minmax(11rem,.8fr) auto;
@@ -3533,7 +3533,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-official-copy{width:53%;padding-bottom:10rem}
   .home-official .home-premium-hero h1{font-size:clamp(3.8rem,7vw,5.5rem)}
   .home-official .home-official-panorama{width:65%}
-  .home-official .home-official-search{grid-template-columns:minmax(9rem,.7fr) minmax(15rem,1.7fr) minmax(10rem,.8fr) auto}
+  .home-official .home-official-search{bottom:.625rem;grid-template-columns:minmax(9rem,.7fr) minmax(15rem,1.7fr) minmax(10rem,.8fr) auto}
   .home-official .home-category-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
   .home-official .home-category-card:nth-child(5){border-right:0}
   .home-official .home-category-card:nth-child(-n+5){border-bottom:1px solid var(--ho-line)}
@@ -3562,7 +3562,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-hero-actions{margin-top:1.25rem}
   .home-official .home-official-panorama{position:relative;width:100%;height:17rem;clip-path:polygon(0 15%,100% 0,100% 100%,0 100%)}
   .home-official .home-official-panorama img{object-position:center 52%}
-  .home-official .home-official-search{position:relative;right:auto;bottom:auto;left:auto;grid-template-columns:minmax(0,1.5fr) minmax(10rem,.75fr) auto;width:calc(100% - 3rem);margin:1.25rem auto 0}
+  .home-official .home-official-search{position:relative;right:auto;bottom:auto;left:auto;grid-template-columns:minmax(0,1.5fr) minmax(10rem,.75fr) auto;width:calc(100% - 3rem);margin:2rem auto 0}
   .home-official .home-search-heading{grid-column:1/-1}
   .home-official .home-seller-callout{grid-template-columns:1fr}
 }
@@ -3581,7 +3581,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-hero-actions .btn{width:100%;min-width:0;min-height:3.1rem}
   .home-official .home-official-panorama{height:16.5rem;clip-path:polygon(0 13%,100% 0,100% 100%,0 100%)}
   .home-official .home-official-panorama figcaption{right:.55rem;bottom:.55rem;max-width:72%;font-size:.52rem;text-align:right}
-  .home-official .home-official-search{grid-template-columns:1fr;width:calc(100% - 1.5rem);gap:.7rem;margin-top:1rem;padding:.9rem;border-radius:.8rem}
+  .home-official .home-official-search{grid-template-columns:1fr;width:calc(100% - 1.5rem);gap:.7rem;margin-top:1.75rem;padding:.9rem;border-radius:.8rem}
   .home-official .home-search-heading{display:grid;gap:.15rem;padding:.15rem .1rem}
   .home-official .home-search-heading strong{font-size:1.05rem}
   .home-official .home-official-search input,
