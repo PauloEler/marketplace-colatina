@@ -2297,9 +2297,12 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina = self.client.get("/")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn("Anunciar grátis".encode(), pagina.data)
-        self.assertIn("Comprar em Colatina".encode(), pagina.data)
-        self.assertIn('class="home-premium-search"'.encode(), pagina.data)
+        self.assertIn("Anunciar".encode(), pagina.data)
+        self.assertIn("Comprar".encode(), pagina.data)
+        self.assertIn(
+            'class="home-premium-search home-official-search"'.encode(),
+            pagina.data,
+        )
         self.assertIn(b'href="/cadastro"', pagina.data)
         self.assertNotIn(b'class="hero-signup-promo"', pagina.data)
         self.assertNotIn(b'class="hero-panel"', pagina.data)
@@ -2315,9 +2318,9 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.data.decode("utf-8")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn('<body class="mds-home mx-home-premium">', html)
+        self.assertIn('<body class="mds-home mx-home-premium home-official">', html)
         self.assertEqual(html.count("<h1"), 1)
-        self.assertIn("Compre e venda perto de você.", html)
+        self.assertIn("O melhor da cidade, <em>mais perto.</em>", html)
         self.assertIn('<label for="busca">Buscar produtos e serviços</label>', html)
         self.assertIn('<label for="categoria">Categoria</label>', html)
         self.assertIn('aria-label="Buscar no Mercado Colatina"', html)
@@ -2330,10 +2333,14 @@ class ModeracaoTestCase(unittest.TestCase):
         html = self.client.get("/").data.decode("utf-8")
 
         self.assertIn("mercado-colatina-logo-v0.9.svg", html)
+        self.assertIn('class="home-official-hero-stage"', html)
+        self.assertIn('class="home-official-panorama"', html)
+        self.assertIn("colatina-rio-doce-panorama-hvl.jpg", html)
+        self.assertIn("CC BY 4.0", html)
         self.assertIn('class="home-category-grid"', html)
         self.assertEqual(html.count('class="home-category-card'), 10)
         self.assertIn('id="planos" class="home-seller-callout"', html)
-        self.assertIn("Transforme o que você tem em uma nova oportunidade.", html)
+        self.assertIn("Tem um negócio em Colatina?", html)
         self.assertIn('class="site-footer home-premium-footer"', html)
         self.assertIn("A praça digital para comprar, vender", html)
 
