@@ -1,84 +1,79 @@
 {% extends 'base.html' %}
 {% block title %}Mercado Colatina | A praça digital da cidade{% endblock %}
 {% block meta_description %}Encontre produtos, lojas e oportunidades perto de você. Compre e venda na praça digital de Colatina.{% endblock %}
-{% block body_class %}mds-home mx-home-premium{% endblock %}
+{% block body_class %}mds-home mx-home-premium home-official{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
-<section class="home-premium-hero {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
-  <div class="home-hero-copy">
-    <img class="home-hero-logo" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="330" height="92">
-    <div class="home-local-kicker">
-      <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-      Praça Digital de Colatina
-    </div>
-    {% if busca or cat_sel %}
-    <h1 id="hero-title">Resultados locais para sua busca.</h1>
-    <p>Refine o que procura e encontre ofertas disponíveis em Colatina.</p>
-    {% else %}
-    <h1 id="hero-title">Compre e venda perto de você.</h1>
-    <p>Encontre produtos, descubra lojas locais e anuncie para pessoas que estão perto.</p>
-    {% endif %}
-  </div>
-
-  <form class="home-premium-search" method="GET" action="/" role="search" aria-label="Buscar no Mercado Colatina">
-    <div class="search-field search-field-query">
-      <label for="busca">Buscar produtos e serviços</label>
-      <div class="search-control">
-        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        <input id="busca" type="search" name="q" placeholder="O que você procura em Colatina?" value="{{ busca }}" autocomplete="off">
+<section class="home-premium-hero home-official-hero {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
+  <div class="home-official-hero-stage">
+    <div class="home-hero-copy home-official-copy">
+      <img class="home-hero-logo" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="330" height="92">
+      <div class="home-local-kicker">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        Marketplace de Colatina
       </div>
-    </div>
-    <div class="search-field search-field-category">
-      <label for="categoria">Categoria</label>
-      <select id="categoria" name="categoria">
-        <option value="">Todas as categorias</option>
-        {% for c in categorias %}
-          <option value="{{ c }}" {% if c == cat_sel %}selected{% endif %}>{{ c }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <button type="submit">
-      <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-      Buscar
-    </button>
-  </form>
-
-  {% if not busca and not cat_sel %}
-  <div class="home-journey-row">
-    <div class="home-hero-actions" aria-label="Principais caminhos">
-      <a href="#ofertas" class="btn btn-verde">
-        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-        Comprar em Colatina
-      </a>
-      {% if session.get('usuario_id') %}
-      <a href="/criar" class="btn btn-outline">
-        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
-        Publicar anúncio
-      </a>
+      {% if busca or cat_sel %}
+      <h1 id="hero-title">Resultados locais para sua busca.</h1>
+      <p>Refine o que procura e encontre ofertas disponíveis em Colatina.</p>
       {% else %}
-      <a href="/cadastro" class="btn btn-outline">
-        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
-        Anunciar grátis
-      </a>
+      <h1 id="hero-title">O melhor da cidade, <em>mais perto.</em></h1>
+      <p>Do comércio local aos serviços que fazem Colatina acontecer. Conectamos pessoas, valorizamos o que é nosso.</p>
+      <div class="home-hero-actions" aria-label="Principais caminhos">
+        <a href="#ofertas" class="btn btn-verde">
+          <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          Comprar
+        </a>
+        {% if session.get('usuario_id') %}
+        <a href="/criar" class="btn btn-outline">Publicar anúncio</a>
+        {% else %}
+        <a href="/cadastro" class="btn btn-outline">Anunciar</a>
+        {% endif %}
+      </div>
       {% endif %}
     </div>
-    <ul class="home-assurance-list" aria-label="Diferenciais do Mercado Colatina">
-      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4"></path><path d="M21 12c0 1.66-4.03 7-9 7s-9-5.34-9-7 4.03-7 9-7 9 5.34 9 7Z"></path></svg>Ofertas locais</li>
-      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"></path></svg>Contato direto</li>
-      <li><svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path></svg>Negociação organizada</li>
-    </ul>
+
+    <figure class="home-official-panorama">
+      <img src="{{ url_for('static', filename='colatina-rio-doce-panorama-hvl.jpg') }}" alt="Vista panorâmica de Colatina, do Rio Doce e da Ponte Florentino Avidos" width="1280" height="720" fetchpriority="high" decoding="async">
+      <figcaption>Foto: <a href="https://commons.wikimedia.org/wiki/File:Vista_parcial_de_Colatina_ES.JPG" rel="external">HVL / Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by/4.0/" rel="external">CC BY 4.0</a></figcaption>
+    </figure>
+
+    <form class="home-premium-search home-official-search" method="GET" action="/" role="search" aria-label="Buscar no Mercado Colatina">
+      <div class="home-search-heading">
+        <span>Busca local</span>
+        <strong>Encontre em Colatina</strong>
+      </div>
+      <div class="search-field search-field-query">
+        <label for="busca">Buscar produtos e serviços</label>
+        <div class="search-control">
+          <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          <input id="busca" type="search" name="q" placeholder="Buscar em Colatina" value="{{ busca }}" autocomplete="off">
+        </div>
+      </div>
+      <div class="search-field search-field-category">
+        <label for="categoria">Categoria</label>
+        <select id="categoria" name="categoria">
+          <option value="">Todas as categorias</option>
+          {% for c in categorias %}
+            <option value="{{ c }}" {% if c == cat_sel %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        Buscar
+      </button>
+    </form>
   </div>
-  {% endif %}
 </section>
 
 <section class="home-category-section" aria-labelledby="categories-title">
   <div class="home-section-heading">
     <div>
-      <div class="section-kicker">Navegue do seu jeito</div>
-      <h2 id="categories-title">Encontre por categoria</h2>
+      <div class="section-kicker">Explore a cidade</div>
+      <h2 id="categories-title">Categorias</h2>
     </div>
-    <p>Atalhos para chegar mais rápido ao que você precisa.</p>
+    <p>Escolha um caminho e descubra o que Colatina oferece.</p>
   </div>
   <nav class="home-category-grid" aria-label="Categorias de anúncios">
     <a class="home-category-card {{ 'active' if not cat_sel else '' }}" href="/" {% if not cat_sel %}aria-current="page"{% endif %}>
@@ -172,18 +167,13 @@
 {% if not busca and not cat_sel %}
 <section id="planos" class="home-seller-callout" aria-labelledby="seller-callout-title">
   <div class="home-seller-copy">
-    <div class="section-kicker">Venda para a sua cidade</div>
-    <h2 id="seller-callout-title">Transforme o que você tem em uma nova oportunidade.</h2>
-    <p>Crie um anúncio claro, alcance pessoas de Colatina e organize a negociação em um só lugar.</p>
-    <ul>
-      <li>Até {{ limite_gratis }} anúncios ativos</li>
-      <li>Contato direto com interessados</li>
-      <li>Presença na vitrine local</li>
-    </ul>
+    <div class="section-kicker">Feito para quem movimenta a cidade</div>
+    <h2 id="seller-callout-title">Tem um negócio em Colatina?</h2>
+    <p>Anuncie, alcance mais clientes e faça parte do desenvolvimento da nossa cidade.</p>
   </div>
   <div class="home-seller-action">
-    <span>Leva poucos minutos para começar.</span>
-    {% if session.get('usuario_id') %}<a href="/criar" class="btn seller-primary-button">Publicar novo anúncio</a>{% else %}<a href="/cadastro" class="btn seller-primary-button">Publicar primeiro anúncio</a>{% endif %}
+    <span>Até {{ limite_gratis }} anúncios ativos no plano gratuito.</span>
+    {% if session.get('usuario_id') %}<a href="/criar" class="btn seller-primary-button">Anunciar agora</a>{% else %}<a href="/cadastro" class="btn seller-primary-button">Anunciar agora</a>{% endif %}
     <a href="/ajuda" class="seller-help-link">Entender como funciona</a>
   </div>
 </section>
@@ -255,6 +245,7 @@
 
 {% block footer %}
 <footer class="site-footer home-premium-footer">
+  <div class="home-footer-bridge" aria-hidden="true"></div>
   <div class="home-footer-grid">
     <div class="home-footer-brand">
       <img src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="Mercado Colatina" width="250" height="70">
@@ -280,7 +271,7 @@
     </nav>
   </div>
   <div class="footer-bottom">
-    <span>Mercado Colatina · Colatina, Espírito Santo</span>
+    <span>Mercado Colatina · Colatina, Espírito Santo · Edição Fundadora</span>
     <span class="footer-accesses">{{ total_acessos_formatado }} visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
   </div>
 </footer>
