@@ -16,29 +16,6 @@
 
 {% block content %}
 <article class="product-premium" aria-labelledby="product-title">
-  <header class="product-intro">
-    <div class="product-tags" aria-label="Classificação do produto">
-      <span>{{ a.condicao }}</span>
-      <span>{{ categoria_label(a.categoria) }}</span>
-    </div>
-    <h1 id="product-title">{{ a.titulo }}</h1>
-    <p class="product-price" aria-label="Preço: R$ {{ a.preco }}"><span>R$</span> {{ a.preco }}</p>
-    <ul class="product-facts" aria-label="Informações principais do produto">
-      <li class="product-availability">
-        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-        <strong>{{ a.estoque }} {{ 'unidade disponível' if a.estoque == 1 else 'unidades disponíveis' }}</strong>
-      </li>
-      <li>
-        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span>{{ a.bairro ~ ', ' if a.bairro else '' }}Colatina, ES</span>
-      </li>
-      <li>
-        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.1 12a10.8 10.8 0 0 1 19.8 0 10.8 10.8 0 0 1-19.8 0Z"/><circle cx="12" cy="12" r="3"/></svg>
-        <span>{{ a.visualizacoes }} {{ 'visualização' if a.visualizacoes == 1 else 'visualizações' }}</span>
-      </li>
-    </ul>
-  </header>
-
   <section class="product-gallery photos-{{ fotos|length }} {{ 'single' if fotos|length <= 1 else '' }}" aria-label="Fotos do produto">
     {% if fotos %}
       {% for foto in fotos %}
@@ -47,42 +24,107 @@
       </a>
       {% endfor %}
     {% else %}
-      <div class="product-photo-empty" role="img" aria-label="Imagem não enviada para {{ a.titulo }}"><span aria-hidden="true">MC</span>Imagem não enviada</div>
+      <div class="product-photo-empty" role="img" aria-label="Imagem não enviada para {{ a.titulo }}">
+        <span aria-hidden="true">MC</span>
+        <strong>Imagem não enviada</strong>
+      </div>
     {% endif %}
   </section>
 
-  <section class="product-purchase-panel" aria-labelledby="purchase-title">
-    <div class="product-purchase-kicker">
-      <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
-      Negociação organizada
+  <section class="product-decision-card" aria-label="Compra e resumo do produto">
+    <div class="product-title-group">
+      <div class="product-tags" aria-label="Classificação do produto">
+        <span>{{ a.condicao }}</span>
+        <span>{{ categoria_label(a.categoria) }}</span>
+      </div>
+      <h1 id="product-title">{{ a.titulo }}</h1>
     </div>
-    <h2 id="purchase-title">Quer este produto?</h2>
-    <p class="product-purchase-copy">Solicite a compra para combinar entrega e pagamento com o vendedor.</p>
+
+    <p class="product-price" aria-label="Preço: R$ {{ a.preco }}"><span>R$</span> {{ a.preco }}</p>
+
+    <div class="product-actions" aria-label="Ações de compra">
+      {% if session.get('usuario_id') != a.usuario_id %}
+      <a class="btn product-primary-action" href="/comprar/{{ a.id }}">
+        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Solicitar compra
+      </a>
+      {% else %}
+      <button class="btn product-primary-action" type="button" disabled aria-describedby="purchase-owner-help">
+        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        Solicitar compra
+      </button>
+      {% endif %}
+
+      <a class="btn product-secondary-action" target="_blank" rel="noopener noreferrer" href="/anuncio/{{ a.id }}/contato">
+        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
+        Conversar no WhatsApp
+      </a>
+    </div>
+
     {% if session.get('usuario_id') != a.usuario_id %}
-    <a class="btn product-primary-action" href="/comprar/{{ a.id }}">
-      <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      Solicitar compra
-    </a>
     <p class="product-action-help">Você revisará os detalhes antes de enviar a solicitação.</p>
     {% else %}
-    <button class="btn product-primary-action" type="button" disabled aria-describedby="purchase-owner-help">
-      <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      Solicitar compra
-    </button>
     <p class="product-action-help" id="purchase-owner-help">Este é o seu anúncio. Use as opções de gerenciamento abaixo.</p>
     {% endif %}
-    <a class="btn product-secondary-action" target="_blank" rel="noopener noreferrer" href="/anuncio/{{ a.id }}/contato">
-      <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
-      Conversar no WhatsApp
-    </a>
-    <div class="product-assurance">
-      <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-      <span>Nenhum pagamento é cobrado automaticamente nesta etapa.</span>
-    </div>
+
+    <section class="product-summary" aria-labelledby="summary-title">
+      <div class="product-summary-heading">
+        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        <h2 id="summary-title">Resumo do produto</h2>
+      </div>
+      <ul class="product-facts" aria-label="Informações principais do produto">
+        <li class="product-availability">
+          <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <strong>{{ a.estoque }} {{ 'unidade disponível' if a.estoque == 1 else 'unidades disponíveis' }}</strong>
+        </li>
+        <li>
+          <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>{{ a.bairro ~ ', ' if a.bairro else '' }}Colatina, ES</span>
+        </li>
+        <li>
+          <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.1 12a10.8 10.8 0 0 1 19.8 0 10.8 10.8 0 0 1-19.8 0Z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>{{ a.visualizacoes }} {{ 'visualização' if a.visualizacoes == 1 else 'visualizações' }}</span>
+        </li>
+      </ul>
+      <div class="product-assurance">
+        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>Nenhum pagamento é cobrado automaticamente nesta etapa.</span>
+      </div>
+    </section>
   </section>
 </article>
 
-<div class="product-details-layout">
+<div class="product-content-flow">
+  <section class="seller-card" aria-labelledby="seller-title">
+    <div class="seller-overview">
+      <div class="seller-label">Loja</div>
+      <div class="seller-identity">
+        <div class="seller-avatar" aria-hidden="true">{{ a.vendedor_nome[:1]|upper }}</div>
+        <div>
+          <h2 id="seller-title">{{ a.loja_nome or a.vendedor_nome }}</h2>
+          <span>Vendedor local · Colatina, ES</span>
+        </div>
+      </div>
+      <a class="seller-store-profile-link" href="{{ vendedor_loja_url }}">
+        Abrir perfil da loja
+        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </a>
+    </div>
+    <div class="public-reputation" aria-label="Reputação pública do vendedor">
+      {% if vendedor_reputacao.loja_verificada %}
+      <span class="verified-store-badge">
+        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 14 5l3-.5.5 3 2 2-2 2 .5 3-3 .5-2 2-2-2-3 .5.5-3-2-2 2-2-.5-3 3-.5Z"/><path d="m9 10 2 2 4-4"/></svg>
+        Loja verificada
+      </span>
+      {% endif %}
+      <dl>
+        <div><dt>Membro desde</dt><dd>{{ vendedor_reputacao.membro_desde }}</dd></div>
+        <div><dt>Vendas concluídas</dt><dd>{{ vendedor_reputacao.vendas_concluidas }}</dd></div>
+        <div><dt>Taxa de conclusão</dt><dd>{{ vendedor_reputacao.taxa_conclusao }}%</dd></div>
+      </dl>
+    </div>
+  </section>
+
   <section class="product-description-card" aria-labelledby="description-title">
     <div class="product-section-heading">
       <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5Z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h8"/><path d="M8 17h8"/></svg>
@@ -91,46 +133,36 @@
     <div class="detalhe-desc">{{ a.descricao }}</div>
   </section>
 
-  <aside class="product-support-column" aria-label="Vendedor e segurança">
-    <section class="seller-card" aria-labelledby="seller-title">
-      <div class="seller-label">Vendedor</div>
-      <div class="seller-identity">
-        <div class="seller-avatar" aria-hidden="true">{{ a.vendedor_nome[:1]|upper }}</div>
-        <div>
-          <h2 id="seller-title">{{ a.loja_nome or a.vendedor_nome }}</h2>
-          <span>Colatina, ES</span>
-        </div>
-      </div>
-      <a class="seller-store-profile-link" href="{{ vendedor_loja_url }}">
-        Abrir perfil da loja
-        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+  <section class="safety-card" aria-labelledby="safety-title">
+    <div class="safety-icon" aria-hidden="true">
+      <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+    </div>
+    <div>
+      <h2 id="safety-title">Negocie com segurança</h2>
+      <p>Não compartilhe senhas ou códigos. Prefira locais públicos para a entrega.</p>
+      <a href="/seguranca">Ver orientações de segurança</a>
+    </div>
+  </section>
+
+  {% if produtos_relacionados is defined and produtos_relacionados %}
+  <section class="related-products" aria-labelledby="related-title">
+    <div class="product-section-heading">
+      <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      <h2 id="related-title">Produtos relacionados</h2>
+    </div>
+    <div class="related-products-grid">
+      {% for produto in produtos_relacionados %}
+      <a class="related-product-card" href="/anuncio/{{ produto.id }}">
+        {% if produto.foto %}<img src="{{ foto_url(produto.foto, 400) }}" alt="Foto de {{ produto.titulo }}" loading="lazy">{% else %}<span class="related-product-placeholder" aria-hidden="true">MC</span>{% endif %}
+        <span>{{ produto.titulo }}</span>
+        <strong>R$ {{ produto.preco }}</strong>
       </a>
-      <div class="public-reputation" aria-label="Reputação pública do vendedor">
-        {% if vendedor_reputacao.loja_verificada %}
-        <span class="verified-store-badge">
-          <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 14 5l3-.5.5 3 2 2-2 2 .5 3-3 .5-2 2-2-2-3 .5.5-3-2-2 2-2-.5-3 3-.5Z"/><path d="m9 10 2 2 4-4"/></svg>
-          Loja verificada
-        </span>
-        {% endif %}
-        <dl>
-          <div><dt>Membro desde</dt><dd>{{ vendedor_reputacao.membro_desde }}</dd></div>
-          <div><dt>Vendas concluídas</dt><dd>{{ vendedor_reputacao.vendas_concluidas }}</dd></div>
-          <div><dt>Taxa de conclusão</dt><dd>{{ vendedor_reputacao.taxa_conclusao }}%</dd></div>
-        </dl>
-      </div>
-    </section>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
 
-    <section class="safety-card" aria-labelledby="safety-title">
-      <div class="safety-icon" aria-hidden="true">
-        <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
-      </div>
-      <div>
-        <h2 id="safety-title">Negocie com segurança</h2>
-        <p>Não compartilhe senhas ou códigos. Prefira locais públicos para a entrega.</p>
-        <a href="/seguranca">Ver orientações de segurança</a>
-      </div>
-    </section>
-
+  <aside class="product-secondary-tools" aria-label="Opções adicionais do anúncio">
     {% if session.get('usuario_id') and session.get('usuario_id') != a.usuario_id %}
     <details class="report-card">
       <summary>Denunciar este anúncio</summary>
