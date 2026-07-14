@@ -181,6 +181,118 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(painel.status_code, 200)
         self.assertIn(b"admin-section-heading", painel.data)
 
+    def test_cockpit_executivo_e_exclusivo_para_admin_e_preserva_painel(self):
+        visitante = self.client.get("/admin?visao=cockpit")
+        self.assertEqual(visitante.status_code, 302)
+        self.assertEqual(visitante.headers["Location"], "/")
+
+        self.autenticar_sessao(self.comprador_id)
+        usuario = self.client.get("/admin?visao=cockpit")
+        self.assertEqual(usuario.status_code, 302)
+        self.assertEqual(usuario.headers["Location"], "/")
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        cockpit = self.client.get("/admin?visao=cockpit")
+        painel = self.client.get("/admin")
+        html_cockpit = cockpit.data.decode("utf-8")
+        conteudo_cockpit = html_cockpit.split('id="cockpit-conteudo"', 1)[1]
+
+        self.assertEqual(cockpit.status_code, 200)
+        self.assertIn('<body class="mds-cockpit">', html_cockpit)
+        self.assertEqual(html_cockpit.count("<h1"), 1)
+        self.assertIn("Cockpit Executivo", html_cockpit)
+        self.assertNotIn("<form", conteudo_cockpit)
+        self.assertIn("Painel admin".encode(), painel.data)
+        self.assertNotIn(b'class="cockpit-shell"', painel.data)
+        self.assertNotIn("/cockpit", {regra.rule for regra in app.url_map.iter_rules()})
+
+    def test_cockpit_exibe_saude_metricas_operacao_alertas_e_acessibilidade(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Loja do Vendedor' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.execute(
+                "INSERT INTO pedidos "
+                "(anuncio_id, comprador_id, vendedor_id, valor, status) "
+                "VALUES (?,?,?,?,?)",
+                (
+                    self.anuncio_id,
+                    self.comprador_id,
+                    self.vendedor_id,
+                    "1.200,00",
+                    "em_analise",
+                ),
+            )
+            db.execute(
+                "INSERT INTO denuncias "
+                "(anuncio_id, denunciante_id, motivo, detalhes, status) "
+                "VALUES (?,?,?,?,?)",
+                (
+                    self.anuncio_id,
+                    self.comprador_id,
+                    "enganoso",
+                    "Informação divergente.",
+                    "pendente",
+                ),
+            )
+            db.commit()
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        ambiente = {
+            "RENDER": "true",
+            "RENDER_GIT_COMMIT": "1234567890abcdef1234567890abcdef12345678",
+            "RENDER_DEPLOY_ID": "dep-teste-006",
+            "CI_STATUS": "success",
+            "CI_TEST_COUNT": "86",
+        }
+        with patch.dict(os.environ, ambiente, clear=False):
+            pagina = self.client.get("/admin?visao=cockpit")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        for indicador, valor in (
+            ("anuncios_ativos", 1),
+            ("usuarios_cadastrados", 3),
+            ("lojas_cadastradas", 1),
+            ("pedidos", 1),
+            ("solicitacoes_compra", 0),
+        ):
+            self.assertIn(f'data-metric="{indicador}" data-value="{valor}"', html)
+        for texto in (
+            "HTTP 200",
+            "dep-teste-006",
+            "1234567890ab",
+            "Aprovado",
+            ">86<",
+            "Produção · Render",
+            "Denúncias aguardando análise",
+            "Pedidos em análise",
+            "Bicicleta aro 29",
+            "@comprador",
+            "Novo anúncio",
+            "Minha Loja",
+            "Administração",
+        ):
+            self.assertIn(texto, html)
+        for titulo in (
+            "cockpit-health-title",
+            "cockpit-market-title",
+            "cockpit-operation-title",
+            "cockpit-alerts-title",
+            "cockpit-actions-title",
+        ):
+            self.assertIn(f'aria-labelledby="{titulo}"', html)
+
+        with open(
+            os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
+        ) as arquivo_css:
+            css = arquivo_css.read()
+        self.assertIn(".mds-cockpit", css)
+        self.assertIn("@media(max-width:639px)", css)
+        self.assertIn("@media(prefers-reduced-motion:reduce)", css)
+
     def test_pagina_produto_aplica_mds_premium_e_cta_principal(self):
         pagina = self.client.get(f"/anuncio/{self.anuncio_id}")
         html = pagina.data.decode("utf-8")

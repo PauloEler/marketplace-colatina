@@ -33,7 +33,10 @@
         <a href="/meus-anuncios">Meus anúncios</a>
         <a href="/pedidos">Pedidos</a>
         <a href="/minha-conta">Conta</a>
-        {% if session.get('is_admin') %}<a href="/admin" class="admin-link">Admin</a>{% endif %}
+        {% if session.get('is_admin') %}
+          <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="cockpit-link">Cockpit</a>
+          <a href="/admin" class="admin-link">Admin</a>
+        {% endif %}
         <form method="POST" action="/logout" class="nav-logout">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit">Sair</button>
@@ -53,7 +56,10 @@
           <a href="/meus-anuncios">Meus anúncios</a>
           <a href="/pedidos">Pedidos</a>
           <a href="/minha-conta">Minha conta</a>
-          {% if session.get('is_admin') %}<a href="/admin" class="mobile-admin">Painel Admin</a>{% endif %}
+          {% if session.get('is_admin') %}
+            <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="mobile-admin">Cockpit Executivo</a>
+            <a href="/admin" class="mobile-admin">Painel Admin</a>
+          {% endif %}
           <form method="POST" action="/logout" class="mobile-logout">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit">Sair da conta</button>

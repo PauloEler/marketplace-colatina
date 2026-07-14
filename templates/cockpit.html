@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Cockpit Executivo | Mercado Colatina{% endblock %}
+{% block body_class %}mds-cockpit{% endblock %}
+
+{% macro cockpit_icon(name) -%}
+<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  {% if name == 'activity' %}<path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+  {% elif name == 'heart' %}<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"></path>
+  {% elif name == 'rocket' %}<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09Z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.87 12.87 0 0 1 22 2c0 2.72-.78 7.5-6.05 11a22.35 22.35 0 0 1-3.95 2Z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"></path><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path>
+  {% elif name == 'git' %}<circle cx="12" cy="12" r="3"></circle><line x1="3" x2="9" y1="12" y2="12"></line><line x1="15" x2="21" y1="12" y2="12"></line>
+  {% elif name == 'check' %}<path d="M20 6 9 17l-5-5"></path>
+  {% elif name == 'flask' %}<path d="M9 3h6"></path><path d="M10 9V3h4v6l5 8.5A2.3 2.3 0 0 1 17 21H7a2.3 2.3 0 0 1-2-3.5Z"></path><path d="M7 15h10"></path>
+  {% elif name == 'server' %}<rect width="20" height="8" x="2" y="2" rx="2"></rect><rect width="20" height="8" x="2" y="14" rx="2"></rect><line x1="6" x2="6.01" y1="6" y2="6"></line><line x1="6" x2="6.01" y1="18" y2="18"></line>
+  {% elif name == 'tag' %}<path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42Z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle>
+  {% elif name == 'users' %}<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+  {% elif name == 'store' %}<path d="M3 9l1-5h16l1 5"></path><path d="M5 13v8h14v-8"></path><path d="M9 21v-6h6v6"></path><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"></path>
+  {% elif name == 'package' %}<path d="m7.5 4.27 9 5.15"></path><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path>
+  {% elif name == 'shopping' %}<circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h7.78a2 2 0 0 0 1.95-1.57L20.07 7H5.12"></path>
+  {% elif name == 'bell' %}<path d="M18 8A6 6 0 0 0 6 8c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+  {% else %}<path d="M12 2v20"></path><path d="M2 12h20"></path>{% endif %}
+</svg>
+{%- endmacro %}
+
+{% block voltar %}<a href="/admin" class="voltar">Abrir administração</a>{% endblock %}
+
+{% block content %}
+<div class="cockpit-shell" id="cockpit-conteudo">
+  <header class="cockpit-hero">
+    <div class="cockpit-hero-copy">
+      <span class="cockpit-eyebrow">Mercado One Tecnologia</span>
+      <h1>Cockpit Executivo</h1>
+      <p>O estado do Mercado Colatina em uma leitura rápida, objetiva e somente para consulta.</p>
+    </div>
+    <div class="cockpit-hero-status" aria-label="Resumo do estado atual">
+      <span class="cockpit-live-dot" aria-hidden="true"></span>
+      <div><strong>Sistema operacional</strong><span>Atualizado em {{ cockpit.gerado_em }}</span></div>
+    </div>
+  </header>
+
+  <aside class="cockpit-priority" aria-labelledby="cockpit-priority-title">
+    <span class="cockpit-priority-icon">{{ cockpit_icon('bell') }}</span>
+    <div>
+      <span class="cockpit-eyebrow">Indicador para hoje</span>
+      <h2 id="cockpit-priority-title">{{ cockpit.indicador_atencao }}</h2>
+      <p>{{ cockpit.indicador_contexto }}</p>
+    </div>
+  </aside>
+
+  <section class="cockpit-section" aria-labelledby="cockpit-health-title">
+    <div class="cockpit-section-heading">
+      <div><span class="cockpit-section-number">01</span><h2 id="cockpit-health-title">Saúde do produto</h2></div>
+      <p>Infraestrutura, entrega e qualidade da versão atual.</p>
+    </div>
+    <div class="cockpit-health-grid">
+      <article class="cockpit-health-card is-positive" data-cockpit-indicator="aplicacao">
+        <span class="cockpit-card-icon">{{ cockpit_icon('activity') }}</span><h3>Status da aplicação</h3><strong>{{ cockpit.saude.aplicacao }}</strong><small>Esta tela foi carregada corretamente.</small>
+      </article>
+      <article class="cockpit-health-card is-positive" data-cockpit-indicator="health_check">
+        <span class="cockpit-card-icon">{{ cockpit_icon('heart') }}</span><h3>Health Check</h3><strong>{{ cockpit.saude.health_check }}</strong><a href="{{ url_for('health') }}" target="_blank" rel="noopener">Consultar endpoint</a>
+      </article>
+      <article class="cockpit-health-card" data-cockpit-indicator="ultimo_deploy">
+        <span class="cockpit-card-icon">{{ cockpit_icon('rocket') }}</span><h3>Último deploy</h3><strong>{{ cockpit.saude.ultimo_deploy }}</strong><small>Identificação fornecida pelo ambiente.</small>
+      </article>
+      <article class="cockpit-health-card" data-cockpit-indicator="ultimo_commit">
+        <span class="cockpit-card-icon">{{ cockpit_icon('git') }}</span><h3>Último commit</h3><strong class="cockpit-code-value">{{ cockpit.saude.ultimo_commit }}</strong><small>Versão carregada pela aplicação.</small>
+      </article>
+      <article class="cockpit-health-card {{ 'is-positive' if cockpit.saude.ci_status == 'Aprovado' else '' }}" data-cockpit-indicator="ci_status">
+        <span class="cockpit-card-icon">{{ cockpit_icon('check') }}</span><h3>Status do CI</h3><strong>{{ cockpit.saude.ci_status }}</strong><small>Informação declarada pelo pipeline.</small>
+      </article>
+      <article class="cockpit-health-card" data-cockpit-indicator="testes">
+        <span class="cockpit-card-icon">{{ cockpit_icon('flask') }}</span><h3>Testes automatizados</h3><strong>{{ cockpit.saude.testes if cockpit.saude.testes is not none else 'Não informado' }}</strong><small>Testes identificados nesta versão.</small>
+      </article>
+      <article class="cockpit-health-card" data-cockpit-indicator="ambiente">
+        <span class="cockpit-card-icon">{{ cockpit_icon('server') }}</span><h3>Ambiente atual</h3><strong>{{ cockpit.saude.ambiente }}</strong><small>Contexto em que a aplicação está executando.</small>
+      </article>
+    </div>
+  </section>
+
+  <section class="cockpit-section" aria-labelledby="cockpit-market-title">
+    <div class="cockpit-section-heading">
+      <div><span class="cockpit-section-number">02</span><h2 id="cockpit-market-title">Marketplace</h2></div>
+      <p>Volume atual calculado exclusivamente com os dados existentes.</p>
+    </div>
+    <div class="cockpit-metric-grid">
+      <article data-metric="anuncios_ativos" data-value="{{ cockpit.metricas.anuncios_ativos }}"><span>{{ cockpit_icon('tag') }}</span><strong>{{ cockpit.metricas.anuncios_ativos }}</strong><h3>Anúncios ativos</h3><small>Ofertas disponíveis agora</small></article>
+      <article data-metric="usuarios_cadastrados" data-value="{{ cockpit.metricas.usuarios_cadastrados }}"><span>{{ cockpit_icon('users') }}</span><strong>{{ cockpit.metricas.usuarios_cadastrados }}</strong><h3>Usuários cadastrados</h3><small>Base total de contas</small></article>
+      <article data-metric="lojas_cadastradas" data-value="{{ cockpit.metricas.lojas_cadastradas }}"><span>{{ cockpit_icon('store') }}</span><strong>{{ cockpit.metricas.lojas_cadastradas }}</strong><h3>Lojas cadastradas</h3><small>Perfis comerciais nomeados</small></article>
+      <article data-metric="pedidos" data-value="{{ cockpit.metricas.pedidos }}"><span>{{ cockpit_icon('package') }}</span><strong>{{ cockpit.metricas.pedidos }}</strong><h3>Pedidos</h3><small>Histórico total registrado</small></article>
+      <article data-metric="solicitacoes_compra" data-value="{{ cockpit.metricas.solicitacoes_compra }}"><span>{{ cockpit_icon('shopping') }}</span><strong>{{ cockpit.metricas.solicitacoes_compra }}</strong><h3>Solicitações de compra</h3><small>Aguardando o vendedor</small></article>
+    </div>
+  </section>
+
+  <section class="cockpit-section" aria-labelledby="cockpit-operation-title">
+    <div class="cockpit-section-heading">
+      <div><span class="cockpit-section-number">03</span><h2 id="cockpit-operation-title">Operação recente</h2></div>
+      <p>Os cinco registros mais recentes de cada área.</p>
+    </div>
+    <div class="cockpit-operation-grid">
+      <article class="cockpit-operation-card">
+        <header><span>{{ cockpit_icon('tag') }}</span><div><h3>Últimos anúncios</h3><small>Publicações recentes</small></div></header>
+        <ul>
+          {% for anuncio in cockpit.ultimos_anuncios %}
+          <li><div><a href="/anuncio/{{ anuncio.id }}">{{ anuncio.titulo }}</a><span>por {{ anuncio.vendedor_nome }}</span></div><time>{{ formatar_data_cockpit(anuncio.criado_em) }}</time></li>
+          {% else %}<li class="cockpit-list-empty">Nenhum anúncio registrado.</li>{% endfor %}
+        </ul>
+      </article>
+      <article class="cockpit-operation-card">
+        <header><span>{{ cockpit_icon('users') }}</span><div><h3>Últimos cadastros</h3><small>Novas contas</small></div></header>
+        <ul>
+          {% for usuario in cockpit.ultimos_usuarios %}
+          <li><div><a href="/admin#usuarios">{{ usuario.nome }}</a><span>@{{ usuario.username }}</span></div><time>{{ formatar_data_cockpit(usuario.criado_em) }}</time></li>
+          {% else %}<li class="cockpit-list-empty">Nenhum usuário registrado.</li>{% endfor %}
+        </ul>
+      </article>
+      <article class="cockpit-operation-card">
+        <header><span>{{ cockpit_icon('package') }}</span><div><h3>Últimos pedidos</h3><small>Movimentações recentes</small></div></header>
+        <ul>
+          {% for pedido in cockpit.ultimos_pedidos %}
+          <li><div><a href="/pedido/{{ pedido.id }}/historico">#{{ pedido.id }} · {{ pedido.titulo }}</a><span>{{ pedido_status_label(pedido.status) }}</span></div><time>{{ formatar_data_cockpit(pedido.criado_em) }}</time></li>
+          {% else %}<li class="cockpit-list-empty">Nenhum pedido registrado.</li>{% endfor %}
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="cockpit-section" aria-labelledby="cockpit-alerts-title">
+    <div class="cockpit-section-heading">
+      <div><span class="cockpit-section-number">04</span><h2 id="cockpit-alerts-title">Alertas</h2></div>
+      <p>Somente situações que merecem acompanhamento.</p>
+    </div>
+    {% if cockpit.alertas %}
+    <ul class="cockpit-alert-list">
+      {% for alerta in cockpit.alertas %}<li class="is-{{ alerta.tipo }}"><span>{{ cockpit_icon('bell') }}</span><div><strong>{{ alerta.titulo }}</strong><p>{{ alerta.descricao }}</p></div></li>{% endfor %}
+    </ul>
+    {% else %}
+    <div class="cockpit-all-clear" role="status"><span>{{ cockpit_icon('check') }}</span><div><strong>Nenhum problema importante encontrado.</strong><p>Os indicadores atuais não apresentam alertas operacionais.</p></div></div>
+    {% endif %}
+  </section>
+
+  <section class="cockpit-section" aria-labelledby="cockpit-actions-title">
+    <div class="cockpit-section-heading">
+      <div><span class="cockpit-section-number">05</span><h2 id="cockpit-actions-title">Ações rápidas</h2></div>
+      <p>Atalhos para os fluxos já existentes, sem operações dentro do Cockpit.</p>
+    </div>
+    <nav class="cockpit-actions" aria-label="Ações rápidas do fundador">
+      <a href="/criar"><span>{{ cockpit_icon('tag') }}</span><strong>Novo anúncio</strong><small>Abrir publicação</small></a>
+      <a href="/painel-vendedor"><span>{{ cockpit_icon('store') }}</span><strong>Minha Loja</strong><small>Abrir área do vendedor</small></a>
+      <a href="/pedidos"><span>{{ cockpit_icon('package') }}</span><strong>Pedidos</strong><small>Acompanhar negociações</small></a>
+      <a href="/admin"><span>{{ cockpit_icon('server') }}</span><strong>Administração</strong><small>Abrir painel operacional</small></a>
+      <a href="/admin#usuarios"><span>{{ cockpit_icon('users') }}</span><strong>Usuários</strong><small>Consultar contas</small></a>
+    </nav>
+  </section>
+</div>
+{% endblock %}
