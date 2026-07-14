@@ -3538,7 +3538,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-premium-hero .home-hero-copy>p{margin-top:1rem}
   .home-official .home-hero-actions{margin-top:.875rem;transform:translateY(-1.125rem)}
   .home-official .home-official-panorama{width:59%}
-  .home-official .home-category-section{margin-top:clamp(3.5rem,5vw,4.5rem)}
+  .home-official .home-category-section{margin-top:clamp(2rem,2.75vw,2.5rem)}
 }
 @media(max-width:1199px){
   .home-official .home-official-hero-stage{min-height:48rem}
