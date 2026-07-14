@@ -3529,15 +3529,16 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-premium-footer .footer-accesses{color:var(--ho-muted)}
 
 @media(min-width:1200px){
-  .home-official .home-official-hero-stage{min-height:clamp(40rem,53vw,47rem)}
-  .home-official .home-official-copy{padding-top:calc(clamp(2.75rem,4vw,4rem) + 1.25rem);padding-bottom:6rem}
-  .home-official .home-hero-logo{margin-bottom:1.125rem}
-  .home-official .home-local-kicker{margin-bottom:.85rem}
+  .home-official .home-official-hero-stage{min-height:clamp(35.2rem,46.64vw,41.36rem)}
+  .home-official .home-official-copy{padding-top:1.25rem;padding-bottom:4rem}
+  .home-official .home-hero-logo{margin-bottom:.5rem}
+  .home-official .home-local-kicker{margin-bottom:.35rem}
   .home-official .home-premium-hero h1,
   .home-official .home-premium-hero .home-hero-copy>p{transform:translateY(-.25rem)}
   .home-official .home-premium-hero .home-hero-copy>p{margin-top:1rem}
-  .home-official .home-hero-actions{margin-top:1rem;transform:translateY(-1.125rem)}
+  .home-official .home-hero-actions{margin-top:.875rem;transform:translateY(-1.125rem)}
   .home-official .home-official-panorama{width:59%}
+  .home-official .home-category-section{margin-top:clamp(3.5rem,5vw,4.5rem)}
 }
 @media(max-width:1199px){
   .home-official .home-official-hero-stage{min-height:48rem}
