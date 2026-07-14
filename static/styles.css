@@ -3303,7 +3303,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   position:absolute;
   z-index:5;
   right:clamp(1.5rem,5vw,4.5rem);
-  bottom:.25rem;
+  bottom:.8125rem;
   left:clamp(1.5rem,5vw,4.5rem);
   display:grid;
   grid-template-columns:minmax(10rem,.8fr) minmax(18rem,2fr) minmax(11rem,.8fr) auto;
