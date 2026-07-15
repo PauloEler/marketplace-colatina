@@ -842,6 +842,61 @@ def admin():
     return session.get("is_admin", False)
 
 
+def listar_lojas_administradas(usuario_id=None):
+    """Retorna apenas as lojas proprias ou explicitamente vinculadas ao gestor."""
+    usuario_id = usuario_id or session.get("usuario_id")
+    if not usuario_id:
+        return []
+    return list(
+        get_db()
+        .execute(
+            "SELECT u.id, u.nome, u.username, u.loja_nome, u.loja_descricao, "
+            "u.loja_bairro, u.loja_verificada, u.fundador, "
+            "(SELECT COUNT(*) FROM anuncios a WHERE a.usuario_id=u.id) AS total_anuncios, "
+            "(SELECT COUNT(*) FROM anuncios a WHERE a.usuario_id=u.id AND a.ativo=1 "
+            "AND a.estoque>0) AS anuncios_ativos, "
+            "COALESCE((SELECT SUM(a.visualizacoes) FROM anuncios a "
+            "WHERE a.usuario_id=u.id), 0) AS total_visualizacoes "
+            "FROM usuarios u WHERE u.ativo=1 AND (u.id=? OR EXISTS ("
+            "SELECT 1 FROM loja_administradores la "
+            "WHERE la.administrador_id=? AND la.loja_id=u.id)) "
+            "ORDER BY CASE WHEN u.id=? THEN 0 ELSE 1 END, "
+            "COALESCE(u.loja_nome, u.nome)",
+            (usuario_id, usuario_id, usuario_id),
+        )
+        .fetchall()
+    )
+
+
+def pode_administrar_loja(loja_id, usuario_id=None):
+    usuario_id = usuario_id or session.get("usuario_id")
+    if not usuario_id:
+        return False
+    if int(loja_id) == int(usuario_id) or admin():
+        return True
+    vinculo = (
+        get_db()
+        .execute(
+            "SELECT 1 FROM loja_administradores WHERE administrador_id=? AND loja_id=?",
+            (usuario_id, loja_id),
+        )
+        .fetchone()
+    )
+    return bool(vinculo)
+
+
+def loja_ativa_id():
+    usuario_id = session.get("usuario_id")
+    if not usuario_id:
+        return None
+    ids_permitidos = {loja["id"] for loja in listar_lojas_administradas(usuario_id)}
+    escolhida = session.get("loja_ativa_id")
+    if escolhida in ids_permitidos:
+        return escolhida
+    session["loja_ativa_id"] = usuario_id
+    return usuario_id
+
+
 validar_configuracao_producao()
 
 
@@ -865,6 +920,17 @@ app.jinja_env.globals["mercadopago_pagamentos_configurados"] = (
     mercadopago_pagamentos_configurados
 )
 app.jinja_env.globals["neo_configurado"] = neo_configurado
+app.jinja_env.globals["pode_administrar_loja"] = pode_administrar_loja
+
+
+@app.context_processor
+def fornecer_contexto_multiloja():
+    if not logado():
+        return {"lojas_administradas": [], "loja_ativa_nav": None}
+    lojas = listar_lojas_administradas()
+    ativa_id = loja_ativa_id()
+    ativa = next((loja for loja in lojas if loja["id"] == ativa_id), None)
+    return {"lojas_administradas": lojas, "loja_ativa_nav": ativa}
 
 
 @app.before_request
@@ -1333,7 +1399,7 @@ def anuncio(anuncio_id):
         flash("Anúncio não encontrado.", "erro")
         return redirect(url_for("index"))
 
-    if session.get("usuario_id") != anuncio_item["usuario_id"]:
+    if not pode_administrar_loja(anuncio_item["usuario_id"]):
         db.execute(
             "UPDATE anuncios SET visualizacoes = visualizacoes + 1 WHERE id=?",
             (anuncio_id,),
@@ -1379,7 +1445,7 @@ def contato_anuncio(anuncio_id):
     ).fetchone()
     if not anuncio_item:
         abort(404)
-    if session.get("usuario_id") != anuncio_item["usuario_id"]:
+    if not pode_administrar_loja(anuncio_item["usuario_id"]):
         db.execute(
             "UPDATE anuncios SET contatos_whatsapp=contatos_whatsapp+1 WHERE id=?",
             (anuncio_id,),
@@ -1407,7 +1473,7 @@ def denunciar_anuncio(anuncio_id):
     ).fetchone()
     if not anuncio_item:
         abort(404)
-    if anuncio_item["usuario_id"] == session["usuario_id"]:
+    if pode_administrar_loja(anuncio_item["usuario_id"]):
         flash("Você não pode denunciar o próprio anúncio.", "erro")
         return redirect(url_for("anuncio", anuncio_id=anuncio_id))
 
@@ -1528,7 +1594,10 @@ def login():
             session["usuario_nome"] = usuario["nome"]
             session["usuario_username"] = usuario["username"]
             session["is_admin"] = bool(usuario["is_admin"])
+            session["loja_ativa_id"] = usuario["id"]
             flash(f"Bem-vindo, {usuario['nome']}!", "ok")
+            if len(listar_lojas_administradas(usuario["id"])) > 1:
+                return redirect(url_for("minhas_lojas"))
             return redirect(url_for("index"))
         registrar_falha_login(db, chave_login)
         flash("Usuário ou senha incorretos.", "erro")
@@ -1542,6 +1611,32 @@ def logout():
     if visita_registrada:
         session["_visita_registrada"] = True
     return redirect(url_for("index"))
+
+
+@app.route("/minhas-lojas")
+def minhas_lojas():
+    if not logado():
+        return redirect(url_for("login"))
+    lojas = listar_lojas_administradas()
+    return render_template(
+        "minhas_lojas.html", lojas=lojas, loja_ativa_id=loja_ativa_id()
+    )
+
+
+@app.route("/minhas-lojas/<int:loja_id>/selecionar", methods=["POST"])
+def selecionar_loja(loja_id):
+    if not logado():
+        return redirect(url_for("login"))
+    lojas = listar_lojas_administradas()
+    loja = next((item for item in lojas if item["id"] == loja_id), None)
+    if not loja:
+        abort(403)
+    session["loja_ativa_id"] = loja_id
+    flash(f"Agora voce esta administrando {nome_loja_publica(loja)}.", "ok")
+    destino = request.form.get("destino", "painel_vendedor")
+    if destino not in {"painel_vendedor", "meus_anuncios", "criar_anuncio"}:
+        destino = "painel_vendedor"
+    return redirect(url_for(destino))
 
 
 @app.route("/minha-conta", methods=["GET", "POST"])
@@ -1736,13 +1831,14 @@ def criar_anuncio():
         flash("Faça login para anunciar.", "erro")
         return redirect(url_for("login"))
 
-    pode, aviso = pode_criar_anuncio(session["usuario_id"])
+    vendedor_id = loja_ativa_id()
+    pode, aviso = pode_criar_anuncio(vendedor_id)
     if not pode:
         return redirect(url_for("assinar"))
     rascunho_neo = session.pop("_neo_rascunho", {})
 
     if request.method == "POST":
-        pode, _ = pode_criar_anuncio(session["usuario_id"])
+        pode, _ = pode_criar_anuncio(vendedor_id)
         if not pode:
             return redirect(url_for("assinar"))
 
@@ -1806,7 +1902,7 @@ def criar_anuncio():
             "INSERT INTO anuncios (usuario_id, titulo, descricao, preco, categoria, condicao, bairro, estoque, foto, foto_id) "
             "VALUES (?,?,?,?,?,?,?,?,?,?) RETURNING id",
             (
-                session["usuario_id"],
+                vendedor_id,
                 titulo,
                 descricao,
                 preco,
@@ -1884,9 +1980,7 @@ def editar_anuncio(anuncio_id):
         "SELECT * FROM anuncios WHERE id=?",
         (anuncio_id,),
     ).fetchone()
-    if not anuncio_item or (
-        anuncio_item["usuario_id"] != session["usuario_id"] and not admin()
-    ):
+    if not anuncio_item or not pode_administrar_loja(anuncio_item["usuario_id"]):
         abort(404)
     fotos_atuais = db.execute(
         "SELECT * FROM anuncio_fotos WHERE anuncio_id=? ORDER BY ordem, id",
@@ -2031,9 +2125,7 @@ def alternar_status_anuncio(anuncio_id):
         "SELECT usuario_id, ativo, estoque FROM anuncios WHERE id=?",
         (anuncio_id,),
     ).fetchone()
-    if not anuncio_item or (
-        anuncio_item["usuario_id"] != session["usuario_id"] and not admin()
-    ):
+    if not anuncio_item or not pode_administrar_loja(anuncio_item["usuario_id"]):
         abort(404)
     novo_status = 0 if anuncio_item["ativo"] else 1
     if novo_status:
@@ -2113,11 +2205,16 @@ def meus_anuncios():
     if not logado():
         return redirect(url_for("login"))
     db = get_db()
+    vendedor_id = loja_ativa_id()
     anuncios = db.execute(
         "SELECT * FROM anuncios WHERE usuario_id=? ORDER BY criado_em DESC",
-        (session["usuario_id"],),
+        (vendedor_id,),
     ).fetchall()
-    return render_template("meus_anuncios.html", anuncios=anuncios)
+    vendedor = db.execute(
+        "SELECT id, nome, loja_nome FROM usuarios WHERE id=? AND ativo=1",
+        (vendedor_id,),
+    ).fetchone()
+    return render_template("meus_anuncios.html", anuncios=anuncios, vendedor=vendedor)
 
 
 @app.route("/painel-vendedor")
@@ -2126,7 +2223,7 @@ def painel_vendedor():
         return redirect(url_for("login"))
 
     db = get_db()
-    usuario_id = session["usuario_id"]
+    usuario_id = loja_ativa_id()
     vendedor = db.execute(
         "SELECT id, nome, whatsapp, loja_nome, loja_descricao, loja_bairro, "
         "loja_whatsapp, criado_em, ultimo_acesso_em, loja_verificada, "
@@ -2295,7 +2392,7 @@ def atualizar_perfil_loja():
         return redirect(url_for("painel_vendedor"))
 
     db = get_db()
-    usuario_id = session["usuario_id"]
+    usuario_id = loja_ativa_id()
     if nome:
         nome_em_uso = db.execute(
             "SELECT id FROM usuarios WHERE lower(loja_nome)=lower(?) AND id<>? LIMIT 1",
@@ -2338,7 +2435,7 @@ def comprar(anuncio_id):
     if not anuncio_item:
         flash("Este anúncio não está mais disponível.", "erro")
         return redirect(url_for("index"))
-    if anuncio_item["usuario_id"] == session["usuario_id"]:
+    if pode_administrar_loja(anuncio_item["usuario_id"]):
         flash("Você não pode comprar o próprio anúncio.", "erro")
         return redirect(url_for("anuncio", anuncio_id=anuncio_id))
 
@@ -2431,7 +2528,7 @@ def pedidos():
     ).fetchall()
     vendas = db.execute(
         campos + "WHERE p.vendedor_id=? ORDER BY p.criado_em DESC",
-        (session["usuario_id"],),
+        (loja_ativa_id(),),
     ).fetchall()
     eventos_por_pedido = buscar_eventos_pedidos(db, list(compras) + list(vendas))
     return render_template(
@@ -2458,10 +2555,9 @@ def historico_pedido(pedido_id):
     ).fetchone()
     if not pedido:
         abort(404)
-    if not admin() and session["usuario_id"] not in {
-        pedido["comprador_id"],
-        pedido["vendedor_id"],
-    }:
+    if session["usuario_id"] != pedido["comprador_id"] and not pode_administrar_loja(
+        pedido["vendedor_id"]
+    ):
         abort(403)
     eventos = buscar_eventos_pedidos(db, [pedido])[pedido_id]
     return render_template(
@@ -2486,8 +2582,9 @@ def atualizar_pedido(pedido_id, acao):
 
     usuario_id = session["usuario_id"]
     e_admin = admin()
+    gerencia_vendedor = pode_administrar_loja(pedido["vendedor_id"])
     if acao in {"confirmar", "recusar"}:
-        autorizado = pedido["vendedor_id"] == usuario_id or e_admin
+        autorizado = gerencia_vendedor
         status_permitido = pedido["status"] == "aguardando"
     elif acao == "cancelar":
         autorizado = pedido["comprador_id"] == usuario_id or e_admin
@@ -2497,18 +2594,10 @@ def atualizar_pedido(pedido_id, acao):
             "em_analise",
         }
     elif acao == "problema":
-        autorizado = (
-            pedido["comprador_id"] == usuario_id
-            or pedido["vendedor_id"] == usuario_id
-            or e_admin
-        )
+        autorizado = pedido["comprador_id"] == usuario_id or gerencia_vendedor
         status_permitido = pedido["status"] == "confirmado"
     else:
-        autorizado = (
-            pedido["comprador_id"] == usuario_id
-            or pedido["vendedor_id"] == usuario_id
-            or e_admin
-        )
+        autorizado = pedido["comprador_id"] == usuario_id or gerencia_vendedor
         status_permitido = pedido["status"] == "confirmado"
 
     if not autorizado:
@@ -2535,6 +2624,8 @@ def atualizar_pedido(pedido_id, acao):
             return redirect(url_for("pedidos"))
 
     papel = papel_usuario_pedido(pedido, usuario_id, e_admin)
+    if gerencia_vendedor and pedido["vendedor_id"] != usuario_id and not e_admin:
+        papel = "administrador_loja"
     try:
         if acao == "confirmar":
             atualizacao = db.execute(
@@ -3052,9 +3143,7 @@ def deletar_anuncio(anuncio_id):
         "SELECT * FROM anuncios WHERE id=?",
         (anuncio_id,),
     ).fetchone()
-    if anuncio_item and (
-        anuncio_item["usuario_id"] == session["usuario_id"] or admin()
-    ):
+    if anuncio_item and pode_administrar_loja(anuncio_item["usuario_id"]):
         db.execute("UPDATE anuncios SET ativo=0 WHERE id=?", (anuncio_id,))
         db.commit()
         flash("Anúncio removido.", "ok")

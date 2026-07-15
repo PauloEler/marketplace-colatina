@@ -252,6 +252,16 @@ def _init_sqlite():
         );
         CREATE INDEX IF NOT EXISTS idx_comunicados_ativo_criado
             ON comunicados(ativo, criado_em);
+        CREATE TABLE IF NOT EXISTS loja_administradores (
+            administrador_id INTEGER NOT NULL,
+            loja_id INTEGER NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (administrador_id, loja_id),
+            FOREIGN KEY (administrador_id) REFERENCES usuarios(id),
+            FOREIGN KEY (loja_id) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_loja_administradores_loja
+            ON loja_administradores(loja_id);
         """
     )
     colunas = {
@@ -339,6 +349,7 @@ def _init_sqlite():
         "NULL, p.status, p.criado_em FROM pedidos p"
     )
     _seed_admin(db)
+    _seed_loja_administradores(db)
     _backfill_fundadores(db)
     _hash_plain_passwords(db)
     db.commit()
@@ -564,6 +575,22 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_comunicados_ativo_criado ON comunicados(ativo, criado_em)"
     )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS loja_administradores (
+            administrador_id INTEGER NOT NULL,
+            loja_id INTEGER NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (administrador_id, loja_id),
+            FOREIGN KEY (administrador_id) REFERENCES usuarios(id),
+            FOREIGN KEY (loja_id) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_loja_administradores_loja "
+        "ON loja_administradores(loja_id)"
+    )
     for coluna, tipo in {
         "termos_aceitos_em": "TIMESTAMP",
         "mp_access_token": "TEXT",
@@ -621,6 +648,7 @@ def _init_pg():
         "ON CONFLICT (pedido_id, tipo) DO NOTHING"
     )
     _seed_admin(db)
+    _seed_loja_administradores(db)
     _backfill_fundadores(db)
     db.commit()
     db.close()
@@ -657,6 +685,44 @@ def _seed_admin(db):
                     generate_password_hash("admin123"),
                     admin_whatsapp,
                 ),
+            )
+
+
+def _seed_loja_administradores(db):
+    """Vincula gestores a lojas sem compartilhar senhas ou fundir cadastros.
+
+    Formato da variavel: gestor:loja,gestor2:loja2. Os dois lados usam o
+    username existente. Vinculos incompletos sao ignorados e tentados de novo
+    na proxima inicializacao.
+    """
+    configuracao = os.environ.get("STORE_MANAGER_ASSIGNMENTS", "").strip()
+    if not configuracao:
+        return
+    for item in configuracao.split(","):
+        gestor_username, separador, loja_username = item.strip().partition(":")
+        if not separador or not gestor_username or not loja_username:
+            continue
+        gestor = db.execute(
+            "SELECT id FROM usuarios WHERE lower(username)=lower(?) AND ativo=1",
+            (gestor_username,),
+        ).fetchone()
+        loja = db.execute(
+            "SELECT id FROM usuarios WHERE lower(username)=lower(?) AND ativo=1",
+            (loja_username,),
+        ).fetchone()
+        if not gestor or not loja or gestor["id"] == loja["id"]:
+            continue
+        if USE_PG:
+            db.execute(
+                "INSERT INTO loja_administradores (administrador_id, loja_id) "
+                "VALUES (?, ?) ON CONFLICT (administrador_id, loja_id) DO NOTHING",
+                (gestor["id"], loja["id"]),
+            )
+        else:
+            db.execute(
+                "INSERT OR IGNORE INTO loja_administradores "
+                "(administrador_id, loja_id) VALUES (?, ?)",
+                (gestor["id"], loja["id"]),
             )
 
 

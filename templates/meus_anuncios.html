@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="dashboard-heading">
-  <div><div class="section-kicker">Sua vitrine</div><h1>Meus anúncios</h1><p>Edite, pause ou acompanhe suas publicações.</p></div>
+  <div><div class="section-kicker">Sua vitrine</div><h1>Meus anúncios</h1><p>{{ vendedor.loja_nome or vendedor.nome }} · Edite, pause ou acompanhe suas publicações.</p>{% if lojas_administradas|length > 1 %}<a href="/minhas-lojas" class="seller-section-link">Trocar de loja</a>{% endif %}</div>
   <a href="/criar" class="btn btn-verde">+ Criar anúncio</a>
 </div>
 
