@@ -435,13 +435,18 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(f'href="/anuncio/{self.anuncio_id}/contato"', html)
 
         marcadores = (
-            'class="product-intro"',
             'class="product-gallery',
-            'class="product-purchase-panel"',
-            'class="product-details-layout"',
+            'class="product-price"',
+            'class="btn product-primary-action"',
+            'class="btn product-secondary-action"',
+            'class="product-summary"',
+            'class="seller-card"',
+            'class="product-description-card"',
+            'class="safety-card"',
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
         self.assertEqual(posicoes, sorted(posicoes))
+        self.assertIn('id="summary-title">Resumo do produto</h2>', html)
 
         with open(
             os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
@@ -454,6 +459,16 @@ class ModeracaoTestCase(unittest.TestCase):
             ".product-primary-action:focus-visible",
         ):
             self.assertIn(estado, css)
+        self.assertIn("height:auto;aspect-ratio:4/3", css)
+
+        with open(
+            os.path.join(app.root_path, "templates", "anuncio.html"),
+            encoding="utf-8",
+        ) as arquivo_template:
+            template = arquivo_template.read()
+        self.assertIn(
+            "produtos_relacionados is defined and produtos_relacionados", template
+        )
 
     def test_dono_visualiza_cta_de_compra_desabilitado_com_motivo(self):
         self.autenticar_sessao(self.vendedor_id)
