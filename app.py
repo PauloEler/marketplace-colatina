@@ -877,8 +877,7 @@ def pode_administrar_loja(loja_id, usuario_id=None):
     vinculo = (
         get_db()
         .execute(
-            "SELECT 1 FROM loja_administradores "
-            "WHERE administrador_id=? AND loja_id=?",
+            "SELECT 1 FROM loja_administradores WHERE administrador_id=? AND loja_id=?",
             (usuario_id, loja_id),
         )
         .fetchone()
@@ -2556,9 +2555,8 @@ def historico_pedido(pedido_id):
     ).fetchone()
     if not pedido:
         abort(404)
-    if (
-        session["usuario_id"] != pedido["comprador_id"]
-        and not pode_administrar_loja(pedido["vendedor_id"])
+    if session["usuario_id"] != pedido["comprador_id"] and not pode_administrar_loja(
+        pedido["vendedor_id"]
     ):
         abort(403)
     eventos = buscar_eventos_pedidos(db, [pedido])[pedido_id]
@@ -2596,16 +2594,10 @@ def atualizar_pedido(pedido_id, acao):
             "em_analise",
         }
     elif acao == "problema":
-        autorizado = (
-            pedido["comprador_id"] == usuario_id
-            or gerencia_vendedor
-        )
+        autorizado = pedido["comprador_id"] == usuario_id or gerencia_vendedor
         status_permitido = pedido["status"] == "confirmado"
     else:
-        autorizado = (
-            pedido["comprador_id"] == usuario_id
-            or gerencia_vendedor
-        )
+        autorizado = pedido["comprador_id"] == usuario_id or gerencia_vendedor
         status_permitido = pedido["status"] == "confirmado"
 
     if not autorizado:
