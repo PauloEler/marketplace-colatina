@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Minhas lojas | Mercado Colatina{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">← Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<section class="stores-manager" aria-labelledby="stores-manager-title">
+  <header class="dashboard-heading stores-manager-heading">
+    <div>
+      <div class="section-kicker">Administração</div>
+      <h1 id="stores-manager-title">Minhas lojas</h1>
+      <p>Escolha a loja que deseja administrar. Os cadastros, anúncios e resultados permanecem separados.</p>
+    </div>
+  </header>
+
+  <div class="stores-manager-grid">
+    {% for loja in lojas %}
+    <article class="store-manager-card {{ 'is-active' if loja.id == loja_ativa_id else '' }}">
+      <div class="store-manager-card-top">
+        <span class="store-manager-avatar" aria-hidden="true">{{ (loja.loja_nome or loja.nome)[:2]|upper }}</span>
+        {% if loja.id == loja_ativa_id %}<span class="badge badge-verde">Loja ativa</span>{% endif %}
+      </div>
+      <h2>{{ loja.loja_nome or loja.nome }}</h2>
+      <p>{{ loja.loja_bairro ~ ' · Colatina, ES' if loja.loja_bairro else 'Colatina, ES' }}</p>
+      <dl class="store-manager-metrics">
+        <div><dt>Anúncios ativos</dt><dd>{{ loja.anuncios_ativos }}</dd></div>
+        <div><dt>Total de anúncios</dt><dd>{{ loja.total_anuncios }}</dd></div>
+        <div><dt>Visualizações</dt><dd>{{ loja.total_visualizacoes }}</dd></div>
+      </dl>
+      <div class="store-manager-actions">
+        <form method="POST" action="/minhas-lojas/{{ loja.id }}/selecionar">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-verde" type="submit">Administrar esta loja</button>
+        </form>
+        <a class="btn btn-cinza" href="{{ url_loja_publica(loja) }}">Ver loja pública</a>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

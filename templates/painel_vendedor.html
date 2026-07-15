@@ -12,6 +12,7 @@
       {% if vendedor.fundador %}<span class="founder-badge">🏅 Fundador do Mercado Colatina</span>{% endif %}
       <p>{{ vendedor.loja_descricao or 'Acompanhe seus anúncios, estoque e vendas em um só lugar.' }}</p>
       {% if vendedor.loja_nome %}<small class="seller-store-owner">Responsável: {{ vendedor.nome }}</small>{% endif %}
+      {% if lojas_administradas|length > 1 %}<a href="/minhas-lojas" class="seller-store-switch">Trocar de loja</a>{% endif %}
       {% if vendedor.loja_bairro or vendedor.loja_whatsapp %}
       <div class="seller-store-contact">
         {% if vendedor.loja_bairro %}<span>{{ vendedor.loja_bairro }} · Colatina, ES</span>{% endif %}

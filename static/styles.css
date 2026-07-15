@@ -1259,6 +1259,29 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .mds-home .busca-inner button:hover{transform:none}
 }
 
+/* Administração de múltiplas lojas */
+.stores-manager{max-width:1120px;margin:0 auto 4rem}
+.stores-manager-heading{margin-bottom:1.5rem}
+.stores-manager-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem}
+.store-manager-card{padding:1.5rem;border:1px solid #dce6df;border-radius:18px;background:#fff;box-shadow:0 10px 28px rgba(25,64,43,.08)}
+.store-manager-card.is-active{border-color:#188653;box-shadow:0 0 0 2px rgba(24,134,83,.12),0 12px 32px rgba(25,64,43,.1)}
+.store-manager-card-top{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.store-manager-avatar{display:grid;width:3.25rem;height:3.25rem;place-items:center;border-radius:14px;background:#e6f4ec;color:#155f3b;font-weight:800}
+.store-manager-card h2{margin:1rem 0 .25rem;color:#173b29}
+.store-manager-card>p{margin:0;color:#607268}
+.store-manager-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:1.25rem 0}
+.store-manager-metrics div{padding:.85rem;border-radius:12px;background:#f5f8f6}
+.store-manager-metrics dt{font-size:.75rem;color:#607268}
+.store-manager-metrics dd{margin:.25rem 0 0;color:#173b29;font-size:1.25rem;font-weight:800}
+.store-manager-actions{display:flex;flex-wrap:wrap;gap:.75rem}
+.store-manager-actions form{margin:0}
+.seller-store-switch{display:inline-flex;margin-top:.75rem;color:#155f3b;font-weight:700}
+@media(max-width:720px){
+  .stores-manager-grid{grid-template-columns:1fr}
+  .store-manager-metrics{grid-template-columns:1fr 1fr}
+  .store-manager-actions,.store-manager-actions form,.store-manager-actions .btn{width:100%}
+}
+
 /* MDS Sprint 003 - Página do Produto Premium */
 .mds-product{
   --mc-space-1:.5rem;

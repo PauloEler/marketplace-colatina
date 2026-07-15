@@ -35,6 +35,7 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             for tabela in (
+                "loja_administradores",
                 "comunicados",
                 "tentativas_login",
                 "anuncio_fotos",
@@ -101,6 +102,82 @@ class ModeracaoTestCase(unittest.TestCase):
                 "detalhes": "A descricao nao corresponde a foto.",
             },
         )
+
+    def vincular_loja_ao_gestor(self, gestor_id, loja_id):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO loja_administradores (administrador_id, loja_id) VALUES (?,?)",
+                (gestor_id, loja_id),
+            )
+            db.commit()
+
+    def test_gestor_escolhe_entre_duas_lojas_sem_misturar_anuncios(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Topa Tudo Colatinense' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Loja Oficial do Mercado Colatina' WHERE id=?",
+                (self.admin_id,),
+            )
+            db.execute(
+                "INSERT INTO anuncios (usuario_id, titulo, descricao, preco, categoria, condicao) "
+                "VALUES (?,?,?,?,?,?)",
+                (
+                    self.admin_id,
+                    "Produto da loja oficial",
+                    "Anuncio separado da loja oficial",
+                    "99,00",
+                    "Outros",
+                    "Novo",
+                ),
+            )
+            db.commit()
+        self.vincular_loja_ao_gestor(self.vendedor_id, self.admin_id)
+        self.autenticar_sessao(self.vendedor_id)
+
+        pagina = self.client.get("/minhas-lojas")
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Topa Tudo Colatinense", pagina.get_data(as_text=True))
+        self.assertIn("Loja Oficial do Mercado Colatina", pagina.get_data(as_text=True))
+
+        resposta = self.client.post(
+            f"/minhas-lojas/{self.admin_id}/selecionar",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(resposta.status_code, 302)
+        with self.client.session_transaction() as sessao:
+            self.assertEqual(sessao["loja_ativa_id"], self.admin_id)
+
+        anuncios = self.client.get("/meus-anuncios").get_data(as_text=True)
+        self.assertIn("Produto da loja oficial", anuncios)
+        self.assertNotIn("Bicicleta aro 29", anuncios)
+
+    def test_usuario_nao_pode_selecionar_loja_sem_vinculo(self):
+        self.autenticar_sessao(self.comprador_id)
+        resposta = self.client.post(
+            f"/minhas-lojas/{self.admin_id}/selecionar",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(resposta.status_code, 403)
+
+    def test_login_com_duas_lojas_abre_seletor(self):
+        self.vincular_loja_ao_gestor(self.vendedor_id, self.admin_id)
+        with self.client.session_transaction() as sessao:
+            sessao["_csrf_token"] = "token-teste"
+        resposta = self.client.post(
+            "/login",
+            data={
+                "csrf_token": "token-teste",
+                "username": "vendedor",
+                "senha": "senha-segura",
+            },
+        )
+        self.assertEqual(resposta.status_code, 302)
+        self.assertTrue(resposta.headers["Location"].endswith("/minhas-lojas"))
 
     def test_usuario_logado_pode_denunciar_anuncio(self):
         resposta = self.enviar_denuncia()

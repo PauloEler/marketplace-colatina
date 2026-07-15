@@ -58,7 +58,7 @@
     </div>
     <h2 id="purchase-title">Quer este produto?</h2>
     <p class="product-purchase-copy">Solicite a compra para combinar entrega e pagamento com o vendedor.</p>
-    {% if session.get('usuario_id') != a.usuario_id %}
+    {% if not pode_administrar_loja(a.usuario_id) %}
     <a class="btn product-primary-action" href="/comprar/{{ a.id }}">
       <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
       Solicitar compra
@@ -131,7 +131,7 @@
       </div>
     </section>
 
-    {% if session.get('usuario_id') and session.get('usuario_id') != a.usuario_id %}
+    {% if session.get('usuario_id') and not pode_administrar_loja(a.usuario_id) %}
     <details class="report-card">
       <summary>Denunciar este anúncio</summary>
       <form method="POST" action="/anuncio/{{ a.id }}/denunciar">
@@ -150,7 +150,7 @@
     <a class="report-login" href="/login">Entre para denunciar este anúncio</a>
     {% endif %}
 
-    {% if session.get('usuario_id') == a.usuario_id or session.get('is_admin') %}
+    {% if pode_administrar_loja(a.usuario_id) %}
     <section class="owner-card" aria-labelledby="owner-actions-title">
       <h2 class="seller-label" id="owner-actions-title">Gerenciar anúncio</h2>
       <a href="/editar/{{ a.id }}" class="btn btn-verde">Editar informações</a>
