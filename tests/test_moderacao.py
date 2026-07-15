@@ -538,6 +538,17 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Solicitar compra", html)
         self.assertIn(f'href="/comprar/{self.anuncio_id}"', html)
         self.assertIn(f'href="/anuncio/{self.anuncio_id}/contato"', html)
+        self.assertIn("Compartilhar produto", html)
+        self.assertIn(
+            f'data-share-url="http://localhost/anuncio/{self.anuncio_id}"', html
+        )
+        self.assertIn('data-share-action="whatsapp"', html)
+        self.assertIn('data-share-action="native"', html)
+        self.assertIn('data-share-action="copy"', html)
+        self.assertIn(
+            f'<link rel="canonical" href="http://localhost/anuncio/{self.anuncio_id}">',
+            html,
+        )
 
         marcadores = (
             'class="product-intro"',
@@ -1555,6 +1566,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(f'data-share-url="http://localhost{caminho}"', html)
         self.assertIn(f'<link rel="canonical" href="http://localhost{caminho}">', html)
         self.assertIn("store-share.js", html)
+        self.assertIn("Compartilhar loja", html)
+        self.assertIn('data-share-action="whatsapp"', html)
+        self.assertIn('data-share-action="copy"', html)
 
     def test_visitante_acessa_loja_antes_de_abrir_anuncio(self):
         caminho = self.preparar_loja_publica()
@@ -2411,6 +2425,10 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b'href="/cadastro"', pagina.data)
         self.assertNotIn(b'class="hero-signup-promo"', pagina.data)
         self.assertNotIn(b'class="hero-panel"', pagina.data)
+        self.assertIn("Compartilhar Mercado Colatina".encode(), pagina.data)
+        self.assertIn(b'data-share-url="http://localhost/"', pagina.data)
+        self.assertIn(b'data-share-action="whatsapp"', pagina.data)
+        self.assertIn(b'data-share-action="copy"', pagina.data)
 
         self.autenticar_sessao(self.comprador_id)
         pagina_autenticada = self.client.get("/")

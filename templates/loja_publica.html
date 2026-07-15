@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from '_compartilhar.html' import painel_compartilhar %}
 {% block title %}{{ nome_publico }} | Loja no Mercado Colatina{% endblock %}
 {% block meta_description %}{{ descricao_seo }}{% endblock %}
 {% block og_title %}{{ nome_publico }} | Mercado Colatina{% endblock %}
@@ -33,9 +34,8 @@
         <p class="public-store-description">{{ loja.loja_descricao or 'Esta loja faz parte do Mercado Colatina. Conheça os anúncios disponíveis abaixo.' }}</p>
         <div class="public-store-actions">
           {% if whatsapp_url %}<a class="btn btn-wpp" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer">Conversar no WhatsApp</a>{% endif %}
-          <button class="btn btn-cinza store-share-button" type="button" data-store-share data-share-url="{{ loja_url }}" data-share-title="{{ nome_publico }} no Mercado Colatina">Compartilhar loja</button>
+          {{ painel_compartilhar(loja_url, nome_publico ~ ' no Mercado Colatina', 'Conheça a loja ' ~ nome_publico ~ ' e seus produtos no Mercado Colatina.', 'Compartilhar loja') }}
         </div>
-        <p class="store-share-feedback" data-share-feedback role="status" aria-live="polite"></p>
       </div>
     </div>
   </section>
@@ -110,5 +110,3 @@
   </section>
 </div>
 {% endblock %}
-
-{% block scripts %}<script src="{{ url_for('static', filename='store-share.js') }}" defer></script>{% endblock %}

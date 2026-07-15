@@ -283,16 +283,21 @@ def normalizar_busca_loja(texto):
     return re.sub(r"\s+", " ", texto).strip()
 
 
+def url_publica(endpoint, **valores):
+    valores["_external"] = True
+    if FLASK_ENV == "production":
+        valores["_scheme"] = "https"
+    return url_for(endpoint, **valores)
+
+
 def url_loja_publica(usuario, externa=False):
-    opcoes_url = {"_external": externa}
-    if externa and FLASK_ENV == "production":
-        opcoes_url["_scheme"] = "https"
-    return url_for(
-        "loja_publica",
-        loja_id=usuario["id"],
-        slug=slug_loja(nome_loja_publica(usuario)),
-        **opcoes_url,
-    )
+    valores = {
+        "loja_id": usuario["id"],
+        "slug": slug_loja(nome_loja_publica(usuario)),
+    }
+    if externa:
+        return url_publica("loja_publica", **valores)
+    return url_for("loja_publica", **valores)
 
 
 def url_loja_publica_por_dados(usuario_id, loja_nome, nome):
@@ -1160,6 +1165,8 @@ def index():
         valor_plano=VALOR_PLANO,
         limite_gratis=LIMITE_GRATIS,
         mercado_livre_afiliado_url=MERCADO_LIVRE_AFILIADO_URL,
+        site_url=url_publica("index"),
+        imagem_social=url_publica("static", filename="mercado-colatina-social.svg"),
     )
 
 
@@ -1425,6 +1432,14 @@ def anuncio(anuncio_id):
             "loja_nome": anuncio_item["loja_nome"],
         }
     )
+    produto_url = url_publica("anuncio", anuncio_id=anuncio_id)
+    if anuncio_item["foto"]:
+        if anuncio_item["foto"].startswith(("http://", "https://")):
+            produto_imagem = foto_url(anuncio_item["foto"], 1200)
+        else:
+            produto_imagem = url_publica("uploaded_file", filename=anuncio_item["foto"])
+    else:
+        produto_imagem = url_publica("static", filename="mercado-colatina-social.svg")
     return render_template(
         "anuncio.html",
         a=anuncio_item,
@@ -1432,6 +1447,8 @@ def anuncio(anuncio_id):
         vendedor_reputacao=vendedor_reputacao,
         vendedor_loja_url=vendedor_loja_url,
         denuncia_motivos=DENUNCIA_MOTIVOS,
+        produto_url=produto_url,
+        produto_imagem=produto_imagem,
     )
 
 

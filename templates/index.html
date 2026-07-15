@@ -1,6 +1,15 @@
 {% extends 'base.html' %}
+{% from '_compartilhar.html' import painel_compartilhar %}
 {% block title %}Mercado Colatina | A praça digital da cidade{% endblock %}
 {% block meta_description %}Encontre produtos, lojas e oportunidades perto de você. Compre e venda na praça digital de Colatina.{% endblock %}
+{% block social_meta %}
+<meta property="og:url" content="{{ site_url }}">
+<meta property="og:image" content="{{ imagem_social }}">
+<meta property="og:image:alt" content="Mercado Colatina — A praça digital da cidade">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ imagem_social }}">
+{% endblock %}
+{% block head_extra %}<link rel="canonical" href="{{ site_url }}">{% endblock %}
 {% block body_class %}mds-home mx-home-premium home-official{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
@@ -30,6 +39,7 @@
         <a href="/cadastro" class="btn btn-outline">Anunciar</a>
         {% endif %}
       </div>
+      {{ painel_compartilhar(site_url, 'Mercado Colatina', 'Conheça o Mercado Colatina, a praça digital para comprar e vender na cidade.', 'Compartilhar Mercado Colatina') }}
       {% endif %}
     </div>
 
