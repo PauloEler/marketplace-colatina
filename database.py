@@ -695,7 +695,10 @@ def _seed_loja_administradores(db):
     username existente. Vinculos incompletos sao ignorados e tentados de novo
     na proxima inicializacao.
     """
-    configuracao = os.environ.get("STORE_MANAGER_ASSIGNMENTS", "").strip()
+    configuracao = os.environ.get(
+        "STORE_MANAGER_ASSIGNMENTS",
+        "topatudocolatinense:admin,admin:topatudocolatinense",
+    ).strip()
     if not configuracao:
         return
     for item in configuracao.split(","):

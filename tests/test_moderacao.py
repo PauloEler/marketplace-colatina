@@ -14,10 +14,17 @@ os.environ.pop("RESTORED_DATABASE_URL", None)
 os.environ["DATABASE_PATH"] = os.path.join(TEST_DIR, "test.db")
 os.environ["FLASK_ENV"] = "testing"
 os.environ["SECRET_KEY"] = "test-secret-key"
+os.environ.pop("STORE_MANAGER_ASSIGNMENTS", None)
 
 import app as app_module  # noqa: E402
 from app import app  # noqa: E402
-from database import USE_PG, _backfill_fundadores, get_db, init_db  # noqa: E402
+from database import (  # noqa: E402
+    USE_PG,
+    _backfill_fundadores,
+    _seed_loja_administradores,
+    get_db,
+    init_db,
+)
 
 
 if USE_PG:
@@ -178,6 +185,27 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         self.assertEqual(resposta.status_code, 302)
         self.assertTrue(resposta.headers["Location"].endswith("/minhas-lojas"))
+
+    def test_vinculo_padrao_ativa_as_duas_contas_oficiais(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET username='topatudocolatinense' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.execute(
+                "UPDATE usuarios SET username='admin' WHERE id=?", (self.admin_id,)
+            )
+            _seed_loja_administradores(db)
+            db.commit()
+            vinculos = {
+                (linha["administrador_id"], linha["loja_id"])
+                for linha in db.execute(
+                    "SELECT administrador_id, loja_id FROM loja_administradores"
+                ).fetchall()
+            }
+        self.assertIn((self.vendedor_id, self.admin_id), vinculos)
+        self.assertIn((self.admin_id, self.vendedor_id), vinculos)
 
     def test_usuario_logado_pode_denunciar_anuncio(self):
         resposta = self.enviar_denuncia()
