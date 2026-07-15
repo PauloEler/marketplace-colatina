@@ -1,5 +1,20 @@
 {% extends 'base.html' %}
+{% from '_compartilhar.html' import painel_compartilhar %}
 {% block title %}{{ a.titulo }} | Mercado Colatina{% endblock %}
+{% block meta_description %}{{ a.descricao|striptags|truncate(155, true, '…') }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ a.titulo }} | Mercado Colatina{% endblock %}
+{% block og_description %}{{ a.descricao|striptags|truncate(155, true, '…') }}{% endblock %}
+{% block social_meta %}
+<meta property="og:url" content="{{ produto_url }}">
+<meta property="og:image" content="{{ produto_imagem }}">
+<meta property="og:image:alt" content="{{ a.titulo }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ a.titulo }} | Mercado Colatina">
+<meta name="twitter:description" content="{{ a.descricao|striptags|truncate(155, true, '…') }}">
+<meta name="twitter:image" content="{{ produto_imagem }}">
+{% endblock %}
+{% block head_extra %}<link rel="canonical" href="{{ produto_url }}">{% endblock %}
 {% block body_class %}mds-product{% endblock %}
 
 {% block voltar %}
@@ -75,6 +90,7 @@
       <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>
       Conversar no WhatsApp
     </a>
+    {{ painel_compartilhar(produto_url, a.titulo ~ ' | Mercado Colatina', 'Confira ' ~ a.titulo ~ ' por R$ ' ~ a.preco ~ ' no Mercado Colatina.', 'Compartilhar produto') }}
     <div class="product-assurance">
       <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
       <span>Nenhum pagamento é cobrado automaticamente nesta etapa.</span>
