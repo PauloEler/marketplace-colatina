@@ -144,6 +144,7 @@ def _init_sqlite():
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
             contatos_whatsapp INTEGER DEFAULT 0,
+            excluido_em TIMESTAMP,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         );
@@ -277,6 +278,8 @@ def _init_sqlite():
         )
     if "estoque" not in colunas:
         db.execute("ALTER TABLE anuncios ADD COLUMN estoque INTEGER NOT NULL DEFAULT 1")
+    if "excluido_em" not in colunas:
+        db.execute("ALTER TABLE anuncios ADD COLUMN excluido_em TIMESTAMP")
     db.execute(
         "INSERT INTO anuncio_fotos (anuncio_id, foto, foto_id, ordem) "
         "SELECT a.id, a.foto, a.foto_id, 0 FROM anuncios a "
@@ -405,6 +408,7 @@ def _init_pg():
             destaque INTEGER DEFAULT 0,
             visualizacoes INTEGER DEFAULT 0,
             contatos_whatsapp INTEGER DEFAULT 0,
+            excluido_em TIMESTAMP,
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         )
@@ -420,6 +424,7 @@ def _init_pg():
     db.execute(
         "ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS estoque INTEGER NOT NULL DEFAULT 1"
     )
+    db.execute("ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS excluido_em TIMESTAMP")
     db.execute(
         """
         CREATE TABLE IF NOT EXISTS pagamentos (

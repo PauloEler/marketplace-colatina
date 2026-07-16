@@ -163,6 +163,30 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Produto da loja oficial", anuncios)
         self.assertNotIn("Bicicleta aro 29", anuncios)
 
+    def test_vendedor_pode_excluir_produto_sem_apagar_historico(self):
+        self.autenticar_sessao(self.vendedor_id)
+
+        pagina = self.client.get("/meus-anuncios")
+        html = pagina.get_data(as_text=True)
+        self.assertIn(f'action="/deletar/{self.anuncio_id}"', html)
+        self.assertIn(">Excluir</button>", html)
+
+        resposta = self.client.post(
+            f"/deletar/{self.anuncio_id}",
+            data={"csrf_token": "token-teste"},
+            follow_redirects=True,
+        )
+        self.assertEqual(resposta.status_code, 200)
+        self.assertNotIn("Bicicleta aro 29", resposta.get_data(as_text=True))
+
+        with app.app_context():
+            anuncio = get_db().execute(
+                "SELECT ativo, excluido_em FROM anuncios WHERE id=?",
+                (self.anuncio_id,),
+            ).fetchone()
+            self.assertEqual(anuncio["ativo"], 0)
+            self.assertIsNotNone(anuncio["excluido_em"])
+
     def test_usuario_nao_pode_selecionar_loja_sem_vinculo(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(

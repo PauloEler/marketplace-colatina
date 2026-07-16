@@ -1994,7 +1994,7 @@ def editar_anuncio(anuncio_id):
 
     db = get_db()
     anuncio_item = db.execute(
-        "SELECT * FROM anuncios WHERE id=?",
+        "SELECT * FROM anuncios WHERE id=? AND excluido_em IS NULL",
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item or not pode_administrar_loja(anuncio_item["usuario_id"]):
@@ -2139,7 +2139,8 @@ def alternar_status_anuncio(anuncio_id):
         return redirect(url_for("login"))
     db = get_db()
     anuncio_item = db.execute(
-        "SELECT usuario_id, ativo, estoque FROM anuncios WHERE id=?",
+        "SELECT usuario_id, ativo, estoque FROM anuncios "
+        "WHERE id=? AND excluido_em IS NULL",
         (anuncio_id,),
     ).fetchone()
     if not anuncio_item or not pode_administrar_loja(anuncio_item["usuario_id"]):
@@ -2224,7 +2225,8 @@ def meus_anuncios():
     db = get_db()
     vendedor_id = loja_ativa_id()
     anuncios = db.execute(
-        "SELECT * FROM anuncios WHERE usuario_id=? ORDER BY criado_em DESC",
+        "SELECT * FROM anuncios WHERE usuario_id=? AND excluido_em IS NULL "
+        "ORDER BY criado_em DESC",
         (vendedor_id,),
     ).fetchall()
     vendedor = db.execute(
@@ -2253,7 +2255,8 @@ def painel_vendedor():
 
     anuncios = list(
         db.execute(
-            "SELECT * FROM anuncios WHERE usuario_id=? ORDER BY criado_em DESC, id DESC",
+            "SELECT * FROM anuncios WHERE usuario_id=? AND excluido_em IS NULL "
+            "ORDER BY criado_em DESC, id DESC",
             (usuario_id,),
         ).fetchall()
     )
@@ -3157,13 +3160,16 @@ def deletar_anuncio(anuncio_id):
         return redirect(url_for("login"))
     db = get_db()
     anuncio_item = db.execute(
-        "SELECT * FROM anuncios WHERE id=?",
+        "SELECT * FROM anuncios WHERE id=? AND excluido_em IS NULL",
         (anuncio_id,),
     ).fetchone()
     if anuncio_item and pode_administrar_loja(anuncio_item["usuario_id"]):
-        db.execute("UPDATE anuncios SET ativo=0 WHERE id=?", (anuncio_id,))
+        db.execute(
+            "UPDATE anuncios SET ativo=0, excluido_em=CURRENT_TIMESTAMP WHERE id=?",
+            (anuncio_id,),
+        )
         db.commit()
-        flash("Anúncio removido.", "ok")
+        flash("Produto excluído com sucesso.", "ok")
     return redirect(url_for("meus_anuncios"))
 
 
