@@ -3299,6 +3299,8 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   border-radius:999px;
   font-size:.92rem;
 }
+.home-official .home-hero-actions>.share-panel{margin-top:0}
+.home-official .home-hero-actions>.share-panel summary{min-height:3.35rem;border-radius:999px}
 .home-official .home-hero-actions .btn-verde{background:var(--ho-forest);box-shadow:0 12px 26px rgba(18,63,45,.17)}
 .home-official .home-hero-actions .btn-outline{border-color:var(--ho-forest);background:rgba(251,250,246,.76);color:var(--ho-forest)}
 .home-official .home-official-panorama{
@@ -3636,6 +3638,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-premium-hero .home-hero-copy>p{margin-top:.8rem;font-size:.96rem;line-height:1.55}
   .home-official .home-hero-actions{display:grid;grid-template-columns:1fr 1fr;margin-top:.85rem}
   .home-official .home-hero-actions .btn{width:100%;min-width:0;min-height:2.9rem}
+  .home-official .home-hero-actions>.share-panel{grid-column:1/-1}
   .home-official .home-official-panorama{height:14.5rem;clip-path:polygon(0 13%,100% 0,100% 100%,0 100%)}
   .home-official .home-official-panorama figcaption{right:.55rem;bottom:.55rem;max-width:72%;font-size:.52rem;text-align:right}
   .home-official .home-official-search{grid-template-columns:1fr;width:calc(100% - 1.5rem);gap:.55rem;margin-top:1rem;padding:.7rem .9rem;border-radius:.8rem}
