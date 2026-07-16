@@ -163,6 +163,34 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Produto da loja oficial", anuncios)
         self.assertNotIn("Bicicleta aro 29", anuncios)
 
+    def test_vendedor_pode_excluir_produto_sem_apagar_historico(self):
+        self.autenticar_sessao(self.vendedor_id)
+
+        pagina = self.client.get("/meus-anuncios")
+        html = pagina.get_data(as_text=True)
+        self.assertIn(f'action="/deletar/{self.anuncio_id}"', html)
+        self.assertIn(">Excluir</button>", html)
+
+        resposta = self.client.post(
+            f"/deletar/{self.anuncio_id}",
+            data={"csrf_token": "token-teste"},
+            follow_redirects=True,
+        )
+        self.assertEqual(resposta.status_code, 200)
+        self.assertNotIn("Bicicleta aro 29", resposta.get_data(as_text=True))
+
+        with app.app_context():
+            anuncio = (
+                get_db()
+                .execute(
+                    "SELECT ativo, excluido_em FROM anuncios WHERE id=?",
+                    (self.anuncio_id,),
+                )
+                .fetchone()
+            )
+            self.assertEqual(anuncio["ativo"], 0)
+            self.assertIsNotNone(anuncio["excluido_em"])
+
     def test_usuario_nao_pode_selecionar_loja_sem_vinculo(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.post(
@@ -542,7 +570,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(
             f'data-share-url="http://localhost/anuncio/{self.anuncio_id}"', html
         )
-        self.assertIn('data-share-action="whatsapp"', html)
+        self.assertIn('data-share-action="whatsapp-business"', html)
         self.assertIn('data-share-action="native"', html)
         self.assertIn('data-share-action="copy"', html)
         self.assertIn(
@@ -1567,7 +1595,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(f'<link rel="canonical" href="http://localhost{caminho}">', html)
         self.assertIn("store-share.js", html)
         self.assertIn("Compartilhar loja", html)
-        self.assertIn('data-share-action="whatsapp"', html)
+        self.assertIn('data-share-action="whatsapp-business"', html)
         self.assertIn('data-share-action="copy"', html)
 
     def test_visitante_acessa_loja_antes_de_abrir_anuncio(self):
@@ -2427,7 +2455,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertNotIn(b'class="hero-panel"', pagina.data)
         self.assertIn(b"<summary>Compartilhar</summary>", pagina.data)
         self.assertIn(b'data-share-url="http://localhost/"', pagina.data)
-        self.assertIn(b'data-share-action="whatsapp"', pagina.data)
+        self.assertIn(b'data-share-action="whatsapp-business"', pagina.data)
         self.assertIn(b'data-share-action="copy"', pagina.data)
 
         self.autenticar_sessao(self.comprador_id)
@@ -2435,6 +2463,14 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Publicar anúncio".encode(), pagina_autenticada.data)
         self.assertIn(b'href="/criar"', pagina_autenticada.data)
         self.assertIn(b'href="#ofertas"', pagina_autenticada.data)
+
+    def test_compartilhamento_direciona_para_whatsapp_business(self):
+        caminho_js = os.path.join(app.static_folder, "store-share.js")
+        with open(caminho_js, encoding="utf-8") as arquivo:
+            javascript = arquivo.read()
+
+        self.assertIn("package=com.whatsapp.w4b", javascript)
+        self.assertIn("https://web.whatsapp.com/send?text=", javascript)
 
     def test_home_aplica_mds_com_estrutura_semantica_e_acessivel(self):
         pagina = self.client.get("/")

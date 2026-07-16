@@ -33,6 +33,10 @@
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="btn {{ 'btn-cinza' if a.ativo else 'btn-verde' }}" type="submit">{{ 'Pausar' if a.ativo else 'Reativar' }}</button>
         </form>
+        <form method="POST" action="/deletar/{{ a.id }}" onsubmit="return confirm('Excluir este produto? Esta ação não poderá ser desfeita.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-perigo" type="submit">Excluir</button>
+        </form>
       </div>
     </div>
   </article>

@@ -39,10 +39,24 @@ document.addEventListener("click", async (event) => {
   const feedback = panel.querySelector("[data-share-feedback]");
 
   try {
-    if (action === "whatsapp") {
+    if (action === "whatsapp-business") {
       const message = encodeURIComponent(`${text}\n${url}`);
-      window.open(`https://wa.me/?text=${message}`, "_blank", "noopener,noreferrer");
-      if (feedback) feedback.textContent = "WhatsApp aberto para compartilhar.";
+      if (/Android/i.test(navigator.userAgent)) {
+        window.location.href =
+          `intent://send?text=${message}` +
+          "#Intent;scheme=whatsapp;package=com.whatsapp.w4b;end";
+        if (feedback) feedback.textContent = "Abrindo o WhatsApp Business.";
+        return;
+      }
+      window.open(
+        `https://web.whatsapp.com/send?text=${message}`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      if (feedback) {
+        feedback.textContent =
+          "WhatsApp Web aberto. Use a sessão Business conectada neste navegador.";
+      }
       return;
     }
     if (action === "native" && navigator.share) {
