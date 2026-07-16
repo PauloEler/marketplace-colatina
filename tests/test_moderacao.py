@@ -2457,6 +2457,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b'data-share-url="http://localhost/"', pagina.data)
         self.assertIn(b'data-share-action="whatsapp-business"', pagina.data)
         self.assertIn(b'data-share-action="copy"', pagina.data)
+        self.assertIn(b'class="home-visit-proof"', pagina.data)
+        self.assertIn(b"data-home-visits=", pagina.data)
+        self.assertIn(b"ao site</span>", pagina.data)
 
         self.autenticar_sessao(self.comprador_id)
         pagina_autenticada = self.client.get("/")
