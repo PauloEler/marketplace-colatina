@@ -2425,7 +2425,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b'href="/cadastro"', pagina.data)
         self.assertNotIn(b'class="hero-signup-promo"', pagina.data)
         self.assertNotIn(b'class="hero-panel"', pagina.data)
-        self.assertIn("Compartilhar Mercado Colatina".encode(), pagina.data)
+        self.assertIn(b"<summary>Compartilhar</summary>", pagina.data)
         self.assertIn(b'data-share-url="http://localhost/"', pagina.data)
         self.assertIn(b'data-share-action="whatsapp"', pagina.data)
         self.assertIn(b'data-share-action="copy"', pagina.data)
