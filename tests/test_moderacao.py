@@ -2855,6 +2855,31 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn('href="/quem-somos"', html)
         self.assertIn('href="/seja-parceiro"', html)
 
+    def test_home_exibe_painel_diario_com_cinco_placeholders_reutilizaveis(self):
+        html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn('id="hoje-em-colatina"', html)
+        self.assertIn("Hoje em Colatina", html)
+        self.assertIn("Informações essenciais da cidade", html)
+        for titulo in (
+            "Tempo",
+            "Eventos",
+            "Empregos",
+            "Farmácia de Plantão",
+            "Avisos",
+        ):
+            self.assertIn(titulo, html)
+        self.assertEqual(html.count("data-daily-city-card"), 5)
+        self.assertEqual(html.count("Em preparação"), 5)
+        self.assertEqual(len(app_module.DAILY_CITY_CARDS), 5)
+        self.assertTrue(
+            all(item["placeholder"] for item in app_module.DAILY_CITY_CARDS)
+        )
+        self.assertEqual(
+            {item["id"] for item in app_module.DAILY_CITY_CARDS},
+            {"tempo", "eventos", "empregos", "farmacia-plantao", "avisos"},
+        )
+
     def test_home_apresenta_blocos_na_ordem_home_first(self):
         html = self.client.get("/").data.decode("utf-8")
         marcadores = (
@@ -2866,6 +2891,7 @@ class ModeracaoTestCase(unittest.TestCase):
             'id="home-stores-title"',
             'id="confianca"',
             'id="empresas-parceiras"',
+            'id="hoje-em-colatina"',
             'id="como-funciona"',
         )
         posicoes = [html.index(marcador) for marcador in marcadores]

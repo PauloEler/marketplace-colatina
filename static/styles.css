@@ -3399,6 +3399,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-stores,
 .home-official .home-trust-institutional,
 .home-official .home-local-partners,
+.home-official .home-daily-city,
 .home-official .home-how,
 .home-official .affiliate-profile-compact{
   max-width:82rem;
@@ -3718,6 +3719,16 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-local-partner-button{grid-column:1/-1;display:inline-flex;align-items:center;justify-content:center;min-height:2.75rem;border:1px solid var(--ho-forest);border-radius:999px;color:var(--ho-forest);font-size:.76rem;font-weight:850;text-decoration:none;transition:background-color .2s ease,color .2s ease}
 .home-official .home-local-partner-button:hover,.home-official .home-local-partner-button:focus-visible{background:var(--ho-forest);color:#fff}
 .home-official .home-local-partner-button:focus-visible{outline:3px solid rgba(25,103,64,.25);outline-offset:2px}
+.home-official .home-daily-city{margin-top:clamp(3.5rem,5.5vw,5.5rem)}
+.home-official .home-daily-city-heading{margin-bottom:1.25rem}
+.home-official .home-daily-city-status{padding:.45rem .75rem;border:1px solid var(--ho-line);border-radius:999px;color:var(--ho-muted);font-size:.68rem;font-weight:750;white-space:nowrap}
+.home-official .home-daily-city-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem}
+.home-official .home-daily-city-card{display:grid;align-content:start;gap:1.15rem;min-width:0;min-height:12.5rem;padding:1.25rem;border:1px solid var(--ho-line);border-radius:.85rem;background:#fff}
+.home-official .home-daily-city-icon{display:grid;place-items:center;width:2.8rem;height:2.8rem;border-radius:50%;background:#edf3ee;color:var(--ho-forest)}
+.home-official .home-daily-city-icon .home-icon{width:1.3rem;height:1.3rem}
+.home-official .home-daily-city-placeholder{color:var(--ho-terracotta);font-size:.57rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+.home-official .home-daily-city-card h3{margin-top:.35rem;color:var(--ho-ink);font-family:Georgia,"Times New Roman",serif;font-size:1.2rem;font-weight:400;line-height:1.15}
+.home-official .home-daily-city-card p{margin-top:.55rem;color:var(--ho-muted);font-size:.78rem;line-height:1.5}
 .home-official .home-how{margin-top:clamp(3.5rem,5.5vw,5.5rem);padding:0;border:0;background:transparent}
 .home-official .home-how .steps-grid{gap:1rem;margin-top:1.5rem}
 .home-official .home-how .step-card{min-height:11.5rem;padding-top:1.25rem;padding-bottom:1.25rem;border:1px solid var(--ho-line);border-radius:.85rem;background:#fff;box-shadow:none}
@@ -3785,6 +3796,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-trust-institutional{grid-template-columns:1fr}
   .home-official .home-trust-heading h2{max-width:18ch}
   .home-official .home-local-partners-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-official .home-daily-city-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .home-official .home-footer-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .home-official .home-footer-brand{grid-column:1/-1}
 }
@@ -3838,6 +3850,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-stores,
   .home-official .home-trust-institutional,
   .home-official .home-local-partners,
+  .home-official .home-daily-city,
   .home-official .home-how,
   .home-official .affiliate-profile-compact{margin-top:3.75rem}
   .home-official .home-visit-proof+.home-category-section{margin-top:2.75rem}
@@ -3879,6 +3892,11 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-local-partners-disclosure{text-align:left}
   .home-official .home-local-partners-grid{grid-template-columns:1fr}
   .home-official .home-local-partner-card{min-height:0}
+  .home-official .home-daily-city-heading{align-items:flex-start}
+  .home-official .home-daily-city-status{white-space:normal}
+  .home-official .home-daily-city-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-official .home-daily-city-card{min-height:11.5rem;padding:1rem}
+  .home-official .home-daily-city-card-avisos{grid-column:1/-1;min-height:0;grid-template-columns:auto minmax(0,1fr);align-items:center}
   .home-official .home-how .steps-grid{grid-template-columns:1fr}
   .home-official .affiliate-profile-compact{grid-template-columns:auto 1fr;padding:1rem 1.25rem}
   .home-official .affiliate-profile-button{grid-column:1/-1;width:100%}
@@ -3899,6 +3917,8 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .partner-offers-controls button{width:2.6rem;height:2.6rem}
   .home-official .partner-offers-viewport{gap:.5rem}
   .home-official .partner-offer-card{flex-basis:calc((100% - .5rem) / 2)}
+  .home-official .home-daily-city-grid{grid-template-columns:1fr}
+  .home-official .home-daily-city-card,.home-official .home-daily-city-card-avisos{grid-column:auto;min-height:0;grid-template-columns:auto minmax(0,1fr);align-items:center}
 }
 @media(prefers-reduced-motion:reduce){
   .home-official .home-official-search button,

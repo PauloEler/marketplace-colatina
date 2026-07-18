@@ -35,6 +35,7 @@ from affiliate_analytics import (  # noqa: E402
 )
 from partner_offers import build_partner_offers  # noqa: E402
 from local_partners import LOCAL_PARTNERS_HOME, PARTNER_LEVELS  # noqa: E402
+from daily_city import DAILY_CITY_CARDS  # noqa: E402
 from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
     configurado as mercadopago_configurado,
@@ -1182,6 +1183,7 @@ def index():
         ofertas_parceiros=OFERTAS_PARCEIROS_HOME,
         empresas_parceiras=LOCAL_PARTNERS_HOME,
         niveis_parceiro=PARTNER_LEVELS,
+        hoje_em_colatina=DAILY_CITY_CARDS,
         site_url=url_publica("index"),
         imagem_social=url_publica("static", filename="mercado-colatina-social.svg"),
     )
