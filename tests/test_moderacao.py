@@ -2391,20 +2391,35 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.admin_id, admin=True)
         self.assertEqual(self.client.get("/admin").status_code, 200)
 
-    def test_home_mantem_parceiro_identificado_sem_priorizar_sobre_ofertas(self):
+    def test_home_exibe_ofertas_de_parceiros_com_monetizacao_transparente(self):
         pagina = self.client.get("/")
 
         self.assertEqual(pagina.status_code, 200)
-        self.assertIn("Parceiro".encode(), pagina.data)
-        self.assertIn("Ofertas no Mercado Livre".encode(), pagina.data)
+        self.assertIn("Conteúdo de parceiros".encode(), pagina.data)
+        self.assertIn("Ofertas de Parceiros".encode(), pagina.data)
         self.assertNotIn("Paulo Eler".encode(), pagina.data)
-        self.assertIn("Ver ofertas no Mercado Livre".encode(), pagina.data)
+        self.assertIn("Algumas ofertas desta seção são exibidas".encode(), pagina.data)
+        self.assertIn("Ver oferta".encode(), pagina.data)
+        self.assertIn(b'loading="lazy"', pagina.data)
+        self.assertIn(b'decoding="async"', pagina.data)
+        self.assertIn(b"data-partner-carousel", pagina.data)
+        self.assertIn(b"data-carousel-prev", pagina.data)
+        self.assertIn(b"data-carousel-next", pagina.data)
+        self.assertIn(b"partner-offers-carousel.js", pagina.data)
         self.assertIn(
-            "Você será direcionado para o Mercado Livre".encode(), pagina.data
+            b'target="_blank" class="partner-offer-link"',
+            pagina.data,
         )
         self.assertIn(b'rel="sponsored nofollow"', pagina.data)
         html = pagina.data.decode("utf-8")
-        self.assertLess(html.index('id="ofertas"'), html.index('id="achados"'))
+        self.assertEqual(html.count('class="partner-offer-card"'), 6)
+        self.assertGreaterEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 4)
+        self.assertLessEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 6)
+        self.assertLess(
+            html.index('id="ofertas"'), html.index('id="ofertas-parceiros"')
+        )
+        self.assertLess(html.index('id="ofertas-parceiros"'), html.index('id="planos"'))
+        self.assertNotIn('id="achados"', html)
 
     def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):
         with app.app_context():
@@ -2512,10 +2527,10 @@ class ModeracaoTestCase(unittest.TestCase):
             'class="home-premium-hero',
             'class="home-category-section"',
             'id="ofertas"',
+            'id="ofertas-parceiros"',
             'id="planos"',
             'id="home-stores-title"',
             'id="como-funciona"',
-            'id="achados"',
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
         self.assertEqual(posicoes, sorted(posicoes))

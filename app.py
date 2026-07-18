@@ -113,6 +113,50 @@ SUPPORT_WHATSAPP = os.environ.get(
 MERCADO_LIVRE_AFILIADO_URL = os.environ.get(
     "MERCADO_LIVRE_AFILIADO_URL", "https://meli.la/1yyfAoN"
 )
+OFERTAS_PARCEIROS_HOME = (
+    {
+        "titulo": "Celulares e acessórios",
+        "preco": "A partir de R$ 49,90",
+        "imagem": "oferta-parceiro-01.svg",
+        "alt": "Ilustração de celular e acessórios em oferta parceira",
+        "url": MERCADO_LIVRE_AFILIADO_URL,
+    },
+    {
+        "titulo": "Fones e áudio",
+        "preco": "A partir de R$ 39,90",
+        "imagem": "oferta-parceiro-02.svg",
+        "alt": "Ilustração de fones e produtos de áudio em oferta parceira",
+        "url": MERCADO_LIVRE_AFILIADO_URL,
+    },
+    {
+        "titulo": "Informática",
+        "preco": "A partir de R$ 89,90",
+        "imagem": "oferta-parceiro-03.svg",
+        "alt": "Ilustração de notebook e itens de informática em oferta parceira",
+        "url": MERCADO_LIVRE_AFILIADO_URL,
+    },
+    {
+        "titulo": "Casa e utilidades",
+        "preco": "A partir de R$ 29,90",
+        "imagem": "oferta-parceiro-04.svg",
+        "alt": "Ilustração de itens para casa em oferta parceira",
+        "url": MERCADO_LIVRE_AFILIADO_URL,
+    },
+    {
+        "titulo": "Ferramentas",
+        "preco": "A partir de R$ 59,90",
+        "imagem": "oferta-parceiro-05.svg",
+        "alt": "Ilustração de ferramentas em oferta parceira",
+        "url": MERCADO_LIVRE_AFILIADO_URL,
+    },
+    {
+        "titulo": "Eletroportáteis",
+        "preco": "A partir de R$ 79,90",
+        "imagem": "oferta-parceiro-06.svg",
+        "alt": "Ilustração de eletroportáteis em oferta parceira",
+        "url": MERCADO_LIVRE_AFILIADO_URL,
+    },
+)
 try:
     MARKETPLACE_FEE_PERCENT = Decimal(os.environ.get("MARKETPLACE_FEE_PERCENT", "0"))
 except InvalidOperation:
@@ -1165,6 +1209,7 @@ def index():
         valor_plano=VALOR_PLANO,
         limite_gratis=LIMITE_GRATIS,
         mercado_livre_afiliado_url=MERCADO_LIVRE_AFILIADO_URL,
+        ofertas_parceiros=OFERTAS_PARCEIROS_HOME,
         site_url=url_publica("index"),
         imagem_social=url_publica("static", filename="mercado-colatina-social.svg"),
     )
