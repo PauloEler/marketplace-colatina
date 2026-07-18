@@ -48,6 +48,7 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             for tabela in (
+                "afiliado_eventos",
                 "loja_administradores",
                 "comunicados",
                 "tentativas_login",
@@ -2443,6 +2444,14 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("prefersReducedMotion", javascript)
         self.assertIn('carousel.addEventListener("mouseenter", pause)', javascript)
         self.assertIn('carousel.addEventListener("focusin", pause)', javascript)
+        self.assertIn("IntersectionObserver", javascript)
+        self.assertIn("navigator.sendBeacon", javascript)
+        self.assertIn('sendAnalytics(carousel, "click"', javascript)
+        self.assertIn('sendAnalytics(carousel, "impression"', javascript)
+        self.assertIn(
+            b'data-analytics-endpoint="/analytics/afiliados/evento"', pagina.data
+        )
+        self.assertIn(b'data-affiliate-offer="celulares-acessorios"', pagina.data)
 
     def test_home_ofertas_de_parceiros_usam_links_individuais_por_card(self):
         ofertas = app_module.OFERTAS_PARCEIROS_HOME
@@ -2517,6 +2526,193 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIn('data-click-area="titulo"', bloco)
             self.assertIn('data-click-area="botao"', bloco)
             self.assertEqual(bloco.count(f'href="{url}"'), 1)
+
+    def test_analytics_registra_clique_unico_com_dados_validados_no_servidor(self):
+        self.client.get("/")
+        with self.client.session_transaction() as sessao:
+            token = sessao["_csrf_token"]
+
+        resposta = self.client.post(
+            "/analytics/afiliados/evento",
+            json={
+                "csrf_token": token,
+                "event_type": "click",
+                "offer_id": "celulares-acessorios",
+                "device": "desktop",
+                "source": "origem-nao-confiavel",
+            },
+        )
+
+        self.assertEqual(resposta.status_code, 204)
+        with app.app_context():
+            evento = get_db().execute("SELECT * FROM afiliado_eventos").fetchone()
+        self.assertEqual(evento["parceiro"], "mercado_livre")
+        self.assertEqual(evento["oferta_id"], "celulares-acessorios")
+        self.assertEqual(evento["categoria"], "Celulares e acessórios")
+        self.assertEqual(evento["tipo_evento"], "click")
+        self.assertEqual(evento["origem"], "home")
+        self.assertEqual(evento["dispositivo"], "desktop")
+        self.assertIsNotNone(evento["ocorrido_em"])
+
+    def test_analytics_conta_cliques_repetidos_e_dispositivos_separadamente(self):
+        self.client.get("/")
+        with self.client.session_transaction() as sessao:
+            token = sessao["_csrf_token"]
+
+        for device in ("desktop", "mobile", "mobile"):
+            resposta = self.client.post(
+                "/analytics/afiliados/evento",
+                json={
+                    "csrf_token": token,
+                    "event_type": "click",
+                    "offer_id": "fones-audio",
+                    "device": device,
+                },
+            )
+            self.assertEqual(resposta.status_code, 204)
+
+        with app.app_context():
+            linhas = (
+                get_db()
+                .execute(
+                    "SELECT dispositivo, COUNT(*) AS total FROM afiliado_eventos "
+                    "GROUP BY dispositivo ORDER BY dispositivo"
+                )
+                .fetchall()
+            )
+        self.assertEqual(
+            [(linha["dispositivo"], linha["total"]) for linha in linhas],
+            [("desktop", 1), ("mobile", 2)],
+        )
+
+    def test_analytics_rejeita_csrf_evento_categoria_e_dispositivo_invalidos(self):
+        self.client.get("/")
+        with self.client.session_transaction() as sessao:
+            token = sessao["_csrf_token"]
+
+        payloads = (
+            {
+                "event_type": "click",
+                "offer_id": "celulares-acessorios",
+                "device": "desktop",
+            },
+            {
+                "csrf_token": token,
+                "event_type": "compra",
+                "offer_id": "celulares-acessorios",
+                "device": "desktop",
+            },
+            {
+                "csrf_token": token,
+                "event_type": "click",
+                "offer_id": "categoria-inexistente",
+                "device": "desktop",
+            },
+            {
+                "csrf_token": token,
+                "event_type": "click",
+                "offer_id": "celulares-acessorios",
+                "device": "tablet",
+            },
+        )
+        for payload in payloads:
+            with self.subTest(payload=payload):
+                self.assertEqual(
+                    self.client.post(
+                        "/analytics/afiliados/evento", json=payload
+                    ).status_code,
+                    400,
+                )
+
+        with app.app_context():
+            total = (
+                get_db().execute("SELECT COUNT(*) FROM afiliado_eventos").fetchone()[0]
+            )
+        self.assertEqual(total, 0)
+
+    def test_dashboard_afiliados_e_exclusivo_do_admin_e_calcula_ranking_e_ctr(self):
+        with app.app_context():
+            db = get_db()
+            dados = (
+                ("celulares-acessorios", "Celulares e acessórios", "click", 3),
+                ("celulares-acessorios", "Celulares e acessórios", "impression", 6),
+                ("fones-audio", "Fones e áudio", "click", 2),
+                ("fones-audio", "Fones e áudio", "impression", 4),
+                ("informatica", "Informática", "click", 1),
+                ("informatica", "Informática", "impression", 4),
+            )
+            for offer_id, category, event_type, quantity in dados:
+                for _ in range(quantity):
+                    db.execute(
+                        "INSERT INTO afiliado_eventos "
+                        "(parceiro, oferta_id, categoria, tipo_evento, origem, dispositivo) "
+                        "VALUES (?,?,?,?,?,?)",
+                        (
+                            "mercado_livre",
+                            offer_id,
+                            category,
+                            event_type,
+                            "home",
+                            "desktop",
+                        ),
+                    )
+            db.execute(
+                "INSERT INTO afiliado_eventos "
+                "(parceiro, oferta_id, categoria, tipo_evento, origem, dispositivo, ocorrido_em) "
+                "VALUES (?,?,?,?,?,?,datetime('now', '-10 days'))",
+                (
+                    "mercado_livre",
+                    "casa-utilidades",
+                    "Casa e utilidades",
+                    "click",
+                    "home",
+                    "mobile",
+                ),
+            )
+            db.commit()
+
+        visitante = self.client.get("/admin?visao=afiliados")
+        self.assertEqual(visitante.status_code, 302)
+        self.autenticar_sessao(self.comprador_id)
+        usuario = self.client.get("/admin?visao=afiliados")
+        self.assertEqual(usuario.status_code, 302)
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        pagina = self.client.get("/admin?visao=afiliados")
+        html = pagina.data.decode("utf-8")
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Analytics de Afiliados", html)
+        self.assertIn('data-affiliate-metric="today" data-value="6"', html)
+        self.assertIn('data-affiliate-metric="7-days" data-value="6"', html)
+        self.assertIn('data-affiliate-metric="30-days" data-value="7"', html)
+        self.assertIn(
+            'data-affiliate-ctr="celulares-acessorios" data-value="50.0"', html
+        )
+        self.assertIn('data-affiliate-ctr="fones-audio" data-value="50.0"', html)
+        self.assertIn('data-affiliate-ctr="informatica" data-value="25.0"', html)
+        self.assertLess(
+            html.index('data-affiliate-category="celulares-acessorios"'),
+            html.index('data-affiliate-category="fones-audio"'),
+        )
+        self.assertLess(
+            html.index('data-affiliate-category="fones-audio"'),
+            html.index('data-affiliate-category="informatica"'),
+        )
+        self.assertIn("TOP categoria", html)
+        self.assertIn("Menor interesse", html)
+        self.assertIn("Amazon · Magalu · Shopee", html)
+
+    def test_dashboard_afiliados_sem_eventos_nao_inventa_interesse(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        pagina = self.client.get("/admin?visao=afiliados")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertGreaterEqual(html.count("Sem dados"), 2)
+        self.assertIn('data-affiliate-metric="today" data-value="0"', html)
+        self.assertIn(
+            'data-affiliate-category="celulares-acessorios" data-clicks="0"', html
+        )
 
     def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):
         with app.app_context():

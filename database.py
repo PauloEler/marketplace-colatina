@@ -167,6 +167,20 @@ def _init_sqlite():
         );
         INSERT OR IGNORE INTO estatisticas (chave, valor)
             VALUES ('acessos_site', 0);
+        CREATE TABLE IF NOT EXISTS afiliado_eventos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            parceiro TEXT NOT NULL,
+            oferta_id TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            tipo_evento TEXT NOT NULL,
+            origem TEXT NOT NULL DEFAULT 'home',
+            dispositivo TEXT NOT NULL,
+            ocorrido_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_afiliado_eventos_periodo
+            ON afiliado_eventos(tipo_evento, ocorrido_em);
+        CREATE INDEX IF NOT EXISTS idx_afiliado_eventos_oferta
+            ON afiliado_eventos(oferta_id, tipo_evento, ocorrido_em);
         CREATE TABLE IF NOT EXISTS pedidos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             anuncio_id INTEGER NOT NULL,
@@ -454,6 +468,28 @@ def _init_pg():
     db.execute(
         "INSERT INTO estatisticas (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO NOTHING",
         ("acessos_site", 0),
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS afiliado_eventos (
+            id SERIAL PRIMARY KEY,
+            parceiro TEXT NOT NULL,
+            oferta_id TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            tipo_evento TEXT NOT NULL,
+            origem TEXT NOT NULL DEFAULT 'home',
+            dispositivo TEXT NOT NULL,
+            ocorrido_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_afiliado_eventos_periodo "
+        "ON afiliado_eventos(tipo_evento, ocorrido_em)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_afiliado_eventos_oferta "
+        "ON afiliado_eventos(oferta_id, tipo_evento, ocorrido_em)"
     )
     db.execute(
         """
