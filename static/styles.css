@@ -3395,6 +3395,9 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-category-section,
 .home-official .home-visit-proof,
 .home-official .home-product-showcase,
+.home-official .home-partner-offers,
+.home-official .home-sponsors,
+.home-official .home-colatina-now,
 .home-official .home-stores,
 .home-official .home-how,
 .home-official .affiliate-profile-compact{
@@ -3518,6 +3521,138 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-product-card .card-store-link{margin:0 1.5rem 1.25rem;border-radius:999px;background:#f1f4f1;color:var(--ho-forest)}
 .home-official .empty-state{padding:3rem 1.5rem}
 .home-official .empty-state .btn{margin-top:.875rem}
+.home-official .home-partner-offers,
+.home-official .home-sponsors,
+.home-official .home-colatina-now{margin-top:clamp(3.5rem,5.5vw,5.5rem)}
+.home-official .home-section-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:2.65rem;
+  padding:0 1rem;
+  border:1px solid var(--ho-line);
+  border-radius:999px;
+  background:#fff;
+  color:var(--ho-forest);
+  font-size:.82rem;
+  font-weight:850;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.home-official .home-section-link:hover{border-color:#b8c7be;background:#eef3ee;color:var(--ho-forest-deep)}
+.home-official .partner-carousel{
+  position:relative;
+  overflow:hidden;
+  margin-top:1.5rem;
+  border:1px solid var(--ho-line);
+  border-radius:.85rem;
+  background:#fff;
+}
+.home-official .partner-carousel:before,
+.home-official .partner-carousel:after{
+  position:absolute;
+  z-index:2;
+  top:0;
+  bottom:0;
+  width:5rem;
+  pointer-events:none;
+  content:"";
+}
+.home-official .partner-carousel:before{left:0;background:linear-gradient(90deg,#fff,rgba(255,255,255,0))}
+.home-official .partner-carousel:after{right:0;background:linear-gradient(270deg,#fff,rgba(255,255,255,0))}
+.home-official .partner-carousel-track{
+  display:flex;
+  width:max-content;
+  gap:1rem;
+  padding:1rem;
+  animation:partner-offers-scroll 34s linear infinite;
+}
+.home-official .partner-carousel:hover .partner-carousel-track{animation-play-state:paused}
+.home-official .partner-offer-card{
+  display:grid;
+  align-content:start;
+  flex:0 0 17rem;
+  min-height:13rem;
+  padding:1.1rem;
+  border:1px solid var(--ho-line);
+  border-radius:.75rem;
+  background:linear-gradient(145deg,#fff,#f5f7f5);
+}
+.home-official .partner-offer-card span{
+  width:max-content;
+  max-width:100%;
+  padding:.3rem .48rem;
+  border-radius:.35rem;
+  background:#edf3ee;
+  color:var(--ho-forest);
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.home-official .partner-offer-card h3{margin-top:.85rem;color:var(--ho-ink);font-size:1.05rem;line-height:1.25}
+.home-official .partner-offer-card p{margin-top:.45rem;color:#526158;font-size:.82rem;line-height:1.5}
+.home-official .partner-offer-card small{margin-top:.55rem;color:var(--ho-muted);font-size:.68rem;line-height:1.45}
+.home-official .partner-offer-card a{
+  align-self:end;
+  width:max-content;
+  max-width:100%;
+  margin-top:1rem;
+  color:var(--ho-forest);
+  font-size:.78rem;
+  font-weight:850;
+  text-decoration:none;
+}
+.home-official .partner-offer-card a:hover{text-decoration:underline;text-underline-offset:3px}
+@keyframes partner-offers-scroll{
+  from{transform:translateX(0)}
+  to{transform:translateX(calc(-50% - .5rem))}
+}
+.home-official .home-sponsors{
+  display:grid;
+  grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);
+  gap:1rem;
+  align-items:stretch;
+  padding:1.5rem;
+  border:1px solid var(--ho-line);
+  border-radius:.85rem;
+  background:#f1f4f1;
+}
+.home-official .home-sponsors-copy h2{
+  max-width:18ch;
+  margin-top:.45rem;
+  color:var(--ho-ink);
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(2rem,3.4vw,3.1rem);
+  font-weight:400;
+  letter-spacing:-.045em;
+  line-height:1;
+}
+.home-official .home-sponsors-copy p{max-width:31rem;margin-top:.75rem;color:var(--ho-muted);line-height:1.6}
+.home-official .home-sponsor-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.home-official .home-sponsor-slots article{
+  display:grid;
+  align-content:end;
+  min-height:10rem;
+  padding:1rem;
+  border:1px dashed #b8c7be;
+  border-radius:.75rem;
+  background:#fff;
+}
+.home-official .home-sponsor-slots span{color:var(--ho-muted);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.home-official .home-sponsor-slots strong{margin-top:.3rem;color:var(--ho-forest);font-size:1.05rem}
+.home-official .home-city-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:.75rem;margin-top:1.25rem}
+.home-official .home-city-grid article{
+  display:grid;
+  gap:.35rem;
+  min-height:6.75rem;
+  padding:1rem;
+  border:1px solid var(--ho-line);
+  border-radius:.75rem;
+  background:#fff;
+}
+.home-official .home-city-grid span{color:var(--ho-muted);font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+.home-official .home-city-grid strong{color:var(--ho-ink);font-size:.92rem;line-height:1.25}
 .home-official .home-seller-callout{
   position:relative;
   display:grid;
@@ -3626,6 +3761,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-product-card:nth-child(1),
   .home-official .home-product-card:nth-child(2),
   .home-official .home-product-card:nth-child(n+3){grid-column:span 6}
+  .home-official .home-city-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .home-official .home-seller-callout{grid-template-columns:minmax(0,1.4fr) minmax(15rem,.8fr)}
   .home-official .home-footer-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .home-official .home-footer-brand{grid-column:1/-1}
@@ -3643,6 +3779,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-official-panorama img{object-position:center 52%}
   .home-official .home-official-search{position:relative;right:auto;bottom:auto;left:auto;grid-template-columns:minmax(0,1.5fr) minmax(10rem,.75fr) auto;width:calc(100% - 3rem);margin:1.25rem auto 0}
   .home-official .home-search-heading{grid-column:1/-1}
+  .home-official .home-sponsors{grid-template-columns:1fr}
   .home-official .home-seller-callout{grid-template-columns:1fr}
 }
 @media(max-width:639px){
@@ -3675,6 +3812,9 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-visit-proof p{grid-column:1/-1;justify-self:start;max-width:none;font-size:.8rem;text-align:left}
   .home-official .home-category-section,
   .home-official .home-product-showcase,
+  .home-official .home-partner-offers,
+  .home-official .home-sponsors,
+  .home-official .home-colatina-now,
   .home-official .home-seller-callout,
   .home-official .home-stores,
   .home-official .home-how,
@@ -3698,6 +3838,15 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-product-card:nth-child(1) .card-media{height:16.5rem}
   .home-official .home-product-card .card-body{padding:1rem 1.25rem}
   .home-official .home-product-card .card-store-link{margin:0 1.25rem 1rem}
+  .home-official .home-section-link{width:100%}
+  .home-official .partner-carousel:before,
+  .home-official .partner-carousel:after{width:2.25rem}
+  .home-official .partner-carousel-track{animation-duration:40s}
+  .home-official .partner-offer-card{flex-basis:15.5rem}
+  .home-official .home-sponsors{padding:1rem}
+  .home-official .home-sponsor-slots{grid-template-columns:1fr}
+  .home-official .home-sponsor-slots article{min-height:6.75rem}
+  .home-official .home-city-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}
   .home-official .home-seller-callout{row-gap:1rem;padding:1.5rem 1.25rem;border-radius:.8rem}
   .home-official .home-seller-callout h2{font-size:2.9rem}
   .home-official .home-seller-action{padding:.9rem 1.15rem}
@@ -3725,6 +3874,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-category-card,
   .home-official .home-product-card,
   .home-official .home-product-card .card-media img{transition:none}
+  .home-official .partner-carousel-track{animation:none}
   .home-official .home-official-search button:hover,
   .home-official .home-product-card:hover,
   .home-official .home-product-card:hover .card-media img{transform:none}

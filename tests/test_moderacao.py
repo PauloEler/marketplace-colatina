@@ -2391,20 +2391,24 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.admin_id, admin=True)
         self.assertEqual(self.client.get("/admin").status_code, 200)
 
-    def test_home_mantem_parceiro_identificado_sem_priorizar_sobre_ofertas(self):
+    def test_home_exibe_ofertas_de_parceiros_com_transparencia(self):
         pagina = self.client.get("/")
 
         self.assertEqual(pagina.status_code, 200)
         self.assertIn("Parceiro".encode(), pagina.data)
+        self.assertIn("Ofertas de Parceiros".encode(), pagina.data)
         self.assertIn("Ofertas no Mercado Livre".encode(), pagina.data)
+        self.assertIn("Ver todas as ofertas".encode(), pagina.data)
         self.assertNotIn("Paulo Eler".encode(), pagina.data)
-        self.assertIn("Ver ofertas no Mercado Livre".encode(), pagina.data)
-        self.assertIn(
-            "Você será direcionado para o Mercado Livre".encode(), pagina.data
-        )
+        self.assertIn("Publicidade identificada".encode(), pagina.data)
+        self.assertIn("Espaço comercial com rotação contínua".encode(), pagina.data)
         self.assertIn(b'rel="sponsored nofollow"', pagina.data)
+        self.assertGreaterEqual(len(app_module.HOME_PARTNER_OFFERS), 4)
+        self.assertLessEqual(len(app_module.HOME_PARTNER_OFFERS), 6)
         html = pagina.data.decode("utf-8")
-        self.assertLess(html.index('id="ofertas"'), html.index('id="achados"'))
+        self.assertLess(
+            html.index('id="ofertas"'), html.index('id="ofertas-parceiros"')
+        )
 
     def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):
         with app.app_context():
@@ -2503,8 +2507,13 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(html.count('class="home-category-card'), 10)
         self.assertIn('id="planos" class="home-seller-callout"', html)
         self.assertIn("Tem um negócio em Colatina?", html)
+        self.assertIn('id="ofertas-parceiros"', html)
+        self.assertIn('id="patrocinadores"', html)
+        self.assertIn('id="colatina-agora"', html)
         self.assertIn('class="site-footer home-premium-footer"', html)
         self.assertIn("A praça digital para comprar, vender", html)
+        self.assertIn("Política de segurança", html)
+        self.assertIn("Quem somos", html)
 
     def test_home_apresenta_blocos_na_ordem_home_first(self):
         html = self.client.get("/").data.decode("utf-8")
@@ -2512,10 +2521,12 @@ class ModeracaoTestCase(unittest.TestCase):
             'class="home-premium-hero',
             'class="home-category-section"',
             'id="ofertas"',
+            'id="ofertas-parceiros"',
+            'id="patrocinadores"',
+            'id="colatina-agora"',
             'id="planos"',
             'id="home-stores-title"',
             'id="como-funciona"',
-            'id="achados"',
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
         self.assertEqual(posicoes, sorted(posicoes))
