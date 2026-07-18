@@ -1,5 +1,38 @@
 # CHANGELOG MASTER
 
+## 2026-07-18 - MX-005.1 Hoje em Colatina
+
+### Publicado
+
+- PR #64 integrada na `master`.
+- Hash do merge: `a708f0e5bcb53d20e153ebc643255c0567ade030`.
+- CI da `master` aprovado no workflow `29658007584`.
+- Deploy automatico no Render detectado em producao as 16h35min33s, horario de Brasilia.
+
+### Adicionado
+
+- Secao "Hoje em Colatina" com cinco cards reutilizaveis.
+- Placeholders transparentes para Tempo, Eventos, Empregos, Farmacia de Plantao e Avisos.
+- Arquitetura preparada para evolucao futura, sem APIs ou alteracoes de banco nesta sprint.
+
+### Validado em producao
+
+- Home e painel diario carregando normalmente.
+- Cinco cards em 5 colunas no desktop, 3 no tablet e 2 no mobile.
+- Sem overflow horizontal nos tres formatos.
+- Analytics, Empresas Parceiras e Ofertas de Parceiros preservados.
+- Console sem erros ou avisos.
+- Lighthouse: Performance 92, Acessibilidade 97, Boas praticas 96, SEO 100.
+- Sem regressao critica.
+
+### Backlog
+
+- `PERF-001`: investigar a medicao local de Performance 84 registrada durante a sprint.
+
+### Restricoes preservadas
+
+- Sem inicio da MX-005.2.
+
 ## 2026-07-18 - MX-004.2 Empresas Parceiras e Confiança
 
 ### Publicado

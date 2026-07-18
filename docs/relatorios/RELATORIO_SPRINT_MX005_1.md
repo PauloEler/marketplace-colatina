@@ -79,4 +79,14 @@ O visitante identifica as futuras informações locais em menos de dez segundos.
 
 ## Estado da entrega
 
-Preparada para PR Draft e revisão. Publicação não autorizada.
+Publicada em produção após aprovação oficial.
+
+- PR: #64;
+- hash do merge: `a708f0e5bcb53d20e153ebc643255c0567ade030`;
+- CI da `master`: aprovado no workflow `29658007584`;
+- deploy detectado: 18/07/2026 às 16h35min33s, horário de Brasília;
+- produção: `https://mercadocolatina.com.br/`;
+- validação: desktop, tablet e mobile aprovados, sem overflow e com console limpo;
+- Lighthouse de produção: Performance 92, Acessibilidade 97, Boas práticas 96 e SEO 100;
+- funcionalidades anteriores: preservadas;
+- backlog: `PERF-001` registrado para investigar a medição local de Performance 84.
