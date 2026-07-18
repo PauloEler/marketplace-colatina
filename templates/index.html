@@ -186,6 +186,69 @@
 </section>
 
 {% if not busca and not cat_sel %}
+{% if home_portal_sections.partner_offers %}
+<section id="ofertas-parceiros" class="home-partner-offers" aria-labelledby="partner-offers-title">
+  <div class="section-head">
+    <div>
+      <div class="section-kicker">Publicidade identificada</div>
+      <h2 id="partner-offers-title">Ofertas de Parceiros</h2>
+      <p class="section-description">Espaço comercial com rotação contínua, sempre separado da vitrine principal do Mercado Colatina.</p>
+    </div>
+    <a class="home-section-link" href="#ofertas-parceiros">Ver todas as ofertas</a>
+  </div>
+  <div class="partner-carousel" aria-label="Ofertas de parceiros em rotação">
+    <div class="partner-carousel-track">
+      {% for rodada in range(2) %}
+        {% for oferta in ofertas_parceiros %}
+        <article class="partner-offer-card">
+          <span>{{ oferta.tag }}</span>
+          <h3>{{ oferta.title }}</h3>
+          <p>{{ oferta.description }}</p>
+          <small>{{ oferta.detail }}</small>
+          <a href="{{ oferta.href }}" {% if oferta.rel %}rel="{{ oferta.rel }}"{% endif %}>Ver oferta</a>
+        </article>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if home_portal_sections.sponsors %}
+<section id="patrocinadores" class="home-sponsors" aria-labelledby="sponsors-title">
+  <div class="home-sponsors-copy">
+    <div class="section-kicker">Patrocinadores</div>
+    <h2 id="sponsors-title">Empresas de Colatina podem apoiar este portal.</h2>
+    <p>Área reservada para patrocinadores locais, com identificação clara e sem interferir na compra e venda dos anúncios.</p>
+  </div>
+  <div class="home-sponsor-slots" aria-label="Espaços reservados para patrocinadores">
+    <article><span>Patrocinador local</span><strong>Espaço 01</strong></article>
+    <article><span>Patrocinador local</span><strong>Espaço 02</strong></article>
+    <article><span>Patrocinador local</span><strong>Espaço 03</strong></article>
+  </div>
+</section>
+{% endif %}
+
+{% if home_portal_sections.colatina_now %}
+<section id="colatina-agora" class="home-colatina-now" aria-labelledby="colatina-now-title">
+  <div class="section-head">
+    <div>
+      <div class="section-kicker">Colatina Agora</div>
+      <h2 id="colatina-now-title">Informações úteis da cidade</h2>
+      <p class="section-description">Estrutura visual preparada para conteúdos locais, sem captura automática, APIs externas ou banco novo nesta fase.</p>
+    </div>
+  </div>
+  <div class="home-city-grid">
+    {% for titulo, status in colatina_agora_itens %}
+    <article>
+      <span>{{ status }}</span>
+      <strong>{{ titulo }}</strong>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section id="planos" class="home-seller-callout" aria-labelledby="seller-callout-title">
   <div class="home-seller-copy">
     <div class="section-kicker">Feito para quem movimenta a cidade</div>
@@ -251,16 +314,6 @@
   </div>
 </section>
 
-<section id="achados" class="affiliate-profile affiliate-profile-compact" aria-labelledby="achados-title">
-  <div class="affiliate-profile-mark" aria-hidden="true">ML</div>
-  <div class="affiliate-profile-content">
-    <div class="affiliate-featured-label">Parceiro</div>
-    <h2 id="achados-title">Ofertas no Mercado Livre</h2>
-    <p>Veja promoções selecionadas em nosso parceiro.</p>
-    <small>Você será direcionado para o Mercado Livre. Este é um link de afiliado e o Mercado Colatina pode receber uma comissão, sem custo adicional para você.</small>
-  </div>
-  <a class="btn affiliate-profile-button" href="{{ mercado_livre_afiliado_url }}" rel="sponsored nofollow">Ver ofertas no Mercado Livre</a>
-</section>
 {% endif %}
 {% endblock %}
 
@@ -285,9 +338,13 @@
     </nav>
     <nav aria-label="Informações institucionais">
       <strong>Institucional</strong>
+      <a href="/#ofertas-parceiros">Parceiros</a>
+      <a href="/#patrocinadores">Transparência</a>
       <a href="/seguranca">Segurança</a>
+      <a href="/seguranca">Política de segurança</a>
       <a href="/privacidade">Privacidade</a>
       <a href="/termos">Termos de uso</a>
+      <a href="/ajuda">Quem somos</a>
       <a href="/ajuda">Central de ajuda</a>
     </nav>
   </div>

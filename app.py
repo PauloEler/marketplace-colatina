@@ -113,6 +113,61 @@ SUPPORT_WHATSAPP = os.environ.get(
 MERCADO_LIVRE_AFILIADO_URL = os.environ.get(
     "MERCADO_LIVRE_AFILIADO_URL", "https://meli.la/1yyfAoN"
 )
+HOME_PORTAL_SECTIONS = {
+    "partner_offers": True,
+    "sponsors": True,
+    "colatina_now": True,
+}
+HOME_PARTNER_OFFERS = (
+    {
+        "tag": "Parceiro",
+        "title": "Ofertas no Mercado Livre",
+        "description": "Promocoes selecionadas em nosso parceiro.",
+        "detail": "Link patrocinado: o Mercado Colatina pode receber comissao, sem custo adicional para voce.",
+        "href": MERCADO_LIVRE_AFILIADO_URL,
+        "rel": "sponsored nofollow",
+    },
+    {
+        "tag": "Espaco parceiro",
+        "title": "Lojas locais em destaque",
+        "description": "Produtos e servicos de empresas de Colatina.",
+        "detail": "Oferta identificada como parceira quando houver patrocinio ativo.",
+        "href": "#patrocinadores",
+        "rel": "",
+    },
+    {
+        "tag": "Vitrine local",
+        "title": "Produtos da semana",
+        "description": "Curadoria comercial para aumentar a descoberta.",
+        "detail": "Area preparada para campanhas com parceiros comerciais.",
+        "href": "#ofertas",
+        "rel": "",
+    },
+    {
+        "tag": "Comercio de Colatina",
+        "title": "Promocoes da cidade",
+        "description": "Espaco para ofertas temporarias e divulgacao local.",
+        "detail": "Todos os parceiros devem ser identificados com transparencia.",
+        "href": "#patrocinadores",
+        "rel": "",
+    },
+    {
+        "tag": "Oportunidade",
+        "title": "Anuncie sua oferta aqui",
+        "description": "Sua empresa pode aparecer para compradores locais.",
+        "detail": "Modelo visual pronto, sem integracao externa nesta fase.",
+        "href": "#planos",
+        "rel": "",
+    },
+)
+HOME_COLATINA_NOW_ITEMS = (
+    ("Noticias locais", "Estrutura preparada"),
+    ("Eventos", "Agenda futura"),
+    ("Vagas de emprego", "Mural local"),
+    ("Tempo", "Sem API nesta fase"),
+    ("Servicos publicos", "Guia util"),
+    ("Telefones uteis", "Consulta rapida"),
+)
 try:
     MARKETPLACE_FEE_PERCENT = Decimal(os.environ.get("MARKETPLACE_FEE_PERCENT", "0"))
 except InvalidOperation:
@@ -1164,6 +1219,9 @@ def index():
         info_plano=info_plano,
         valor_plano=VALOR_PLANO,
         limite_gratis=LIMITE_GRATIS,
+        home_portal_sections=HOME_PORTAL_SECTIONS,
+        ofertas_parceiros=HOME_PARTNER_OFFERS,
+        colatina_agora_itens=HOME_COLATINA_NOW_ITEMS,
         mercado_livre_afiliado_url=MERCADO_LIVRE_AFILIADO_URL,
         site_url=url_publica("index"),
         imagem_social=url_publica("static", filename="mercado-colatina-social.svg"),
