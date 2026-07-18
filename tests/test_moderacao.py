@@ -2466,6 +2466,7 @@ class ModeracaoTestCase(unittest.TestCase):
         env_keys = [config["env_key"] for config in PARTNER_OFFERS_CONFIG]
         oficiais = [config["official_url"] for config in PARTNER_OFFERS_CONFIG]
         fallbacks = [config["fallback_url"] for config in PARTNER_OFFERS_CONFIG]
+        imagens = [oferta["imagem"] for oferta in ofertas]
 
         self.assertEqual(len(ofertas), 6)
         self.assertEqual(len(set(env_keys)), 6)
@@ -2475,6 +2476,8 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertTrue(all(url.startswith("https://meli.la/") for url in oficiais))
         self.assertTrue(all(oferta["link_oficial_configurado"] for oferta in ofertas))
         self.assertEqual([oferta["url"] for oferta in ofertas], oficiais)
+        self.assertEqual(len(set(imagens)), 6)
+        self.assertTrue(all(imagem.endswith("-premium.webp") for imagem in imagens))
 
     def test_configuracao_centralizada_aceita_link_oficial_sem_alterar_valor(self):
         env_key = PARTNER_OFFERS_CONFIG[0]["env_key"]
