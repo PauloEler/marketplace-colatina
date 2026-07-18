@@ -1,5 +1,38 @@
 # CHANGELOG MASTER
 
+## 2026-07-18 - MX-004.2 Empresas Parceiras e Confiança
+
+### Publicado
+
+- PR #62 integrada na `master`.
+- Hash do merge: `472281189f4eeefdfdd588cec69e1d228b3bd07f`.
+- CI da `master` aprovado no workflow `29653561010`.
+- Deploy automático no Render detectado em produção às 14h18min07s, horário de Brasília.
+
+### Adicionado
+
+- Seção “Por que confiar no Mercado Colatina?” com cinco compromissos institucionais.
+- Seção “Empresas Parceiras” com seis espaços reservados e transparentes.
+- Arquitetura preparada para Parceiro Local, Parceiro Destaque e Parceiro Premium.
+- Páginas institucionais Quem Somos e Seja Parceiro.
+- Rodapé reforçado e novas rotas adicionadas ao sitemap.
+
+### Validado em produção
+
+- Home carregando normalmente.
+- Seis cards de empresas parceiras em 3 colunas no desktop, 2 no tablet e 1 no mobile.
+- Sem overflow horizontal nos três formatos.
+- Seis ofertas oficiais de afiliados e analytics preservados.
+- Console sem erros ou avisos.
+- Lighthouse: Performance 96, Acessibilidade 97, Boas práticas 96, SEO 100.
+- Sem regressão crítica.
+
+### Restrições preservadas
+
+- Sem alteração de banco, pedidos, anúncios, autenticação ou regras comerciais.
+- Sem empresas ou patrocinadores reais.
+- Sem início da MX-004.3.
+
 ## 2026-07-18 - MX-004.1D Analytics dos Afiliados
 
 ### Publicado

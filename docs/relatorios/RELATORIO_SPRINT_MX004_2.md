@@ -89,4 +89,28 @@ Definir regras comerciais e critérios transparentes, substituir placeholders so
 
 ## Publicação
 
-Branch destinada a PR Draft. Merge e deploy não autorizados nesta sprint.
+- PR: #62;
+- hash do merge: `472281189f4eeefdfdd588cec69e1d228b3bd07f`;
+- merge na `master`: concluído em 18/07/2026 às 14h15min22s, horário de Brasília;
+- CI da `master`: aprovado no workflow `29653561010`;
+- deploy automático no Render: detectado no domínio oficial às 14h18min07s;
+- URL: `https://mercadocolatina.com.br/`.
+
+### Validação final em produção
+
+- Home carregando normalmente;
+- seção “Por que confiar no Mercado Colatina?” visível;
+- seção “Empresas Parceiras” visível com seis placeholders;
+- desktop 1280 px: 3 cards por linha, sem overflow;
+- tablet 768 px: 2 cards por linha, sem overflow;
+- mobile 390 px: 1 card por linha, sem overflow;
+- seção “Ofertas de Parceiros” preservada com seis links oficiais `meli.la`;
+- camada de analytics dos afiliados carregada e preservada;
+- console do navegador sem erros ou avisos;
+- Lighthouse em produção: Performance 96, Acessibilidade 97, Boas práticas 96 e SEO 100;
+- nenhuma regressão visual crítica identificada;
+- funcionalidades anteriores preservadas.
+
+### Encerramento
+
+A MX-004.2 está oficialmente publicada e encerrada. A MX-004.3 não foi iniciada.
