@@ -34,6 +34,7 @@ from affiliate_analytics import (  # noqa: E402
     record_affiliate_event,
 )
 from partner_offers import build_partner_offers  # noqa: E402
+from local_partners import LOCAL_PARTNERS_HOME, PARTNER_LEVELS  # noqa: E402
 from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
     configurado as mercadopago_configurado,
@@ -1179,6 +1180,8 @@ def index():
         limite_gratis=LIMITE_GRATIS,
         mercado_livre_afiliado_url=MERCADO_LIVRE_AFILIADO_URL,
         ofertas_parceiros=OFERTAS_PARCEIROS_HOME,
+        empresas_parceiras=LOCAL_PARTNERS_HOME,
+        niveis_parceiro=PARTNER_LEVELS,
         site_url=url_publica("index"),
         imagem_social=url_publica("static", filename="mercado-colatina-social.svg"),
     )
@@ -1225,6 +1228,8 @@ def sitemap():
         "cadastro",
         "login",
         "pagina_seguranca",
+        "pagina_quem_somos",
+        "pagina_seja_parceiro",
         "pagina_ajuda",
         "pagina_privacidade",
         "pagina_termos",
@@ -3085,6 +3090,60 @@ def mercadopago_webhook():
         app.logger.exception("Falha ao processar webhook Mercado Pago")
         return "", 503
     return "", 200
+
+
+@app.route("/quem-somos")
+def pagina_quem_somos():
+    return render_template(
+        "pagina_info.html",
+        titulo="Quem somos",
+        resumo="O Mercado Colatina é uma plataforma local criada para aproximar pessoas, empresas e oportunidades da cidade.",
+        secoes=[
+            (
+                "Nossa origem",
+                "O projeto nasceu em Colatina para dar visibilidade ao comércio local e facilitar conexões entre compradores e vendedores.",
+            ),
+            (
+                "Como atuamos",
+                "A plataforma organiza anúncios e vitrines, enquanto a negociação acontece diretamente entre comprador e vendedor.",
+            ),
+            (
+                "Compromisso com a transparência",
+                "Conteúdos comerciais, ofertas de afiliados e empresas parceiras são identificados para deixar clara toda relação publicitária.",
+            ),
+            (
+                "Evolução responsável",
+                "O Mercado Colatina cresce por etapas, preservando a experiência do marketplace, a segurança e o interesse da comunidade local.",
+            ),
+        ],
+    )
+
+
+@app.route("/seja-parceiro")
+def pagina_seja_parceiro():
+    return render_template(
+        "pagina_info.html",
+        titulo="Seja parceiro",
+        resumo="Empresas de Colatina poderão participar de uma área institucional transparente, criada para valorizar quem acredita no comércio local.",
+        secoes=[
+            (
+                "Programa em preparação",
+                "A estrutura institucional está pronta, mas condições comerciais, preços e benefícios ainda serão definidos antes da abertura oficial.",
+            ),
+            (
+                "Níveis previstos",
+                "A arquitetura contempla Parceiro Local, Parceiro Destaque e Parceiro Premium, sem contratação ou regras comerciais ativas neste momento.",
+            ),
+            (
+                "Presença com transparência",
+                "Toda empresa participante será identificada como parceira, sem se confundir com anúncios ou produtos publicados no marketplace.",
+            ),
+            (
+                "Próximos passos",
+                "Quando o programa for lançado, esta página apresentará critérios, benefícios e o canal oficial para manifestação de interesse.",
+            ),
+        ],
+    )
 
 
 @app.route("/seguranca")

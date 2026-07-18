@@ -2368,6 +2368,8 @@ class ModeracaoTestCase(unittest.TestCase):
             "/cadastro",
             "/recuperar-acesso",
             "/ajuda",
+            "/quem-somos",
+            "/seja-parceiro",
             "/seguranca",
             "/privacidade",
             "/termos",
@@ -2814,6 +2816,45 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn('class="site-footer home-premium-footer"', html)
         self.assertIn("A praça digital para comprar, vender", html)
 
+    def test_home_exibe_confianca_empresas_parceiras_e_planos_preparados(self):
+        html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn('id="confianca"', html)
+        self.assertIn("Por que confiar no Mercado Colatina?", html)
+        self.assertIn("Criado em Colatina", html)
+        self.assertIn("Comércio local em primeiro lugar", html)
+        self.assertIn("Negociação direta", html)
+        self.assertIn("Publicidade transparente", html)
+        self.assertIn("Em constante evolução", html)
+        self.assertEqual(html.count("data-trust-item"), 5)
+        self.assertIn('id="empresas-parceiras"', html)
+        self.assertIn("Empresas que acreditam no comércio local.", html)
+        self.assertEqual(html.count("data-partner-card"), 6)
+        self.assertIn('data-partner-levels="local destaque premium"', html)
+        self.assertEqual(len(app_module.LOCAL_PARTNERS_HOME), 6)
+        self.assertEqual(
+            {item["nivel"] for item in app_module.LOCAL_PARTNERS_HOME},
+            {"local", "destaque", "premium"},
+        )
+        self.assertTrue(
+            all(item["placeholder"] for item in app_module.LOCAL_PARTNERS_HOME)
+        )
+
+    def test_rodape_exibe_navegacao_institucional_da_sprint(self):
+        html = self.client.get("/").data.decode("utf-8")
+
+        for texto in (
+            "Quem Somos",
+            "Seja Parceiro",
+            "Segurança",
+            "Como Funciona",
+            "Política de Privacidade",
+            "Termos de Uso",
+        ):
+            self.assertIn(texto, html)
+        self.assertIn('href="/quem-somos"', html)
+        self.assertIn('href="/seja-parceiro"', html)
+
     def test_home_apresenta_blocos_na_ordem_home_first(self):
         html = self.client.get("/").data.decode("utf-8")
         marcadores = (
@@ -2823,6 +2864,8 @@ class ModeracaoTestCase(unittest.TestCase):
             'id="ofertas-parceiros"',
             'id="planos"',
             'id="home-stores-title"',
+            'id="confianca"',
+            'id="empresas-parceiras"',
             'id="como-funciona"',
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
