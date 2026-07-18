@@ -60,6 +60,18 @@ services:
         value: "27998984840"
       - key: MERCADO_LIVRE_AFILIADO_URL
         value: https://meli.la/1yyfAoN
+      - key: OFERTA_PARCEIRO_01_URL
+        sync: false
+      - key: OFERTA_PARCEIRO_02_URL
+        sync: false
+      - key: OFERTA_PARCEIRO_03_URL
+        sync: false
+      - key: OFERTA_PARCEIRO_04_URL
+        sync: false
+      - key: OFERTA_PARCEIRO_05_URL
+        sync: false
+      - key: OFERTA_PARCEIRO_06_URL
+        sync: false
       - key: MP_CLIENT_ID
         value: "3630928256298103"
       - key: MP_CLIENT_SECRET

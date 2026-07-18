@@ -29,6 +29,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 load_dotenv()
 
 from database import USE_PG, close_db, get_db, init_db  # noqa: E402
+from partner_offers import build_partner_offers  # noqa: E402
 from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
     configurado as mercadopago_configurado,
@@ -113,80 +114,7 @@ SUPPORT_WHATSAPP = os.environ.get(
 MERCADO_LIVRE_AFILIADO_URL = os.environ.get(
     "MERCADO_LIVRE_AFILIADO_URL", "https://meli.la/1yyfAoN"
 )
-OFERTA_PARCEIRO_01_URL = os.environ.get(
-    "OFERTA_PARCEIRO_01_URL",
-    "https://lista.mercadolivre.com.br/celulares-acessorios",
-)
-OFERTA_PARCEIRO_02_URL = os.environ.get(
-    "OFERTA_PARCEIRO_02_URL",
-    "https://lista.mercadolivre.com.br/fones-audio",
-)
-OFERTA_PARCEIRO_03_URL = os.environ.get(
-    "OFERTA_PARCEIRO_03_URL",
-    "https://lista.mercadolivre.com.br/informatica",
-)
-OFERTA_PARCEIRO_04_URL = os.environ.get(
-    "OFERTA_PARCEIRO_04_URL",
-    "https://lista.mercadolivre.com.br/casa-utilidades",
-)
-OFERTA_PARCEIRO_05_URL = os.environ.get(
-    "OFERTA_PARCEIRO_05_URL",
-    "https://lista.mercadolivre.com.br/ferramentas",
-)
-OFERTA_PARCEIRO_06_URL = os.environ.get(
-    "OFERTA_PARCEIRO_06_URL",
-    "https://lista.mercadolivre.com.br/eletroportateis",
-)
-OFERTAS_PARCEIROS_HOME = (
-    {
-        "titulo": "Celulares e acessórios",
-        "preco": "A partir de R$ 49,90",
-        "imagem": "oferta-parceiro-01.svg",
-        "alt": "Ilustração de celular e acessórios em oferta parceira",
-        "url": OFERTA_PARCEIRO_01_URL,
-        "identificador_destino": "celulares-acessorios",
-    },
-    {
-        "titulo": "Fones e áudio",
-        "preco": "A partir de R$ 39,90",
-        "imagem": "oferta-parceiro-02.svg",
-        "alt": "Ilustração de fones e produtos de áudio em oferta parceira",
-        "url": OFERTA_PARCEIRO_02_URL,
-        "identificador_destino": "fones-audio",
-    },
-    {
-        "titulo": "Informática",
-        "preco": "A partir de R$ 89,90",
-        "imagem": "oferta-parceiro-03.svg",
-        "alt": "Ilustração de notebook e itens de informática em oferta parceira",
-        "url": OFERTA_PARCEIRO_03_URL,
-        "identificador_destino": "informatica",
-    },
-    {
-        "titulo": "Casa e utilidades",
-        "preco": "A partir de R$ 29,90",
-        "imagem": "oferta-parceiro-04.svg",
-        "alt": "Ilustração de itens para casa em oferta parceira",
-        "url": OFERTA_PARCEIRO_04_URL,
-        "identificador_destino": "casa-utilidades",
-    },
-    {
-        "titulo": "Ferramentas",
-        "preco": "A partir de R$ 59,90",
-        "imagem": "oferta-parceiro-05.svg",
-        "alt": "Ilustração de ferramentas em oferta parceira",
-        "url": OFERTA_PARCEIRO_05_URL,
-        "identificador_destino": "ferramentas",
-    },
-    {
-        "titulo": "Eletroportáteis",
-        "preco": "A partir de R$ 79,90",
-        "imagem": "oferta-parceiro-06.svg",
-        "alt": "Ilustração de eletroportáteis em oferta parceira",
-        "url": OFERTA_PARCEIRO_06_URL,
-        "identificador_destino": "eletroportateis",
-    },
-)
+OFERTAS_PARCEIROS_HOME = build_partner_offers()
 try:
     MARKETPLACE_FEE_PERCENT = Decimal(os.environ.get("MARKETPLACE_FEE_PERCENT", "0"))
 except InvalidOperation:

@@ -45,6 +45,28 @@
     previous.addEventListener("click", () => move(-1));
     next.addEventListener("click", () => move(1));
 
+    const activateControl = (event, direction) => {
+      if (event.key !== "Enter" && event.key !== " ") {
+        return;
+      }
+
+      event.preventDefault();
+      move(direction);
+    };
+
+    previous.addEventListener("keydown", (event) => activateControl(event, -1));
+    next.addEventListener("keydown", (event) => activateControl(event, 1));
+    track.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        move(-1);
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        move(1);
+      }
+    });
+
     if (prefersReducedMotion) {
       return;
     }

@@ -15,6 +15,8 @@ os.environ["DATABASE_PATH"] = os.path.join(TEST_DIR, "test.db")
 os.environ["FLASK_ENV"] = "testing"
 os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ.pop("STORE_MANAGER_ASSIGNMENTS", None)
+for indice_oferta in range(1, 7):
+    os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
 
 import app as app_module  # noqa: E402
 from app import app  # noqa: E402
@@ -24,6 +26,10 @@ from database import (  # noqa: E402
     _seed_loja_administradores,
     get_db,
     init_db,
+)
+from partner_offers import (  # noqa: E402
+    PARTNER_OFFERS_CONFIG,
+    build_partner_offers,
 )
 
 
@@ -2411,15 +2417,32 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b'data-click-area="titulo"', pagina.data)
         self.assertIn(b'data-click-area="botao"', pagina.data)
         self.assertIn(b'target="_blank"', pagina.data)
+        self.assertIn(
+            b'data-responsive-layout="wide-6 desktop-5 tablet-3 mobile-2"',
+            pagina.data,
+        )
         html = pagina.data.decode("utf-8")
         self.assertEqual(html.count('class="partner-offer-card"'), 6)
-        self.assertGreaterEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 4)
-        self.assertLessEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 6)
+        self.assertEqual(html.count('data-link-source="fallback"'), 6)
+        self.assertEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 6)
         self.assertLess(
             html.index('id="ofertas"'), html.index('id="ofertas-parceiros"')
         )
         self.assertLess(html.index('id="ofertas-parceiros"'), html.index('id="planos"'))
         self.assertNotIn('id="achados"', html)
+
+        caminho_carrossel = os.path.join(
+            app_module.BASE_DIR, "static", "partner-offers-carousel.js"
+        )
+        with open(caminho_carrossel, encoding="utf-8") as arquivo_carrossel:
+            javascript = arquivo_carrossel.read()
+        self.assertIn('event.key !== "Enter"', javascript)
+        self.assertIn('event.key === "ArrowLeft"', javascript)
+        self.assertIn('event.key === "ArrowRight"', javascript)
+        self.assertIn("window.setInterval", javascript)
+        self.assertIn("prefersReducedMotion", javascript)
+        self.assertIn('carousel.addEventListener("mouseenter", pause)', javascript)
+        self.assertIn('carousel.addEventListener("focusin", pause)', javascript)
 
     def test_home_ofertas_de_parceiros_usam_links_individuais_por_card(self):
         ofertas = app_module.OFERTAS_PARCEIROS_HOME
@@ -2437,6 +2460,44 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIn(f'data-destino="{oferta["identificador_destino"]}"', html)
             self.assertIn(oferta["titulo"], html)
             self.assertIn(oferta["preco"], html)
+
+    def test_configuracao_centralizada_preserva_fallbacks_sem_ativar_afiliacao(self):
+        ofertas = build_partner_offers({})
+        env_keys = [config["env_key"] for config in PARTNER_OFFERS_CONFIG]
+        fallbacks = [config["fallback_url"] for config in PARTNER_OFFERS_CONFIG]
+
+        self.assertEqual(len(ofertas), 6)
+        self.assertEqual(len(set(env_keys)), 6)
+        self.assertEqual(len(set(fallbacks)), 6)
+        self.assertTrue(all(oferta["url"] for oferta in ofertas))
+        self.assertTrue(
+            all(not oferta["link_oficial_configurado"] for oferta in ofertas)
+        )
+        self.assertEqual([oferta["url"] for oferta in ofertas], fallbacks)
+
+    def test_configuracao_centralizada_aceita_link_oficial_sem_alterar_valor(self):
+        env_key = PARTNER_OFFERS_CONFIG[0]["env_key"]
+        url_fornecida = "https://example.invalid/link-oficial-fornecido"
+        ofertas = build_partner_offers({env_key: url_fornecida})
+
+        self.assertEqual(ofertas[0]["url"], url_fornecida)
+        self.assertTrue(ofertas[0]["link_oficial_configurado"])
+        self.assertTrue(
+            all(not oferta["link_oficial_configurado"] for oferta in ofertas[1:])
+        )
+
+    def test_home_declara_configuracao_responsiva_dos_cards_parceiros(self):
+        caminho_css = os.path.join(app_module.BASE_DIR, "static", "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo_css:
+            css = arquivo_css.read()
+
+        self.assertIn("calc((100% - 3.75rem) / 6)", css)
+        self.assertIn("calc((100% - 3rem) / 5)", css)
+        self.assertIn("calc((100% - 2rem) / 3)", css)
+        self.assertIn("calc((100% - .75rem) / 2)", css)
+        self.assertIn("@media(max-width:1399px)", css)
+        self.assertIn("@media(max-width:1023px)", css)
+        self.assertIn("@media(max-width:639px)", css)
 
     def test_home_oferta_parceira_mantem_mesma_url_na_imagem_titulo_e_botao(self):
         pagina = self.client.get("/")
