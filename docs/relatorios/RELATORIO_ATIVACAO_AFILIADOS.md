@@ -87,10 +87,42 @@ Nao foi declarada confirmacao dos novos cliques antes da atualizacao oficial das
 ## Validacao final
 
 - Conta de afiliado: ativa.
-- Seis links oficiais: gerados e configurados.
+- Seis links oficiais: gerados, configurados e publicados em producao.
 - Destinos: seis categorias distintas e corretas.
 - Rastreamento tecnico: confirmado.
 - Atualizacao dos novos cliques no painel: pendente de sincronizacao.
-- Merge: nao realizado.
-- Deploy: nao realizado.
+- Merge: `e8224a01e4181f504065c3f034f63a277fbe63e7`.
+- CI da `master`: aprovado no workflow `29648666503`.
+- Deploy: concluido e detectado em producao em 18/07/2026, as 11h48min34s (America/Sao_Paulo).
+- URL de producao: `https://mercadocolatina.com.br/`.
+- Monetizacao por afiliados: oficialmente ativa.
 - MX-004.2: nao iniciada.
+
+## Validacao em producao
+
+| Verificacao | Resultado |
+|---|---|
+| Seis cards usando links oficiais `meli.la` | Aprovado |
+| `data-link-source="official"` nos seis cards | Aprovado |
+| URLs preenchidas e unicas | Aprovado |
+| Nova guia com `target="_blank"` | Aprovado |
+| `rel="sponsored noopener noreferrer"` | Aprovado |
+| `matt_word=paulo-eler` preservado | Aprovado nos seis links |
+| `matt_tool=87431189` preservado | Aprovado nos seis links |
+| `ref` oficial exclusivo preservado | Aprovado nos seis links |
+| Desktop 1440 px | Seis cards visiveis, sem overflow |
+| Mobile 390 px | Dois cards visiveis, sem overflow |
+| Console da aplicacao | Zero erros |
+
+### Matriz final dos destinos publicados
+
+| Card | Link publicado | Busca confirmada no destino | Resultado |
+|---:|---|---|---|
+| 1 | `https://meli.la/2Etz5JQ` | `celulares-acessorios` | Aprovado |
+| 2 | `https://meli.la/2wXKKkG` | `fones-audio` | Aprovado |
+| 3 | `https://meli.la/2w5Db1g` | `informatica` | Aprovado |
+| 4 | `https://meli.la/2UFigfL` | `casa-utilidades` | Aprovado |
+| 5 | `https://meli.la/1Cfu3iY` | `ferramentas` | Aprovado |
+| 6 | `https://meli.la/2BrRKKT` | `eletroportateis` | Aprovado |
+
+Cada link curto abre o perfil oficial `PAULO-ELER`, preserva a identificacao de afiliado e apresenta a busca correspondente com acesso para a categoria correta.
