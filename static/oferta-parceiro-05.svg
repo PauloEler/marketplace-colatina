@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="280" viewBox="0 0 420 280" role="img" aria-labelledby="title desc">
+  <title id="title">Ferramentas</title>
+  <desc id="desc">Ilustração institucional para oferta parceira de ferramentas.</desc>
+  <rect width="420" height="280" fill="#f5f1e9"/>
+  <circle cx="90" cy="220" r="86" fill="#e2ede6"/>
+  <circle cx="334" cy="76" r="74" fill="#f3e0d2"/>
+  <path d="m142 194 102-102 32 32-102 102a23 23 0 0 1-32-32z" fill="#155f3b"/>
+  <path d="M246 92c25-25 55-25 77-4l-46 16 16 46c-22 7-48 2-65-15z" fill="#123f2d"/>
+  <rect x="96" y="92" width="104" height="28" rx="14" transform="rotate(38 96 92)" fill="#c96536"/>
+</svg>

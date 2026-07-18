@@ -9,7 +9,10 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="{{ imagem_social }}">
 {% endblock %}
-{% block head_extra %}<link rel="canonical" href="{{ site_url }}">{% endblock %}
+{% block head_extra %}
+<link rel="canonical" href="{{ site_url }}">
+<script src="{{ url_for('static', filename='partner-offers-carousel.js') }}" defer></script>
+{% endblock %}
 {% block body_class %}mds-home mx-home-premium home-official{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
@@ -186,6 +189,37 @@
 </section>
 
 {% if not busca and not cat_sel %}
+<section id="ofertas-parceiros" class="home-partner-offers" aria-labelledby="partner-offers-title" data-partner-carousel>
+  <div class="section-head partner-offers-head">
+    <div>
+      <div class="section-kicker">Conteúdo de parceiros</div>
+      <h2 id="partner-offers-title">Ofertas de Parceiros</h2>
+      <p class="section-description">Algumas ofertas desta seção são exibidas por parceiros comerciais. Ao clicar, você será direcionado ao site do parceiro.</p>
+    </div>
+    <div class="partner-offers-controls" aria-label="Navegação das ofertas de parceiros">
+      <button type="button" data-carousel-prev aria-controls="partner-offers-track" aria-label="Ver ofertas anteriores">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+      </button>
+      <button type="button" data-carousel-next aria-controls="partner-offers-track" aria-label="Ver próximas ofertas">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+      </button>
+    </div>
+  </div>
+  <div class="partner-offers-viewport" id="partner-offers-track" tabindex="0" aria-label="Carrossel de ofertas de parceiros">
+    {% for oferta in ofertas_parceiros %}
+    <article class="partner-offer-card">
+      <a href="{{ oferta.url }}" rel="sponsored nofollow" target="_blank" class="partner-offer-link" aria-label="Ver oferta parceira: {{ oferta.titulo }}">
+        <img src="{{ url_for('static', filename=oferta.imagem) }}" alt="{{ oferta.alt }}" loading="lazy" decoding="async" width="420" height="280">
+        <span class="partner-offer-badge">Parceiro</span>
+        <h3>{{ oferta.titulo }}</h3>
+        <strong>{{ oferta.preco }}</strong>
+        <span class="partner-offer-button">Ver oferta</span>
+      </a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section id="planos" class="home-seller-callout" aria-labelledby="seller-callout-title">
   <div class="home-seller-copy">
     <div class="section-kicker">Feito para quem movimenta a cidade</div>
@@ -251,16 +285,6 @@
   </div>
 </section>
 
-<section id="achados" class="affiliate-profile affiliate-profile-compact" aria-labelledby="achados-title">
-  <div class="affiliate-profile-mark" aria-hidden="true">ML</div>
-  <div class="affiliate-profile-content">
-    <div class="affiliate-featured-label">Parceiro</div>
-    <h2 id="achados-title">Ofertas no Mercado Livre</h2>
-    <p>Veja promoções selecionadas em nosso parceiro.</p>
-    <small>Você será direcionado para o Mercado Livre. Este é um link de afiliado e o Mercado Colatina pode receber uma comissão, sem custo adicional para você.</small>
-  </div>
-  <a class="btn affiliate-profile-button" href="{{ mercado_livre_afiliado_url }}" rel="sponsored nofollow">Ver ofertas no Mercado Livre</a>
-</section>
 {% endif %}
 {% endblock %}
 
