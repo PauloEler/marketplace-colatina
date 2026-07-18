@@ -2406,11 +2406,11 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b"data-carousel-prev", pagina.data)
         self.assertIn(b"data-carousel-next", pagina.data)
         self.assertIn(b"partner-offers-carousel.js", pagina.data)
-        self.assertIn(
-            b'target="_blank" class="partner-offer-link"',
-            pagina.data,
-        )
-        self.assertIn(b'rel="sponsored nofollow"', pagina.data)
+        self.assertIn(b'rel="sponsored noopener noreferrer"', pagina.data)
+        self.assertIn(b'data-click-area="imagem"', pagina.data)
+        self.assertIn(b'data-click-area="titulo"', pagina.data)
+        self.assertIn(b'data-click-area="botao"', pagina.data)
+        self.assertIn(b'target="_blank"', pagina.data)
         html = pagina.data.decode("utf-8")
         self.assertEqual(html.count('class="partner-offer-card"'), 6)
         self.assertGreaterEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 4)
@@ -2420,6 +2420,40 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         self.assertLess(html.index('id="ofertas-parceiros"'), html.index('id="planos"'))
         self.assertNotIn('id="achados"', html)
+
+    def test_home_ofertas_de_parceiros_usam_links_individuais_por_card(self):
+        ofertas = app_module.OFERTAS_PARCEIROS_HOME
+        urls = [oferta["url"] for oferta in ofertas]
+
+        self.assertEqual(len(ofertas), 6)
+        self.assertTrue(all(urls))
+        self.assertEqual(len(set(urls)), len(urls))
+
+        pagina = self.client.get("/")
+        html = pagina.data.decode("utf-8")
+
+        for oferta in ofertas:
+            self.assertIn(f'href="{oferta["url"]}"', html)
+            self.assertIn(f'data-destino="{oferta["identificador_destino"]}"', html)
+            self.assertIn(oferta["titulo"], html)
+            self.assertIn(oferta["preco"], html)
+
+    def test_home_oferta_parceira_mantem_mesma_url_na_imagem_titulo_e_botao(self):
+        pagina = self.client.get("/")
+        html = pagina.data.decode("utf-8")
+        blocos = html.split('class="partner-offer-card"')[1:]
+
+        self.assertEqual(len(blocos), 6)
+
+        for oferta, bloco in zip(
+            app_module.OFERTAS_PARCEIROS_HOME, blocos, strict=True
+        ):
+            url = oferta["url"]
+            self.assertIn(f'href="{url}"', bloco)
+            self.assertIn('data-click-area="imagem"', bloco)
+            self.assertIn('data-click-area="titulo"', bloco)
+            self.assertIn('data-click-area="botao"', bloco)
+            self.assertEqual(bloco.count(f'href="{url}"'), 1)
 
     def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):
         with app.app_context():

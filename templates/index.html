@@ -208,12 +208,12 @@
   <div class="partner-offers-viewport" id="partner-offers-track" tabindex="0" aria-label="Carrossel de ofertas de parceiros">
     {% for oferta in ofertas_parceiros %}
     <article class="partner-offer-card">
-      <a href="{{ oferta.url }}" rel="sponsored nofollow" target="_blank" class="partner-offer-link" aria-label="Ver oferta parceira: {{ oferta.titulo }}">
-        <img src="{{ url_for('static', filename=oferta.imagem) }}" alt="{{ oferta.alt }}" loading="lazy" decoding="async" width="420" height="280">
+      <a href="{{ oferta.url }}" rel="sponsored noopener noreferrer" target="_blank" class="partner-offer-link" aria-label="Ver oferta parceira: {{ oferta.titulo }}" data-destino="{{ oferta.identificador_destino }}">
+        <img src="{{ url_for('static', filename=oferta.imagem) }}" alt="{{ oferta.alt }}" loading="lazy" decoding="async" width="420" height="280" data-click-area="imagem">
         <span class="partner-offer-badge">Parceiro</span>
-        <h3>{{ oferta.titulo }}</h3>
+        <h3 data-click-area="titulo">{{ oferta.titulo }}</h3>
         <strong>{{ oferta.preco }}</strong>
-        <span class="partner-offer-button">Ver oferta</span>
+        <span class="partner-offer-button" data-click-area="botao">Ver oferta</span>
       </a>
     </article>
     {% endfor %}
