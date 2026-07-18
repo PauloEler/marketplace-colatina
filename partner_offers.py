@@ -6,6 +6,7 @@ from collections.abc import Mapping
 
 PARTNER_OFFERS_CONFIG = (
     {
+        "parceiro": "mercado_livre",
         "titulo": "Celulares e acessórios",
         "preco": "A partir de R$ 49,90",
         "imagem": "oferta-parceiro-01-premium.webp",
@@ -16,6 +17,7 @@ PARTNER_OFFERS_CONFIG = (
         "fallback_url": "https://lista.mercadolivre.com.br/celulares-acessorios",
     },
     {
+        "parceiro": "mercado_livre",
         "titulo": "Fones e áudio",
         "preco": "A partir de R$ 39,90",
         "imagem": "oferta-parceiro-02-premium.webp",
@@ -26,6 +28,7 @@ PARTNER_OFFERS_CONFIG = (
         "fallback_url": "https://lista.mercadolivre.com.br/fones-audio",
     },
     {
+        "parceiro": "mercado_livre",
         "titulo": "Informática",
         "preco": "A partir de R$ 89,90",
         "imagem": "oferta-parceiro-03-premium.webp",
@@ -36,6 +39,7 @@ PARTNER_OFFERS_CONFIG = (
         "fallback_url": "https://lista.mercadolivre.com.br/informatica",
     },
     {
+        "parceiro": "mercado_livre",
         "titulo": "Casa e utilidades",
         "preco": "A partir de R$ 29,90",
         "imagem": "oferta-parceiro-04-premium.webp",
@@ -46,6 +50,7 @@ PARTNER_OFFERS_CONFIG = (
         "fallback_url": "https://lista.mercadolivre.com.br/casa-utilidades",
     },
     {
+        "parceiro": "mercado_livre",
         "titulo": "Ferramentas",
         "preco": "A partir de R$ 59,90",
         "imagem": "oferta-parceiro-05-premium.webp",
@@ -56,6 +61,7 @@ PARTNER_OFFERS_CONFIG = (
         "fallback_url": "https://lista.mercadolivre.com.br/ferramentas",
     },
     {
+        "parceiro": "mercado_livre",
         "titulo": "Eletroportáteis",
         "preco": "A partir de R$ 79,90",
         "imagem": "oferta-parceiro-06-premium.webp",

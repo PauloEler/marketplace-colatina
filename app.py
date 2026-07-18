@@ -29,6 +29,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 load_dotenv()
 
 from database import USE_PG, close_db, get_db, init_db  # noqa: E402
+from affiliate_analytics import (  # noqa: E402
+    build_affiliate_dashboard,
+    record_affiliate_event,
+)
 from partner_offers import build_partner_offers  # noqa: E402
 from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
@@ -1058,7 +1062,14 @@ def adicionar_cabecalhos_seguranca(response):
 
 @app.before_request
 def proteger_formularios():
-    if request.method == "POST" and request.endpoint != "mercadopago_webhook":
+    endpoints_json_com_protecao_propria = {
+        "mercadopago_webhook",
+        "registrar_evento_afiliado",
+    }
+    if (
+        request.method == "POST"
+        and request.endpoint not in endpoints_json_com_protecao_propria
+    ):
         token_sessao = session.get("_csrf_token")
         token_form = request.form.get("csrf_token")
         if (
@@ -1171,6 +1182,22 @@ def index():
         site_url=url_publica("index"),
         imagem_social=url_publica("static", filename="mercado-colatina-social.svg"),
     )
+
+
+@app.route("/analytics/afiliados/evento", methods=["POST"])
+def registrar_evento_afiliado():
+    payload = request.get_json(silent=True) or {}
+    token_sessao = session.get("_csrf_token")
+    token_payload = str(payload.get("csrf_token", ""))
+    if (
+        not token_sessao
+        or not token_payload
+        or not secrets.compare_digest(token_sessao, token_payload)
+    ):
+        return {"error": "invalid_analytics_request"}, 400
+    if not record_affiliate_event(get_db(), OFERTAS_PARCEIROS_HOME, payload):
+        return {"error": "invalid_analytics_event"}, 400
+    return "", 204
 
 
 @app.route("/health")
@@ -3358,6 +3385,11 @@ def painel_admin():
             "dashboard_executivo.html",
             dashboard=montar_dashboard_executivo(db),
             formatar_data_cockpit=formatar_data_cockpit,
+        )
+    if request.args.get("visao") == "afiliados":
+        return render_template(
+            "analytics_afiliados.html",
+            analytics=build_affiliate_dashboard(db, OFERTAS_PARCEIROS_HOME),
         )
     if request.args.get("visao") == "cockpit":
         return render_template(

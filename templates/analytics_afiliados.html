@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Analytics de Afiliados | Mercado Colatina{% endblock %}
+{% block body_class %}mds-dashboard{% endblock %}
+{% block voltar %}<a href="/admin" class="voltar">Abrir administração</a>{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell" id="affiliate-analytics-dashboard">
+  <header class="dashboard-hero">
+    <div>
+      <span class="dashboard-eyebrow">Mercado Colatina · Monetização</span>
+      <h1>Analytics de Afiliados</h1>
+      <p>Cliques e taxa de interação das ofertas parceiras, sem coleta de dados pessoais.</p>
+    </div>
+    <div class="dashboard-readonly" aria-label="Atualização e natureza dos dados">
+      <span aria-hidden="true">↗</span>
+      <div><strong>Dados somente de leitura</strong><small>Atualizado em {{ analytics.generated_at }}</small></div>
+    </div>
+  </header>
+
+  <section class="dashboard-section" aria-labelledby="affiliate-summary-title">
+    <div class="dashboard-section-heading">
+      <div><span>01</span><h2 id="affiliate-summary-title">Resumo de cliques</h2></div>
+      <p>Interações registradas na seção “Ofertas de Parceiros” da Home.</p>
+    </div>
+    <div class="dashboard-metric-grid">
+      <article data-affiliate-metric="today" data-value="{{ analytics.clicks_today }}"><span aria-hidden="true">●</span><h3>Cliques hoje</h3><strong>{{ analytics.clicks_today }}</strong><small>Dia atual em Colatina</small></article>
+      <article data-affiliate-metric="7-days" data-value="{{ analytics.clicks_7_days }}"><span aria-hidden="true">●</span><h3>Últimos 7 dias</h3><strong>{{ analytics.clicks_7_days }}</strong><small>Janela móvel</small></article>
+      <article data-affiliate-metric="30-days" data-value="{{ analytics.clicks_30_days }}"><span aria-hidden="true">●</span><h3>Últimos 30 dias</h3><strong>{{ analytics.clicks_30_days }}</strong><small>Base do ranking</small></article>
+      <article><span aria-hidden="true">↑</span><h3>TOP categoria</h3><strong>{{ analytics.top_category.category if analytics.top_category else 'Sem dados' }}</strong><small>{{ analytics.top_category.clicks ~ ' cliques' if analytics.top_category else 'Aguardando cliques' }}</small></article>
+      <article><span aria-hidden="true">↓</span><h3>Menor interesse</h3><strong>{{ analytics.lowest_category.category if analytics.lowest_category else 'Sem dados' }}</strong><small>{{ analytics.lowest_category.clicks ~ ' cliques' if analytics.lowest_category else 'Aguardando cliques' }}</small></article>
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="affiliate-ranking-title">
+    <div class="dashboard-section-heading">
+      <div><span>02</span><h2 id="affiliate-ranking-title">Desempenho por categoria</h2></div>
+      <p>CTR = cliques ÷ impressões visíveis nos últimos 30 dias.</p>
+    </div>
+    <div class="dashboard-market-grid">
+      <article class="dashboard-market-card">
+        <header><span aria-hidden="true">★</span><div><h3>Ranking de cliques</h3><small>Maior interesse primeiro</small></div></header>
+        <ol class="dashboard-ranking">
+          {% for item in analytics.ranking %}
+          <li data-affiliate-category="{{ item.offer_id }}" data-clicks="{{ item.clicks }}">
+            <span class="dashboard-rank">{{ '🥇' if loop.index == 1 else '🥈' if loop.index == 2 else '🥉' if loop.index == 3 else loop.index ~ 'º' }}</span>
+            <strong>{{ item.category }}</strong>
+            <span>{{ item.clicks }} clique{{ '' if item.clicks == 1 else 's' }}</span>
+          </li>
+          {% endfor %}
+        </ol>
+      </article>
+
+      <article class="dashboard-market-card">
+        <header><span aria-hidden="true">%</span><div><h3>CTR por categoria</h3><small>Cliques sobre impressões</small></div></header>
+        <ul class="dashboard-ranking">
+          {% for item in analytics.ranking %}
+          <li data-affiliate-ctr="{{ item.offer_id }}" data-value="{{ item.ctr }}">
+            <span class="dashboard-rank">{{ loop.index }}</span>
+            <strong>{{ item.category }}</strong>
+            <span>{{ '%.2f'|format(item.ctr) }}% · {{ item.impressions }} impressões</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </article>
+
+      <article class="dashboard-market-card">
+        <header><span aria-hidden="true">+</span><div><h3>Parceiros preparados</h3><small>Arquitetura extensível</small></div></header>
+        <ul>
+          <li><div><strong>Mercado Livre</strong><span>Ativo e medido</span></div></li>
+          <li><div><strong>Amazon · Magalu · Shopee</strong><span>Preparados para futura configuração</span></div></li>
+          <li><div><strong>Outros parceiros</strong><span>Mesmo modelo de evento e relatório</span></div></li>
+        </ul>
+      </article>
+    </div>
+  </section>
+</div>
+{% endblock %}
