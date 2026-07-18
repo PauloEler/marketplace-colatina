@@ -129,5 +129,53 @@ Receber do proprietario e cadastrar os seis links oficiais individuais do Progra
 
 ## Publicacao
 
-- Merge: nao realizado.
-- Deploy: nao realizado.
+- PR: `#55`, removida de Draft, revisada e aprovada.
+- Merge na `master`: `c1e9bf0c6fd2068bb090393f74abb9ce46263bce`.
+- Horario do merge: 18/07/2026, 10:56:32 (America/Sao_Paulo).
+- CI da `master`: aprovado no workflow `29647084832`.
+- Deploy automatico no Render: concluido.
+- Nova versao detectada em producao: 18/07/2026, 10:59:12 (America/Sao_Paulo).
+- URL validada: `https://mercadocolatina.com.br/`.
+
+### Validacao em producao por breakpoint
+
+| Largura | Esperado | Observado | Overflow da pagina | Resultado |
+|---|---:|---:|---|---|
+| 1440 px | 6 | 6 | Nao | Aprovado |
+| 1280 px | 5 | 5 | Nao | Aprovado |
+| 1024 px | 5 | 5 | Nao | Aprovado |
+| 768 px | 3 | 3 | Nao | Aprovado |
+| 390 px | 2 | 2 | Nao | Aprovado |
+| 320 px | 2 | 2 | Nao | Aprovado |
+
+Em todas as larguras foram encontrados seis cards cadastrados, sem overflow interno e com altura minima de 44 px nos botoes.
+
+### Matriz dos seis destinos em producao
+
+| Card | Identificador | Destino validado | Origem do link |
+|---:|---|---|---|
+| 1 | `celulares-acessorios` | `https://lista.mercadolivre.com.br/celulares-acessorios` | Fallback direto |
+| 2 | `fones-audio` | `https://lista.mercadolivre.com.br/fones-audio` | Fallback direto |
+| 3 | `informatica` | `https://lista.mercadolivre.com.br/informatica` | Fallback direto |
+| 4 | `casa-utilidades` | `https://lista.mercadolivre.com.br/casa-utilidades` | Fallback direto |
+| 5 | `ferramentas` | `https://lista.mercadolivre.com.br/ferramentas` | Fallback direto |
+| 6 | `eletroportateis` | `https://lista.mercadolivre.com.br/eletroportateis` | Fallback direto |
+
+Imagem, titulo e botao de cada card compartilham o mesmo link correspondente. Os seis links possuem `target="_blank"` e `rel="sponsored noopener noreferrer"` e foram confirmados com abertura em nova guia.
+
+### Validacao funcional em producao
+
+- Navegacao manual: aprovada; avancar deslocou o carrossel e voltar restaurou a posicao.
+- Teclado: aprovado com Enter nos controles e ArrowRight no carrossel.
+- Foco visivel: aprovado, com contorno computado no elemento ativo.
+- Rotacao automatica: ativo publicado com intervalo de 5,2 segundos; no navegador de validacao, a pausa por `prefers-reduced-motion` foi corretamente respeitada.
+- Console da aplicacao: zero erros.
+- Desktop e mobile: aprovados conforme a matriz de breakpoints.
+
+### Situacao comercial apos a publicacao
+
+- Os links atuais continuam sendo fallbacks diretos do Mercado Livre.
+- Links oficiais de afiliado fornecidos: `0/6`.
+- A comissao ainda nao pode ser considerada ativa.
+- Nenhum parametro, codigo ou identificacao de afiliado foi inventado.
+- A pendencia comercial permanece ate o recebimento e cadastro dos seis links oficiais individuais.
