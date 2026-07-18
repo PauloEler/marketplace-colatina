@@ -2423,7 +2423,7 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         html = pagina.data.decode("utf-8")
         self.assertEqual(html.count('class="partner-offer-card"'), 6)
-        self.assertEqual(html.count('data-link-source="fallback"'), 6)
+        self.assertEqual(html.count('data-link-source="official"'), 6)
         self.assertEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 6)
         self.assertLess(
             html.index('id="ofertas"'), html.index('id="ofertas-parceiros"')
@@ -2461,19 +2461,20 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIn(oferta["titulo"], html)
             self.assertIn(oferta["preco"], html)
 
-    def test_configuracao_centralizada_preserva_fallbacks_sem_ativar_afiliacao(self):
+    def test_configuracao_centralizada_usa_seis_links_oficiais_unicos(self):
         ofertas = build_partner_offers({})
         env_keys = [config["env_key"] for config in PARTNER_OFFERS_CONFIG]
+        oficiais = [config["official_url"] for config in PARTNER_OFFERS_CONFIG]
         fallbacks = [config["fallback_url"] for config in PARTNER_OFFERS_CONFIG]
 
         self.assertEqual(len(ofertas), 6)
         self.assertEqual(len(set(env_keys)), 6)
+        self.assertEqual(len(set(oficiais)), 6)
         self.assertEqual(len(set(fallbacks)), 6)
         self.assertTrue(all(oferta["url"] for oferta in ofertas))
-        self.assertTrue(
-            all(not oferta["link_oficial_configurado"] for oferta in ofertas)
-        )
-        self.assertEqual([oferta["url"] for oferta in ofertas], fallbacks)
+        self.assertTrue(all(url.startswith("https://meli.la/") for url in oficiais))
+        self.assertTrue(all(oferta["link_oficial_configurado"] for oferta in ofertas))
+        self.assertEqual([oferta["url"] for oferta in ofertas], oficiais)
 
     def test_configuracao_centralizada_aceita_link_oficial_sem_alterar_valor(self):
         env_key = PARTNER_OFFERS_CONFIG[0]["env_key"]
@@ -2482,9 +2483,7 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertEqual(ofertas[0]["url"], url_fornecida)
         self.assertTrue(ofertas[0]["link_oficial_configurado"])
-        self.assertTrue(
-            all(not oferta["link_oficial_configurado"] for oferta in ofertas[1:])
-        )
+        self.assertTrue(all(oferta["link_oficial_configurado"] for oferta in ofertas))
 
     def test_home_declara_configuracao_responsiva_dos_cards_parceiros(self):
         caminho_css = os.path.join(app_module.BASE_DIR, "static", "styles.css")
