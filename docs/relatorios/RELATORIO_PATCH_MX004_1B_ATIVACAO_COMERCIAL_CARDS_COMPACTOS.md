@@ -10,8 +10,10 @@ O CSS definia cada card com `flex-basis: calc((100% - 3rem) / 4)`. Essa regra re
 
 ## Situacao comercial dos links
 
+- Status dos links oficiais: `0/6` fornecidos.
 - Os seis links oficiais individuais ainda nao foram fornecidos pelo proprietario do Mercado Colatina.
 - Nenhum parametro, identificador ou codigo de afiliado foi criado por este Patch.
+- Nenhuma identificacao de afiliado foi inventada.
 - A comissao de afiliado nao esta declarada como ativa.
 - Os seis destinos diretos atuais do Mercado Livre foram preservados como fallback.
 - A ativacao comercial depende do preenchimento das variaveis `OFERTA_PARCEIRO_01_URL` a `OFERTA_PARCEIRO_06_URL` com os links oficiais recebidos.
