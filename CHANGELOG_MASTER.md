@@ -1,5 +1,30 @@
 # CHANGELOG MASTER
 
+## 2026-07-18 - MX-004.1D Analytics dos Afiliados
+
+### Publicado
+
+- PR #60 integrada na `master`.
+- Hash do merge: `a50c47f09c97f41f0ce5ff4fff704eafe4bfbe0d`.
+- CI da `master` aprovado no workflow `29651391696`.
+- Deploy automatico no Render detectado em producao entre 13h10 e 13h11 (horario de Brasilia).
+
+### Validado em producao
+
+- Dashboard administrativo ativo em `/admin?visao=afiliados`.
+- Contadores iniciaram em zero e passaram a registrar 2 cliques controlados.
+- Clique desktop registrado em `Celulares e acessorios`.
+- Clique mobile em 390 px registrado em `Fones e audio`, sem overflow horizontal.
+- Totais de hoje, 7 dias e 30 dias atualizados de 0 para 2.
+- Home, layout e seis links oficiais `meli.la` preservados.
+- Abertura em nova guia com `rel="sponsored noopener noreferrer"` preservada.
+- Console da aplicacao sem erros; aviso externo observado apenas em extensao do navegador.
+- Eventos armazenam somente parceiro, oferta, categoria, tipo, origem, dispositivo e data/hora, sem dados pessoais.
+
+### Restricoes preservadas
+
+- Sem inicio da MX-004.2.
+
 ## 2026-07-18 - Ativacao comercial dos afiliados
 
 ### Publicado
