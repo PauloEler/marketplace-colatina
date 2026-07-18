@@ -1,5 +1,35 @@
 # CHANGELOG MASTER
 
+## 2026-07-18 - Ativacao comercial dos afiliados
+
+### Publicado
+
+- PR #57 integrada na `master`.
+- Hash do merge: `e8224a01e4181f504065c3f034f63a277fbe63e7`.
+- CI da `master` aprovado no workflow `29648666503`.
+- Deploy automatico no Render detectado em producao as 11h48min34s.
+
+### Ativado
+
+- Conta `PAULO-ELER` ativa no Programa de Afiliados e Criadores do Mercado Livre.
+- Seis links oficiais `meli.la` publicados na secao "Ofertas de Parceiros".
+- Identificacao oficial `matt_word=paulo-eler`, `matt_tool=87431189` e `ref` preservada nos seis redirecionamentos.
+- Monetizacao por afiliados oficialmente ativa.
+
+### Validado
+
+- Seis cards com URLs oficiais, preenchidas e unicas.
+- Celulares e acessorios, fones e audio, informatica, casa e utilidades, ferramentas e eletroportateis direcionando para as buscas corretas.
+- Abertura em nova guia com `rel="sponsored noopener noreferrer"`.
+- Desktop 1440 px com seis cards visiveis e sem overflow.
+- Mobile 390 px com dois cards visiveis e sem overflow.
+- Console da aplicacao sem erros.
+
+### Restricoes preservadas
+
+- Sem alteracao de layout, CSS ou componentes.
+- Sem inicio da MX-004.2.
+
 ## 2026-07-18 - MX-004.1 Home Monetizacao
 
 ### Publicado
