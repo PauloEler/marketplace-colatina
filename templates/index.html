@@ -189,7 +189,7 @@
 </section>
 
 {% if not busca and not cat_sel %}
-<section id="ofertas-parceiros" class="home-partner-offers" aria-labelledby="partner-offers-title" data-partner-carousel>
+<section id="ofertas-parceiros" class="home-partner-offers" aria-labelledby="partner-offers-title" data-partner-carousel data-responsive-layout="wide-6 desktop-5 tablet-3 mobile-2">
   <div class="section-head partner-offers-head">
     <div>
       <div class="section-kicker">Conteúdo de parceiros</div>
@@ -208,7 +208,7 @@
   <div class="partner-offers-viewport" id="partner-offers-track" tabindex="0" aria-label="Carrossel de ofertas de parceiros">
     {% for oferta in ofertas_parceiros %}
     <article class="partner-offer-card">
-      <a href="{{ oferta.url }}" rel="sponsored noopener noreferrer" target="_blank" class="partner-offer-link" aria-label="Ver oferta parceira: {{ oferta.titulo }}" data-destino="{{ oferta.identificador_destino }}">
+      <a href="{{ oferta.url }}" rel="sponsored noopener noreferrer" target="_blank" class="partner-offer-link" aria-label="Ver oferta parceira: {{ oferta.titulo }}" data-destino="{{ oferta.identificador_destino }}" data-link-source="{{ 'official' if oferta.link_oficial_configurado else 'fallback' }}">
         <img src="{{ url_for('static', filename=oferta.imagem) }}" alt="{{ oferta.alt }}" loading="lazy" decoding="async" width="420" height="280" data-click-area="imagem">
         <span class="partner-offer-badge">Parceiro</span>
         <h3 data-click-area="titulo">{{ oferta.titulo }}</h3>
