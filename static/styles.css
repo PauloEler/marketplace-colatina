@@ -3397,6 +3397,8 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-product-showcase,
 .home-official .home-partner-offers,
 .home-official .home-stores,
+.home-official .home-trust-institutional,
+.home-official .home-local-partners,
 .home-official .home-how,
 .home-official .affiliate-profile-compact{
   max-width:82rem;
@@ -3662,6 +3664,60 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-store-card{border:1px solid var(--ho-line);border-radius:.85rem;background:#fff;box-shadow:none}
 .home-official .home-store-avatar{border-radius:50%;background:var(--ho-forest);color:#fff}
 .home-official .home-store-footer .btn{border-radius:999px;background:var(--ho-forest)}
+.home-official .home-trust-institutional{
+  display:grid;
+  grid-template-columns:minmax(16rem,.8fr) minmax(0,2fr);
+  gap:clamp(2rem,4vw,4rem);
+  margin-top:clamp(3.5rem,5.5vw,5.5rem);
+  padding:clamp(2rem,4vw,3.5rem);
+  border-radius:1rem;
+  background:var(--ho-forest);
+  color:#fff;
+}
+.home-official .home-trust-heading{align-self:center}
+.home-official .home-trust-heading .section-kicker{color:#cfe2d4}
+.home-official .home-trust-heading h2{
+  max-width:12ch;
+  margin-top:.55rem;
+  color:#fff;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(2.4rem,4vw,3.7rem);
+  font-weight:400;
+  letter-spacing:-.045em;
+  line-height:1;
+}
+.home-official .home-trust-heading>p{max-width:28rem;margin-top:1rem;color:rgba(255,255,255,.76);line-height:1.65}
+.home-official .home-trust-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:rgba(255,255,255,.18)}
+.home-official .home-trust-item{min-width:0;padding:1.25rem;background:var(--ho-forest)}
+.home-official .home-trust-item:last-child{grid-column:1/-1}
+.home-official .home-trust-icon{display:grid;place-items:center;width:2.6rem;height:2.6rem;margin-bottom:.85rem;border:1px solid rgba(255,255,255,.24);border-radius:50%;color:#dce9df}
+.home-official .home-trust-icon .home-icon{width:1.25rem;height:1.25rem}
+.home-official .home-trust-item h3{color:#fff;font-size:.95rem;line-height:1.35}
+.home-official .home-trust-item p{margin-top:.4rem;color:rgba(255,255,255,.7);font-size:.8rem;line-height:1.55}
+.home-official .home-local-partners{margin-top:clamp(3.5rem,5.5vw,5.5rem)}
+.home-official .home-local-partners-heading{margin-bottom:1.5rem}
+.home-official .home-local-partners-disclosure{max-width:17rem;color:var(--ho-muted);font-size:.75rem;line-height:1.5;text-align:right}
+.home-official .home-local-partners-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.home-official .home-local-partner-card{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-rows:1fr auto;
+  gap:1rem;
+  min-width:0;
+  min-height:15.5rem;
+  padding:1.35rem;
+  border:1px solid var(--ho-line);
+  border-radius:.85rem;
+  background:#fff;
+}
+.home-official .home-local-partner-logo{display:grid;place-items:center;width:4.25rem;height:4.25rem;border-radius:.75rem;background:#edf3ee;color:var(--ho-forest);font-family:Georgia,"Times New Roman",serif;font-size:1.1rem;letter-spacing:.04em}
+.home-official .home-local-partner-level{display:inline-block;color:var(--ho-forest);font-size:.6rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
+.home-official .home-local-partner-card h3{margin-top:.35rem;color:var(--ho-ink);font-family:Georgia,"Times New Roman",serif;font-size:1.25rem;font-weight:400}
+.home-official .home-local-partner-category{margin-top:.25rem;color:var(--ho-forest);font-size:.74rem;font-weight:750}
+.home-official .home-local-partner-slogan{margin-top:.75rem;color:var(--ho-muted);font-size:.8rem;line-height:1.55}
+.home-official .home-local-partner-button{grid-column:1/-1;display:inline-flex;align-items:center;justify-content:center;min-height:2.75rem;border:1px solid var(--ho-forest);border-radius:999px;color:var(--ho-forest);font-size:.76rem;font-weight:850;text-decoration:none;transition:background-color .2s ease,color .2s ease}
+.home-official .home-local-partner-button:hover,.home-official .home-local-partner-button:focus-visible{background:var(--ho-forest);color:#fff}
+.home-official .home-local-partner-button:focus-visible{outline:3px solid rgba(25,103,64,.25);outline-offset:2px}
 .home-official .home-how{margin-top:clamp(3.5rem,5.5vw,5.5rem);padding:0;border:0;background:transparent}
 .home-official .home-how .steps-grid{gap:1rem;margin-top:1.5rem}
 .home-official .home-how .step-card{min-height:11.5rem;padding-top:1.25rem;padding-bottom:1.25rem;border:1px solid var(--ho-line);border-radius:.85rem;background:#fff;box-shadow:none}
@@ -3726,6 +3782,9 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-product-card:nth-child(n+3){grid-column:span 6}
   .home-official .partner-offer-card{flex-basis:calc((100% - 2rem) / 3)}
   .home-official .home-seller-callout{grid-template-columns:minmax(0,1.4fr) minmax(15rem,.8fr)}
+  .home-official .home-trust-institutional{grid-template-columns:1fr}
+  .home-official .home-trust-heading h2{max-width:18ch}
+  .home-official .home-local-partners-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .home-official .home-footer-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
   .home-official .home-footer-brand{grid-column:1/-1}
 }
@@ -3777,6 +3836,8 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-partner-offers,
   .home-official .home-seller-callout,
   .home-official .home-stores,
+  .home-official .home-trust-institutional,
+  .home-official .home-local-partners,
   .home-official .home-how,
   .home-official .affiliate-profile-compact{margin-top:3.75rem}
   .home-official .home-visit-proof+.home-category-section{margin-top:2.75rem}
@@ -3810,6 +3871,14 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-seller-callout h2{font-size:2.9rem}
   .home-official .home-seller-action{padding:.9rem 1.15rem}
   .home-official .home-stores-grid{grid-template-columns:1fr}
+  .home-official .home-trust-institutional{padding:1.5rem 1.25rem}
+  .home-official .home-trust-heading h2{font-size:2.65rem}
+  .home-official .home-trust-grid{grid-template-columns:1fr}
+  .home-official .home-trust-item:last-child{grid-column:auto}
+  .home-official .home-local-partners-heading{align-items:flex-start}
+  .home-official .home-local-partners-disclosure{text-align:left}
+  .home-official .home-local-partners-grid{grid-template-columns:1fr}
+  .home-official .home-local-partner-card{min-height:0}
   .home-official .home-how .steps-grid{grid-template-columns:1fr}
   .home-official .affiliate-profile-compact{grid-template-columns:auto 1fr;padding:1rem 1.25rem}
   .home-official .affiliate-profile-button{grid-column:1/-1;width:100%}
@@ -3837,6 +3906,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-product-card,
   .home-official .partner-offers-viewport,
   .home-official .partner-offer-link,
+  .home-official .home-local-partner-button,
   .home-official .home-product-card .card-media img{transition:none}
   .home-official .home-official-search button:hover,
   .home-official .home-product-card:hover,

@@ -1,0 +1,77 @@
+"""Configuração institucional das empresas parceiras da Home."""
+
+PARTNER_LEVELS = (
+    {"id": "local", "nome": "Parceiro Local"},
+    {"id": "destaque", "nome": "Parceiro Destaque"},
+    {"id": "premium", "nome": "Parceiro Premium"},
+)
+
+
+LOCAL_PARTNERS_HOME = (
+    {
+        "id": "espaco-parceiro-01",
+        "nome": "Espaço reservado",
+        "categoria": "Comércio local",
+        "slogan": "Sua empresa pode fortalecer o comércio de Colatina.",
+        "nivel": "local",
+        "nivel_nome": "Parceiro Local",
+        "logo_iniciais": "PL",
+        "url": "/seja-parceiro",
+        "placeholder": True,
+    },
+    {
+        "id": "espaco-parceiro-02",
+        "nome": "Espaço reservado",
+        "categoria": "Serviços locais",
+        "slogan": "Conecte sua marca a quem vive e compra na cidade.",
+        "nivel": "local",
+        "nivel_nome": "Parceiro Local",
+        "logo_iniciais": "PL",
+        "url": "/seja-parceiro",
+        "placeholder": True,
+    },
+    {
+        "id": "espaco-parceiro-03",
+        "nome": "Espaço reservado",
+        "categoria": "Varejo e negócios",
+        "slogan": "Valorize sua presença junto ao público de Colatina.",
+        "nivel": "destaque",
+        "nivel_nome": "Parceiro Destaque",
+        "logo_iniciais": "PD",
+        "url": "/seja-parceiro",
+        "placeholder": True,
+    },
+    {
+        "id": "espaco-parceiro-04",
+        "nome": "Espaço reservado",
+        "categoria": "Empreendedorismo",
+        "slogan": "Faça parte de uma iniciativa criada para a cidade.",
+        "nivel": "destaque",
+        "nivel_nome": "Parceiro Destaque",
+        "logo_iniciais": "PD",
+        "url": "/seja-parceiro",
+        "placeholder": True,
+    },
+    {
+        "id": "espaco-parceiro-05",
+        "nome": "Espaço reservado",
+        "categoria": "Marcas de Colatina",
+        "slogan": "Apoie conexões transparentes entre empresas e pessoas.",
+        "nivel": "premium",
+        "nivel_nome": "Parceiro Premium",
+        "logo_iniciais": "PP",
+        "url": "/seja-parceiro",
+        "placeholder": True,
+    },
+    {
+        "id": "espaco-parceiro-06",
+        "nome": "Espaço reservado",
+        "categoria": "Parceiros institucionais",
+        "slogan": "Construa com o Mercado Colatina uma presença local relevante.",
+        "nivel": "premium",
+        "nivel_nome": "Parceiro Premium",
+        "logo_iniciais": "PP",
+        "url": "/seja-parceiro",
+        "placeholder": True,
+    },
+)

@@ -274,6 +274,66 @@
 </section>
 {% endif %}
 
+<section id="confianca" class="home-trust-institutional" aria-labelledby="home-trust-title">
+  <div class="home-trust-heading">
+    <div class="section-kicker">Feito para a cidade</div>
+    <h2 id="home-trust-title">Por que confiar no Mercado Colatina?</h2>
+    <p>Uma plataforma local, transparente e construída para aproximar pessoas sem complicar a negociação.</p>
+  </div>
+  <div class="home-trust-grid">
+    <article class="home-trust-item" data-trust-item>
+      <span class="home-trust-icon" aria-hidden="true"><svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M6 21V9l6-5 6 5v12"></path><path d="M9 21v-6h6v6"></path></svg></span>
+      <h3>Criado em Colatina</h3>
+      <p>Uma iniciativa pensada a partir da realidade e das oportunidades da cidade.</p>
+    </article>
+    <article class="home-trust-item" data-trust-item>
+      <span class="home-trust-icon" aria-hidden="true"><svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h16"></path><path d="M5 10V6h14v4"></path><path d="M6 10v10h12V10"></path><path d="M9 14h6"></path></svg></span>
+      <h3>Comércio local em primeiro lugar</h3>
+      <p>Produtos, lojas e empreendedores de Colatina permanecem no centro da experiência.</p>
+    </article>
+    <article class="home-trust-item" data-trust-item>
+      <span class="home-trust-icon" aria-hidden="true"><svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 12 2.5 2.5L16 9"></path><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg></span>
+      <h3>Negociação direta</h3>
+      <p>Comprador e vendedor conversam diretamente para combinar os detalhes do negócio.</p>
+    </article>
+    <article class="home-trust-item" data-trust-item>
+      <span class="home-trust-icon" aria-hidden="true"><svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v5c0 5 3.4 8 8 9 4.6-1 8-4 8-9V7l-8-4Z"></path><path d="M9 12h6"></path></svg></span>
+      <h3>Publicidade transparente</h3>
+      <p>Ofertas comerciais e empresas parceiras são sempre identificadas com clareza.</p>
+    </article>
+    <article class="home-trust-item" data-trust-item>
+      <span class="home-trust-icon" aria-hidden="true"><svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17 10 11l4 4 6-7"></path><path d="M15 8h5v5"></path></svg></span>
+      <h3>Em constante evolução</h3>
+      <p>Melhorias são incorporadas por etapas, com cuidado e foco na comunidade local.</p>
+    </article>
+  </div>
+</section>
+
+<section id="empresas-parceiras" class="home-local-partners" aria-labelledby="home-local-partners-title" data-partner-levels="{{ niveis_parceiro|map(attribute='id')|join(' ') }}">
+  <div class="section-head home-local-partners-heading">
+    <div>
+      <div class="section-kicker">Presença institucional</div>
+      <h2 id="home-local-partners-title">Empresas Parceiras</h2>
+      <p class="section-description">Empresas que acreditam no comércio local.</p>
+    </div>
+    <span class="home-local-partners-disclosure">Espaços institucionais claramente identificados</span>
+  </div>
+  <div class="home-local-partners-grid">
+    {% for empresa in empresas_parceiras %}
+    <article class="home-local-partner-card" data-partner-card data-partner-level="{{ empresa.nivel }}">
+      <div class="home-local-partner-logo" role="img" aria-label="Espaço reservado para o logotipo da empresa">{{ empresa.logo_iniciais }}</div>
+      <div class="home-local-partner-copy">
+        <span class="home-local-partner-level">{{ empresa.nivel_nome }}</span>
+        <h3>{{ empresa.nome }}</h3>
+        <p class="home-local-partner-category">{{ empresa.categoria }}</p>
+        <p class="home-local-partner-slogan">{{ empresa.slogan }}</p>
+      </div>
+      <a class="home-local-partner-button" href="{{ empresa.url }}" aria-label="Conhecer o programa para {{ empresa.nivel_nome }}">Conhecer</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
 <section id="como-funciona" class="content-block home-how" aria-labelledby="como-title">
   <div class="section-head">
     <div><div class="section-kicker">Simples e direto</div><h2 id="como-title">Da descoberta à negociação</h2></div>
@@ -309,10 +369,12 @@
     </nav>
     <nav aria-label="Informações institucionais">
       <strong>Institucional</strong>
+      <a href="/quem-somos">Quem Somos</a>
+      <a href="/seja-parceiro">Seja Parceiro</a>
       <a href="/seguranca">Segurança</a>
-      <a href="/privacidade">Privacidade</a>
-      <a href="/termos">Termos de uso</a>
-      <a href="/ajuda">Central de ajuda</a>
+      <a href="/#como-funciona">Como Funciona</a>
+      <a href="/privacidade">Política de Privacidade</a>
+      <a href="/termos">Termos de Uso</a>
     </nav>
   </div>
   <div class="footer-bottom">
