@@ -3400,6 +3400,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-trust-institutional,
 .home-official .home-local-partners,
 .home-official .home-daily-city,
+.home-official .home-site-qr,
 .home-official .home-how,
 .home-official .affiliate-profile-compact{
   max-width:82rem;
@@ -3729,6 +3730,14 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-official .home-daily-city-placeholder{color:var(--ho-terracotta);font-size:.57rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
 .home-official .home-daily-city-card h3{margin-top:.35rem;color:var(--ho-ink);font-family:Georgia,"Times New Roman",serif;font-size:1.2rem;font-weight:400;line-height:1.15}
 .home-official .home-daily-city-card p{margin-top:.55rem;color:var(--ho-muted);font-size:.78rem;line-height:1.5}
+.home-official .home-site-qr{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2rem;margin-top:clamp(3.5rem,5.5vw,5.5rem);padding:2rem 2.25rem;border:1px solid var(--ho-line);border-radius:1rem;background:linear-gradient(135deg,#f6f2e8,#fff)}
+.home-official .home-site-qr-copy h2{max-width:16ch;margin-top:.4rem;color:var(--ho-ink);font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.25rem,4vw,3.6rem);font-weight:400;letter-spacing:-.04em;line-height:1}
+.home-official .home-site-qr-copy p{max-width:34rem;margin-top:1rem;color:var(--ho-muted);line-height:1.65}
+.home-official .home-site-qr-link{display:inline-block;margin-top:1rem;color:var(--ho-forest);font-size:.9rem;font-weight:800;text-underline-offset:.25rem}
+.home-official .home-site-qr-link:hover{color:var(--ho-forest-deep)}
+.home-official .home-site-qr-code{display:grid;place-items:center;padding:.75rem;border:1px solid var(--ho-line);border-radius:.85rem;background:#fff;box-shadow:0 12px 28px rgba(18,63,45,.1)}
+.home-official .home-site-qr-code:focus-visible{outline:3px solid var(--ho-terracotta);outline-offset:4px}
+.home-official .home-site-qr-code img{display:block;width:clamp(9rem,15vw,12.8rem);height:auto}
 .home-official .home-how{margin-top:clamp(3.5rem,5.5vw,5.5rem);padding:0;border:0;background:transparent}
 .home-official .home-how .steps-grid{gap:1rem;margin-top:1.5rem}
 .home-official .home-how .step-card{min-height:11.5rem;padding-top:1.25rem;padding-bottom:1.25rem;border:1px solid var(--ho-line);border-radius:.85rem;background:#fff;box-shadow:none}
@@ -3851,6 +3860,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-trust-institutional,
   .home-official .home-local-partners,
   .home-official .home-daily-city,
+  .home-official .home-site-qr,
   .home-official .home-how,
   .home-official .affiliate-profile-compact{margin-top:3.75rem}
   .home-official .home-visit-proof+.home-category-section{margin-top:2.75rem}
@@ -3897,6 +3907,9 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-daily-city-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .home-official .home-daily-city-card{min-height:11.5rem;padding:1rem}
   .home-official .home-daily-city-card-avisos{grid-column:1/-1;min-height:0;grid-template-columns:auto minmax(0,1fr);align-items:center}
+  .home-official .home-site-qr{grid-template-columns:1fr;justify-items:start;gap:1.5rem;padding:1.5rem 1.25rem}
+  .home-official .home-site-qr-copy h2{font-size:2.65rem}
+  .home-official .home-site-qr-code{justify-self:center}
   .home-official .home-how .steps-grid{grid-template-columns:1fr}
   .home-official .affiliate-profile-compact{grid-template-columns:auto 1fr;padding:1rem 1.25rem}
   .home-official .affiliate-profile-button{grid-column:1/-1;width:100%}
