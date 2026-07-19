@@ -219,6 +219,27 @@ def _init_sqlite():
         );
         CREATE INDEX IF NOT EXISTS idx_pedido_eventos_pedido_data
             ON pedido_eventos(pedido_id, criado_em, id);
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER NOT NULL,
+            tipo TEXT NOT NULL,
+            titulo TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            url TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'nao_lida',
+            referencia_tipo TEXT,
+            referencia_id INTEGER,
+            chave_unica TEXT UNIQUE,
+            dados_json TEXT NOT NULL DEFAULT '{}',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            lida_em TIMESTAMP,
+            arquivada_em TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_notifications_usuario_status_data
+            ON notifications(usuario_id, status, criado_em);
+        CREATE INDEX IF NOT EXISTS idx_notifications_tipo_data
+            ON notifications(tipo, criado_em);
         CREATE TABLE IF NOT EXISTS denuncias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             anuncio_id INTEGER NOT NULL,
@@ -541,6 +562,35 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_pedido_eventos_pedido_data "
         "ON pedido_eventos(pedido_id, criado_em, id)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS notifications (
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL,
+            tipo TEXT NOT NULL,
+            titulo TEXT NOT NULL,
+            descricao TEXT NOT NULL,
+            url TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'nao_lida',
+            referencia_tipo TEXT,
+            referencia_id INTEGER,
+            chave_unica TEXT UNIQUE,
+            dados_json TEXT NOT NULL DEFAULT '{}',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            lida_em TIMESTAMP,
+            arquivada_em TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_notifications_usuario_status_data "
+        "ON notifications(usuario_id, status, criado_em)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_notifications_tipo_data "
+        "ON notifications(tipo, criado_em)"
     )
     db.execute(
         """

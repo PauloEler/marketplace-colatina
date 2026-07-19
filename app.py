@@ -57,6 +57,19 @@ from email_service import (  # noqa: E402
     enviar_alerta_novo_pedido,
     enviar_teste_admin,
 )
+from notification_center import (  # noqa: E402
+    NOTIFICATION_ICONS,
+    arquivar_notificacao,
+    buscar_notificacao,
+    contar_nao_lidas,
+    criar_notificacao,
+    destinatarios_da_loja,
+    estatisticas_administrativas,
+    formatar_data_notificacao,
+    listar_notificacoes,
+    marcar_como_lida,
+    marcar_todas_como_lidas,
+)
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -934,6 +947,8 @@ app.jinja_env.globals["mercadopago_pagamentos_configurados"] = (
 )
 app.jinja_env.globals["neo_configurado"] = neo_configurado
 app.jinja_env.globals["pode_administrar_loja"] = pode_administrar_loja
+app.jinja_env.globals["notification_icons"] = NOTIFICATION_ICONS
+app.jinja_env.globals["formatar_data_notificacao"] = formatar_data_notificacao
 
 
 @app.context_processor
@@ -942,32 +957,19 @@ def fornecer_contexto_multiloja():
         return {
             "lojas_administradas": [],
             "loja_ativa_nav": None,
-            "pedidos_novos_total": 0,
-            "pedidos_novos_loja_ativa": 0,
+            "notificacoes_menu": [],
+            "notificacoes_nao_lidas": 0,
         }
     lojas = listar_lojas_administradas()
     ativa_id = loja_ativa_id()
     ativa = next((loja for loja in lojas if loja["id"] == ativa_id), None)
-    ids_lojas = [loja["id"] for loja in lojas]
-    pedidos_novos_total = 0
-    pedidos_novos_loja_ativa = 0
-    if ids_lojas:
-        placeholders = ",".join("?" for _ in ids_lojas)
-        db = get_db()
-        pedidos_novos_total = db.execute(
-            f"SELECT COUNT(*) FROM pedidos WHERE status='aguardando' "
-            f"AND vendedor_id IN ({placeholders})",
-            tuple(ids_lojas),
-        ).fetchone()[0]
-        pedidos_novos_loja_ativa = db.execute(
-            "SELECT COUNT(*) FROM pedidos WHERE status='aguardando' AND vendedor_id=?",
-            (ativa_id,),
-        ).fetchone()[0]
+    db = get_db()
+    usuario_id = session["usuario_id"]
     return {
         "lojas_administradas": lojas,
         "loja_ativa_nav": ativa,
-        "pedidos_novos_total": pedidos_novos_total,
-        "pedidos_novos_loja_ativa": pedidos_novos_loja_ativa,
+        "notificacoes_menu": listar_notificacoes(db, usuario_id),
+        "notificacoes_nao_lidas": contar_nao_lidas(db, usuario_id),
     }
 
 
@@ -2563,6 +2565,20 @@ def comprar(anuncio_id):
             "ORDER BY p.id DESC LIMIT 1",
             (anuncio_id, session["usuario_id"]),
         ).fetchone()
+        for destinatario_id in destinatarios_da_loja(db, pedido_criado["vendedor_id"]):
+            criar_notificacao(
+                db,
+                destinatario_id,
+                "NOVO_PEDIDO",
+                "Novo pedido recebido",
+                f"{pedido_criado['comprador_nome']} solicitou "
+                f"{pedido_criado['titulo']}.",
+                f"/pedidos#pedido-{pedido_criado['id']}",
+                referencia_tipo="pedido",
+                referencia_id=pedido_criado["id"],
+                chave_unica=(f"novo-pedido:{pedido_criado['id']}:{destinatario_id}"),
+                dados={"anuncio_id": anuncio_id},
+            )
         registrar_evento_pedido(
             db,
             pedido_criado["id"],
@@ -2587,6 +2603,74 @@ def comprar(anuncio_id):
         return redirect(url_for("pedidos"))
 
     return render_template("comprar.html", a=anuncio_item)
+
+
+def _destino_notificacao(valor, padrao):
+    valor = (valor or "").strip()
+    if valor.startswith("/") and not valor.startswith("//"):
+        return valor
+    return padrao
+
+
+@app.route("/notificacoes")
+def notificacoes():
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    itens = listar_notificacoes(
+        db, session["usuario_id"], limite=100, incluir_arquivadas=True
+    )
+    estatisticas = estatisticas_administrativas(db) if admin() else None
+    return render_template(
+        "notificacoes.html", notificacoes=itens, estatisticas=estatisticas
+    )
+
+
+@app.route("/notificacoes/<int:notificacao_id>/ler", methods=["POST"])
+def notificacao_ler(notificacao_id):
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    marcar_como_lida(db, notificacao_id, session["usuario_id"])
+    db.commit()
+    return redirect(
+        _destino_notificacao(request.form.get("retorno"), url_for("notificacoes"))
+    )
+
+
+@app.route("/notificacoes/ler-todas", methods=["POST"])
+def notificacoes_ler_todas():
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    marcar_todas_como_lidas(db, session["usuario_id"])
+    db.commit()
+    return redirect(
+        _destino_notificacao(request.form.get("retorno"), url_for("notificacoes"))
+    )
+
+
+@app.route("/notificacoes/<int:notificacao_id>/abrir", methods=["POST"])
+def notificacao_abrir(notificacao_id):
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    item = buscar_notificacao(db, notificacao_id, session["usuario_id"])
+    if not item:
+        abort(404)
+    marcar_como_lida(db, notificacao_id, session["usuario_id"])
+    db.commit()
+    return redirect(_destino_notificacao(item["url"], url_for("notificacoes")))
+
+
+@app.route("/notificacoes/<int:notificacao_id>/arquivar", methods=["POST"])
+def notificacao_arquivar(notificacao_id):
+    if not logado():
+        return redirect(url_for("login"))
+    db = get_db()
+    arquivar_notificacao(db, notificacao_id, session["usuario_id"])
+    db.commit()
+    return redirect(url_for("notificacoes"))
 
 
 @app.route("/pedidos")
