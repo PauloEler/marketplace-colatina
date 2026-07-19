@@ -1,5 +1,44 @@
 # CHANGELOG MASTER
 
+## 2026-07-19 - MX-006.1 Central de Notificações
+
+### Publicado
+
+- PR #68 integrada na `master`.
+- Hash do merge: `0812b481ee8599bbb4ec6f1d22515aef9be8b9a1`.
+- CI da `master` aprovado no workflow `29689617071`.
+- Deploy automático no Render concluído às 10h51, horário de Brasília.
+
+### Adicionado
+
+- Infraestrutura central e reutilizável de notificações.
+- Tabela própria `notifications`, com estados não lida, lida e arquivada.
+- Sino, contador automático, painel responsivo e histórico em `/notificacoes`.
+- Ações para abrir, marcar como lida, marcar todas como lidas e arquivar.
+- Notificação `NOVO_PEDIDO` para vendedores e visão administrativa agregada.
+- Isolamento por usuário, sem armazenamento de novos dados pessoais.
+
+### Validado em produção
+
+- Teste real controlado com solicitação de compra e entrega da notificação ao vendedor.
+- Contador alterado de zero para um e abertura direcionada ao pedido correto.
+- Mudança de estado para lida, marcação de todas e arquivamento confirmados.
+- Comprador sem acesso à notificação do vendedor.
+- Visão administrativa agregada confirmada sem exposição do conteúdo de outros usuários.
+- Desktop, 390 px e 320 px validados sem overflow horizontal.
+- Home e funcionalidades anteriores preservadas, sem erros de aplicação observados.
+
+### Limpeza do teste
+
+- Pedido controlado encerrado como rejeitado.
+- Anúncio temporário removido.
+- Contas temporárias desativadas e vagas de fundador restauradas.
+
+### Restrições preservadas
+
+- Sem push, WhatsApp, e-mail, Firebase, OneSignal ou WebPush.
+- Sem início da MX-006.2.
+
 ## 2026-07-18 - MX-005.1 Hoje em Colatina
 
 ### Publicado
