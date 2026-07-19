@@ -570,7 +570,8 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn('aria-label="Fotos do produto"', html)
         self.assertIn('aria-label="Informações principais do produto"', html)
         self.assertIn('class="btn product-primary-action"', html)
-        self.assertIn("Solicitar compra", html)
+        self.assertIn("Entrar para solicitar compra", html)
+        self.assertIn('aria-label="Etapas da compra"', html)
         self.assertIn(f'href="/comprar/{self.anuncio_id}"', html)
         self.assertIn(f'href="/anuncio/{self.anuncio_id}/contato"', html)
         self.assertIn("Compartilhar produto", html)
@@ -615,7 +616,40 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("product-primary-action", html)
         self.assertIn("disabled", html)
         self.assertIn('aria-describedby="purchase-owner-help"', html)
-        self.assertIn("Este é o seu anúncio", html)
+        self.assertIn("Você administra este anúncio", html)
+        self.assertIn("Contas administradoras não podem comprar", html)
+
+    def test_fluxo_compra_explica_etapas_e_proximo_passo(self):
+        self.autenticar_sessao(self.comprador_id)
+        checkout = self.client.get(f"/comprar/{self.anuncio_id}")
+        html_checkout = checkout.data.decode("utf-8")
+
+        self.assertEqual(checkout.status_code, 200)
+        self.assertIn('aria-label="Progresso da compra"', html_checkout)
+        self.assertIn("Solicitação", html_checkout)
+        self.assertIn("Resposta do vendedor", html_checkout)
+        self.assertIn("Entrega e pagamento", html_checkout)
+        self.assertIn("Nenhum pagamento será cobrado agora", html_checkout)
+
+        self.criar_pedido_de_teste()
+        compras = self.client.get("/pedidos").data.decode("utf-8")
+        self.assertIn("aguarde o vendedor confirmar a disponibilidade", compras)
+
+        self.autenticar_sessao(self.vendedor_id)
+        vendas = self.client.get("/pedidos").data.decode("utf-8")
+        self.assertIn("confirme a disponibilidade ou recuse o pedido", vendas)
+        self.assertIn('data-new-orders-count="1"', vendas)
+        self.assertIn("1 pedido novo recebido", vendas)
+        self.assertIn('href="#pedidos-recebidos"', vendas)
+
+    def test_alerta_de_pedido_novo_aparece_para_vendedor_em_qualquer_pagina(self):
+        self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+
+        pagina = self.client.get("/").data.decode("utf-8")
+        self.assertEqual(pagina.count('data-new-orders-count="1"'), 2)
+        self.assertIn('href="/pedidos#pedidos-recebidos"', pagina)
+        self.assertIn('class="mobile-order-signal"', pagina)
 
     def test_cadastro_exige_e_registra_aceite_dos_termos(self):
         with self.client.session_transaction() as sessao:

@@ -29,6 +29,18 @@
     </div>
     {% if p.observacao %}<p class="order-note">“{{ p.observacao }}”</p>{% endif %}
 
+    {% if p.status == 'aguardando' %}
+      <p class="order-next-step"><strong>Próximo passo:</strong> {% if tipo == 'compra' %}aguarde o vendedor confirmar a disponibilidade.{% else %}confirme a disponibilidade ou recuse o pedido.{% endif %}</p>
+    {% elif p.status == 'confirmado' %}
+      <p class="order-next-step"><strong>Próximo passo:</strong> converse pelo WhatsApp para combinar pagamento e entrega com segurança.</p>
+    {% elif p.status == 'em_analise' %}
+      <p class="order-next-step"><strong>Situação:</strong> a equipe do Mercado Colatina está analisando o problema relatado.</p>
+    {% elif p.status == 'concluido' %}
+      <p class="order-next-step completed"><strong>Concluído:</strong> a negociação foi finalizada.</p>
+    {% elif p.status in ['cancelado', 'recusado'] %}
+      <p class="order-next-step neutral"><strong>Encerrado:</strong> este pedido não está mais ativo.</p>
+    {% endif %}
+
     {% if p.status in ['confirmado', 'concluido'] %}
     <div class="order-confirmation">
       <span class="{{ 'done' if p.vendedor_confirmou_em else 'pending' }}">Vendedor: {{ 'venda realizada' if p.vendedor_confirmou_em else 'aguardando confirmar venda' }}</span>
@@ -131,13 +143,24 @@
   <div><div class="section-kicker">Negociações organizadas</div><h1>Meus pedidos</h1><p>Acompanhe suas compras e os pedidos recebidos nos seus anúncios.</p></div>
 </div>
 
+{% if pedidos_novos_total %}
+<section class="orders-new-alert" role="status" aria-labelledby="orders-new-alert-title">
+  <span class="orders-new-alert-count" aria-hidden="true">{{ pedidos_novos_total }}</span>
+  <div>
+    <strong id="orders-new-alert-title">{{ pedidos_novos_total }} pedido{{ '' if pedidos_novos_total == 1 else 's' }} novo{{ '' if pedidos_novos_total == 1 else 's' }} recebido{{ '' if pedidos_novos_total == 1 else 's' }}</strong>
+    {% if pedidos_novos_loja_ativa %}<p>Confira e responda os pedidos da loja ativa.</p>{% else %}<p>O pedido pertence a outra loja que você administra. Troque a loja ativa para responder.</p>{% endif %}
+  </div>
+  {% if pedidos_novos_loja_ativa %}<a class="btn btn-verde" href="#pedidos-recebidos">Ver agora</a>{% elif lojas_administradas|length > 1 %}<a class="btn btn-verde" href="/minhas-lojas">Trocar loja</a>{% endif %}
+</section>
+{% endif %}
+
 <section class="orders-section" aria-labelledby="compras-title">
   <div class="section-head"><div><div class="section-kicker">Como comprador</div><h2 id="compras-title">Minhas compras</h2></div><span class="result-count">{{ compras|length }} pedido{{ '' if compras|length == 1 else 's' }}</span></div>
   {% if compras %}<div class="orders-grid">{% for p in compras %}{{ pedido_card(p, 'compra') }}{% endfor %}</div>
-  {% else %}<div class="empty-state compact"><h3>Nenhuma compra iniciada</h3><p>Ao encontrar um produto, clique em Comprar para enviar seu pedido.</p><a href="/" class="btn btn-verde">Explorar ofertas</a></div>{% endif %}
+  {% else %}<div class="empty-state compact"><h3>Nenhuma compra iniciada</h3><p>Ao encontrar um produto, clique em “Solicitar compra” para enviar seu pedido.</p><a href="/" class="btn btn-verde">Explorar ofertas</a></div>{% endif %}
 </section>
 
-<section class="orders-section" aria-labelledby="vendas-title">
+<section id="pedidos-recebidos" class="orders-section" aria-labelledby="vendas-title">
   <div class="section-head"><div><div class="section-kicker">Como vendedor</div><h2 id="vendas-title">Pedidos recebidos</h2></div><span class="result-count">{{ vendas|length }} pedido{{ '' if vendas|length == 1 else 's' }}</span></div>
   {% if vendas %}<div class="orders-grid">{% for p in vendas %}{{ pedido_card(p, 'venda') }}{% endfor %}</div>
   {% else %}<div class="empty-state compact"><h3>Nenhum pedido recebido</h3><p>Os pedidos feitos nos seus anúncios aparecerão aqui.</p><a href="/meus-anuncios" class="btn btn-verde">Ver meus anúncios</a></div>{% endif %}

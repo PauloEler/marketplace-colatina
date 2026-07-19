@@ -72,19 +72,24 @@
       Negociação organizada
     </div>
     <h2 id="purchase-title">Quer este produto?</h2>
-    <p class="product-purchase-copy">Solicite a compra para combinar entrega e pagamento com o vendedor.</p>
+    <p class="product-purchase-copy">O pedido organiza a negociação sem cobrar nada automaticamente.</p>
+    <ol class="product-purchase-steps" aria-label="Etapas da compra">
+      <li><span>1</span><strong>Envie o pedido</strong></li>
+      <li><span>2</span><strong>O vendedor confirma</strong></li>
+      <li><span>3</span><strong>Combinem entrega e pagamento</strong></li>
+    </ol>
     {% if not pode_administrar_loja(a.usuario_id) %}
     <a class="btn product-primary-action" href="/comprar/{{ a.id }}">
       <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      Solicitar compra
+      {% if session.get('usuario_id') %}Revisar e solicitar compra{% else %}Entrar para solicitar compra{% endif %}
     </a>
-    <p class="product-action-help">Você revisará os detalhes antes de enviar a solicitação.</p>
+    <p class="product-action-help">{% if session.get('usuario_id') %}Você revisará os detalhes antes de enviar.{% else %}É preciso usar uma conta comum de comprador.{% endif %}</p>
     {% else %}
     <button class="btn product-primary-action" type="button" disabled aria-describedby="purchase-owner-help">
       <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      Solicitar compra
+      Você administra este anúncio
     </button>
-    <p class="product-action-help" id="purchase-owner-help">Este é o seu anúncio. Use as opções de gerenciamento abaixo.</p>
+    <p class="product-action-help product-owner-help" id="purchase-owner-help">Contas administradoras não podem comprar produtos das próprias lojas. Para testar, saia e utilize uma conta comum de comprador.</p>
     {% endif %}
     <a class="btn product-secondary-action" target="_blank" rel="noopener noreferrer" href="/anuncio/{{ a.id }}/contato">
       <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></svg>

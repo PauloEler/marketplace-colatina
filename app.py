@@ -939,11 +939,36 @@ app.jinja_env.globals["pode_administrar_loja"] = pode_administrar_loja
 @app.context_processor
 def fornecer_contexto_multiloja():
     if not logado():
-        return {"lojas_administradas": [], "loja_ativa_nav": None}
+        return {
+            "lojas_administradas": [],
+            "loja_ativa_nav": None,
+            "pedidos_novos_total": 0,
+            "pedidos_novos_loja_ativa": 0,
+        }
     lojas = listar_lojas_administradas()
     ativa_id = loja_ativa_id()
     ativa = next((loja for loja in lojas if loja["id"] == ativa_id), None)
-    return {"lojas_administradas": lojas, "loja_ativa_nav": ativa}
+    ids_lojas = [loja["id"] for loja in lojas]
+    pedidos_novos_total = 0
+    pedidos_novos_loja_ativa = 0
+    if ids_lojas:
+        placeholders = ",".join("?" for _ in ids_lojas)
+        db = get_db()
+        pedidos_novos_total = db.execute(
+            f"SELECT COUNT(*) FROM pedidos WHERE status='aguardando' "
+            f"AND vendedor_id IN ({placeholders})",
+            tuple(ids_lojas),
+        ).fetchone()[0]
+        pedidos_novos_loja_ativa = db.execute(
+            "SELECT COUNT(*) FROM pedidos WHERE status='aguardando' AND vendedor_id=?",
+            (ativa_id,),
+        ).fetchone()[0]
+    return {
+        "lojas_administradas": lojas,
+        "loja_ativa_nav": ativa,
+        "pedidos_novos_total": pedidos_novos_total,
+        "pedidos_novos_loja_ativa": pedidos_novos_loja_ativa,
+    }
 
 
 @app.before_request
