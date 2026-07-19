@@ -2892,10 +2892,23 @@ class ModeracaoTestCase(unittest.TestCase):
             'id="confianca"',
             'id="empresas-parceiras"',
             'id="hoje-em-colatina"',
+            'id="acessar-pelo-celular"',
             'id="como-funciona"',
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
         self.assertEqual(posicoes, sorted(posicoes))
+
+    def test_home_exibe_qr_code_oficial_para_acessar_o_site(self):
+        html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn('id="acessar-pelo-celular"', html)
+        self.assertIn("QR Code para acessar o site Mercado Colatina", html)
+        self.assertIn("qr-mercado-colatina.svg", html)
+        self.assertGreaterEqual(html.count('href="https://mercadocolatina.com.br/"'), 2)
+
+        resposta_qr = self.client.get("/static/qr-mercado-colatina.svg")
+        self.assertEqual(resposta_qr.status_code, 200)
+        self.assertIn("image/svg+xml", resposta_qr.content_type)
 
     def test_comunicado_global_renderiza_compacto_expansivel_e_fechavel(self):
         with app.app_context():
