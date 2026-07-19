@@ -638,6 +638,18 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.vendedor_id)
         vendas = self.client.get("/pedidos").data.decode("utf-8")
         self.assertIn("confirme a disponibilidade ou recuse o pedido", vendas)
+        self.assertIn('data-new-orders-count="1"', vendas)
+        self.assertIn("1 pedido novo recebido", vendas)
+        self.assertIn('href="#pedidos-recebidos"', vendas)
+
+    def test_alerta_de_pedido_novo_aparece_para_vendedor_em_qualquer_pagina(self):
+        self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.vendedor_id)
+
+        pagina = self.client.get("/").data.decode("utf-8")
+        self.assertEqual(pagina.count('data-new-orders-count="1"'), 2)
+        self.assertIn('href="/pedidos#pedidos-recebidos"', pagina)
+        self.assertIn('class="mobile-order-signal"', pagina)
 
     def test_cadastro_exige_e_registra_aceite_dos_termos(self):
         with self.client.session_transaction() as sessao:
