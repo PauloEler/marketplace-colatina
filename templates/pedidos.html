@@ -4,7 +4,7 @@
 {% block voltar %}<a href="/" class="voltar">← Voltar ao início</a>{% endblock %}
 
 {% macro pedido_card(p, tipo) %}
-<article class="order-card">
+<article id="pedido-{{ p.id }}" class="order-card">
   <div class="order-media">
     {% if p.foto %}<img src="{{ foto_url(p.foto, 500) }}" alt="{{ p.titulo }}">
     {% else %}<div class="card-sem-foto">Imagem não enviada</div>{% endif %}
@@ -142,17 +142,6 @@
 <div class="dashboard-heading orders-heading">
   <div><div class="section-kicker">Negociações organizadas</div><h1>Meus pedidos</h1><p>Acompanhe suas compras e os pedidos recebidos nos seus anúncios.</p></div>
 </div>
-
-{% if pedidos_novos_total %}
-<section class="orders-new-alert" role="status" aria-labelledby="orders-new-alert-title">
-  <span class="orders-new-alert-count" aria-hidden="true">{{ pedidos_novos_total }}</span>
-  <div>
-    <strong id="orders-new-alert-title">{{ pedidos_novos_total }} pedido{{ '' if pedidos_novos_total == 1 else 's' }} novo{{ '' if pedidos_novos_total == 1 else 's' }} recebido{{ '' if pedidos_novos_total == 1 else 's' }}</strong>
-    {% if pedidos_novos_loja_ativa %}<p>Confira e responda os pedidos da loja ativa.</p>{% else %}<p>O pedido pertence a outra loja que você administra. Troque a loja ativa para responder.</p>{% endif %}
-  </div>
-  {% if pedidos_novos_loja_ativa %}<a class="btn btn-verde" href="#pedidos-recebidos">Ver agora</a>{% elif lojas_administradas|length > 1 %}<a class="btn btn-verde" href="/minhas-lojas">Trocar loja</a>{% endif %}
-</section>
-{% endif %}
 
 <section class="orders-section" aria-labelledby="compras-title">
   <div class="section-head"><div><div class="section-kicker">Como comprador</div><h2 id="compras-title">Minhas compras</h2></div><span class="result-count">{{ compras|length }} pedido{{ '' if compras|length == 1 else 's' }}</span></div>

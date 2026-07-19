@@ -1,0 +1,41 @@
+<details class="notification-center" data-notification-center>
+  <summary aria-label="Abrir Central de Notificações{% if notificacoes_nao_lidas %}: {{ notificacoes_nao_lidas }} não lida{{ '' if notificacoes_nao_lidas == 1 else 's' }}{% endif %}">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg>
+    {% if notificacoes_nao_lidas %}<span class="notification-counter" data-notification-count="{{ notificacoes_nao_lidas }}">{{ notificacoes_nao_lidas }}</span>{% endif %}
+  </summary>
+  <section class="notification-panel" aria-label="Central de Notificações">
+    <header class="notification-panel-header">
+      <div><strong>Notificações</strong><span>Atualizações importantes da sua conta</span></div>
+      {% if notificacoes_nao_lidas %}
+      <form method="POST" action="{{ url_for('notificacoes_ler_todas') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="retorno" value="{{ request.full_path if request.query_string else request.path }}">
+        <button type="submit">Marcar todas como lidas</button>
+      </form>
+      {% endif %}
+    </header>
+    {% if notificacoes_menu %}
+    <div class="notification-list">
+      {% for n in notificacoes_menu %}
+      <article class="notification-item {{ 'is-unread' if n.status == 'nao_lida' else '' }}" data-notification-id="{{ n.id }}">
+        <span class="notification-item-icon" aria-hidden="true">
+          {% if n.tipo == 'NOVO_PEDIDO' %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16.5 9.4-9-5.2"></path><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="M3.3 7 12 12l8.7-5"></path><path d="M12 22V12"></path></svg>{% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4m0 4h.01"></path></svg>{% endif %}
+        </span>
+        <div class="notification-item-copy">
+          <div><strong>{{ n.titulo }}</strong><span class="notification-status">{{ 'Não lida' if n.status == 'nao_lida' else 'Lida' }}</span></div>
+          <p>{{ n.descricao }}</p>
+          <time datetime="{{ n.criado_em }}">{{ formatar_data_notificacao(n.criado_em) }}</time>
+        </div>
+        <form method="POST" action="{{ url_for('notificacao_abrir', notificacao_id=n.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="notification-open" type="submit">Abrir</button>
+        </form>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+      <div class="notification-empty"><strong>Tudo em dia</strong><p>Suas notificações aparecerão aqui.</p></div>
+    {% endif %}
+    <a class="notification-all-link" href="{{ url_for('notificacoes') }}">Ver todas as notificações</a>
+  </section>
+</details>

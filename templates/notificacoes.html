@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Notificações | Mercado Colatina{% endblock %}
+{% block voltar %}<a href="/" class="voltar">← Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<div class="dashboard-heading notification-page-heading">
+  <div><div class="section-kicker">Sua conta</div><h1>Central de Notificações</h1><p>Acompanhe as ações importantes do Mercado Colatina em um só lugar.</p></div>
+  {% if notificacoes_nao_lidas %}
+  <form method="POST" action="{{ url_for('notificacoes_ler_todas') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="retorno" value="{{ url_for('notificacoes') }}">
+    <button class="btn btn-verde" type="submit">Marcar todas como lidas</button>
+  </form>
+  {% endif %}
+</div>
+
+{% if estatisticas %}
+<section class="notification-admin-summary" aria-labelledby="notification-admin-title">
+  <div><div class="section-kicker">Visão administrativa</div><h2 id="notification-admin-title">Saúde da Central</h2><p>Dados agregados, sem expor notificações privadas de outros usuários.</p></div>
+  <dl>
+    <div><dt>Total</dt><dd>{{ estatisticas.resumo.total or 0 }}</dd></div>
+    <div><dt>Não lidas</dt><dd>{{ estatisticas.resumo.nao_lidas or 0 }}</dd></div>
+    <div><dt>Arquivadas</dt><dd>{{ estatisticas.resumo.arquivadas or 0 }}</dd></div>
+    <div><dt>Usuários alcançados</dt><dd>{{ estatisticas.resumo.usuarios or 0 }}</dd></div>
+  </dl>
+</section>
+{% endif %}
+
+<section class="notification-page-list" aria-labelledby="notification-list-title">
+  <div class="section-head"><div><div class="section-kicker">Histórico</div><h2 id="notification-list-title">Suas notificações</h2></div><span class="result-count">{{ notificacoes|length }} registro{{ '' if notificacoes|length == 1 else 's' }}</span></div>
+  {% if notificacoes %}
+    {% for n in notificacoes %}
+    <article class="notification-page-item {{ 'is-unread' if n.status == 'nao_lida' else '' }} {{ 'is-archived' if n.status == 'arquivada' else '' }}">
+      <span class="notification-item-icon" aria-hidden="true">{% if n.tipo == 'NOVO_PEDIDO' %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 8 12 3 3 8l9 5 9-5Z"></path><path d="m3 8 9 5 9-5v8l-9 5-9-5V8Z"></path></svg>{% else %}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4m0 4h.01"></path></svg>{% endif %}</span>
+      <div class="notification-item-copy">
+        <div><strong>{{ n.titulo }}</strong><span class="notification-status">{{ {'nao_lida':'Não lida','lida':'Lida','arquivada':'Arquivada'}.get(n.status, n.status) }}</span></div>
+        <p>{{ n.descricao }}</p>
+        <time datetime="{{ n.criado_em }}">{{ formatar_data_notificacao(n.criado_em) }}</time>
+      </div>
+      <div class="notification-page-actions">
+        <form method="POST" action="{{ url_for('notificacao_abrir', notificacao_id=n.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-verde" type="submit">Abrir</button></form>
+        {% if n.status == 'nao_lida' %}<form method="POST" action="{{ url_for('notificacao_ler', notificacao_id=n.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input type="hidden" name="retorno" value="{{ url_for('notificacoes') }}"><button class="btn btn-cinza" type="submit">Marcar como lida</button></form>{% endif %}
+        {% if n.status != 'arquivada' %}<form method="POST" action="{{ url_for('notificacao_arquivar', notificacao_id=n.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="notification-archive" type="submit">Arquivar</button></form>{% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state compact"><h3>Nenhuma notificação</h3><p>As ações importantes da sua conta aparecerão aqui.</p><a href="/" class="btn btn-verde">Voltar às ofertas</a></div>
+  {% endif %}
+</section>
+{% endblock %}

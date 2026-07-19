@@ -48,6 +48,7 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             for tabela in (
+                "notifications",
                 "afiliado_eventos",
                 "loja_administradores",
                 "comunicados",
@@ -638,18 +639,159 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.vendedor_id)
         vendas = self.client.get("/pedidos").data.decode("utf-8")
         self.assertIn("confirme a disponibilidade ou recuse o pedido", vendas)
-        self.assertIn('data-new-orders-count="1"', vendas)
-        self.assertIn("1 pedido novo recebido", vendas)
-        self.assertIn('href="#pedidos-recebidos"', vendas)
+        self.assertIn('data-notification-count="1"', vendas)
+        self.assertIn("Novo pedido recebido", vendas)
 
-    def test_alerta_de_pedido_novo_aparece_para_vendedor_em_qualquer_pagina(self):
-        self.criar_pedido_de_teste()
+    def test_central_cria_lista_e_conta_notificacao_de_novo_pedido(self):
+        pedido_id = self.criar_pedido_de_teste()
         self.autenticar_sessao(self.vendedor_id)
 
         pagina = self.client.get("/").data.decode("utf-8")
-        self.assertEqual(pagina.count('data-new-orders-count="1"'), 2)
-        self.assertIn('href="/pedidos#pedidos-recebidos"', pagina)
-        self.assertIn('class="mobile-order-signal"', pagina)
+        self.assertIn('data-notification-count="1"', pagina)
+        self.assertIn("Central de Notificações", pagina)
+        self.assertIn("Novo pedido recebido", pagina)
+        self.assertIn("Comprador solicitou Bicicleta aro 29", pagina)
+
+        with app.app_context():
+            db = get_db()
+            notificacao = db.execute(
+                "SELECT * FROM notifications WHERE usuario_id=?",
+                (self.vendedor_id,),
+            ).fetchone()
+            self.assertEqual(notificacao["tipo"], "NOVO_PEDIDO")
+            self.assertEqual(notificacao["status"], "nao_lida")
+            self.assertEqual(notificacao["referencia_tipo"], "pedido")
+            self.assertEqual(notificacao["referencia_id"], pedido_id)
+            self.assertEqual(notificacao["url"], f"/pedidos#pedido-{pedido_id}")
+            self.assertEqual(
+                db.execute(
+                    "SELECT COUNT(*) FROM notifications WHERE usuario_id=?",
+                    (self.comprador_id,),
+                ).fetchone()[0],
+                0,
+            )
+
+    def test_notificacao_pode_ser_aberta_e_marcada_como_lida(self):
+        pedido_id = self.criar_pedido_de_teste()
+        with app.app_context():
+            notificacao_id = (
+                get_db()
+                .execute(
+                    "SELECT id FROM notifications WHERE usuario_id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()[0]
+            )
+        self.autenticar_sessao(self.vendedor_id)
+
+        resposta = self.client.post(
+            f"/notificacoes/{notificacao_id}/abrir",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(resposta.status_code, 302)
+        self.assertTrue(resposta.headers["Location"].endswith(f"#pedido-{pedido_id}"))
+        with app.app_context():
+            notificacao = (
+                get_db()
+                .execute(
+                    "SELECT status, lida_em FROM notifications WHERE id=?",
+                    (notificacao_id,),
+                )
+                .fetchone()
+            )
+            self.assertEqual(notificacao["status"], "lida")
+            self.assertIsNotNone(notificacao["lida_em"])
+
+    def test_usuario_nao_acessa_notificacao_de_outra_pessoa(self):
+        self.criar_pedido_de_teste()
+        with app.app_context():
+            notificacao_id = (
+                get_db()
+                .execute(
+                    "SELECT id FROM notifications WHERE usuario_id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()[0]
+            )
+        self.autenticar_sessao(self.comprador_id)
+
+        resposta = self.client.post(
+            f"/notificacoes/{notificacao_id}/abrir",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(resposta.status_code, 404)
+        with app.app_context():
+            status = (
+                get_db()
+                .execute(
+                    "SELECT status FROM notifications WHERE id=?", (notificacao_id,)
+                )
+                .fetchone()[0]
+            )
+            self.assertEqual(status, "nao_lida")
+
+    def test_marcar_todas_como_lidas_e_arquivar(self):
+        self.criar_pedido_de_teste()
+        with app.app_context():
+            notificacao_id = (
+                get_db()
+                .execute(
+                    "SELECT id FROM notifications WHERE usuario_id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchone()[0]
+            )
+        self.autenticar_sessao(self.vendedor_id)
+
+        resposta = self.client.post(
+            "/notificacoes/ler-todas",
+            data={"csrf_token": "token-teste", "retorno": "/notificacoes"},
+        )
+        self.assertEqual(resposta.headers["Location"], "/notificacoes")
+        resposta = self.client.post(
+            f"/notificacoes/{notificacao_id}/arquivar",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(resposta.status_code, 302)
+        with app.app_context():
+            item = (
+                get_db()
+                .execute(
+                    "SELECT status, lida_em, arquivada_em FROM notifications WHERE id=?",
+                    (notificacao_id,),
+                )
+                .fetchone()
+            )
+            self.assertEqual(item["status"], "arquivada")
+            self.assertIsNotNone(item["lida_em"])
+            self.assertIsNotNone(item["arquivada_em"])
+
+    def test_admin_tem_visao_agregada_sem_perder_isolamento(self):
+        self.criar_pedido_de_teste()
+        self.autenticar_sessao(self.admin_id, admin=True)
+
+        pagina = self.client.get("/notificacoes")
+        html = pagina.get_data(as_text=True)
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Visão administrativa", html)
+        self.assertIn("Dados agregados", html)
+        self.assertIn("Usuários alcançados", html)
+
+    def test_central_possui_componente_unico_responsivo_e_acessivel(self):
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get("/").get_data(as_text=True)
+        self.assertEqual(pagina.count("data-notification-center"), 1)
+        self.assertIn('aria-label="Abrir Central de Notificações', pagina)
+        self.assertIn("notification-center.js", pagina)
+
+        with open(
+            os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
+        ) as arquivo_css:
+            css = arquivo_css.read()
+        self.assertIn(".notification-panel", css)
+        self.assertIn("@media(max-width:839px)", css)
+        self.assertIn("@media(max-width:639px)", css)
+        self.assertIn("@media(max-width:359px)", css)
 
     def test_cadastro_exige_e_registra_aceite_dos_termos(self):
         with self.client.session_transaction() as sessao:
