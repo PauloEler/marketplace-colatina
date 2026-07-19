@@ -7,7 +7,13 @@
 <div class="checkout-page">
   <div class="section-kicker">Pedido seguro local</div>
   <h1>Confirmar pedido</h1>
-  <p class="checkout-lead">O vendedor receberá sua solicitação e poderá confirmar a disponibilidade.</p>
+  <p class="checkout-lead">Revise os dados. Ao enviar, o vendedor receberá a solicitação e confirmará a disponibilidade.</p>
+
+  <ol class="checkout-progress" aria-label="Progresso da compra">
+    <li class="active"><span>1</span><div><strong>Solicitação</strong><small>Você está aqui</small></div></li>
+    <li><span>2</span><div><strong>Confirmação</strong><small>Resposta do vendedor</small></div></li>
+    <li><span>3</span><div><strong>Negociação</strong><small>Entrega e pagamento</small></div></li>
+  </ol>
 
   <div class="checkout-layout">
     <section class="checkout-product" aria-label="Resumo do produto">
@@ -44,8 +50,8 @@
         </div>
 
         <div class="order-total"><span>Total anunciado</span><strong>R$ {{ a.preco }}</strong></div>
-        <button class="btn btn-amarelo full-button" type="submit">Enviar pedido ao vendedor</button>
-        <p class="checkout-disclaimer">Nenhum pagamento será cobrado agora. Pagamento e entrega continuam sendo combinados com o vendedor.</p>
+        <button class="btn btn-amarelo full-button" type="submit">Enviar solicitação de compra</button>
+        <p class="checkout-disclaimer"><strong>Nenhum pagamento será cobrado agora.</strong> Você acompanhará a resposta em “Meus pedidos” e só depois combinará pagamento e entrega.</p>
       </form>
     </section>
   </div>
