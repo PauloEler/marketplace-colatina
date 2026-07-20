@@ -35,7 +35,7 @@ Nenhuma tabela, coluna ou índice foi criado. O Radar lê a estrutura da Missão
 
 ## Estado
 
-Implementação concluída na branch `agent/missao-002-inteligencia-comunidade`. Sem merge e sem deploy.
+Implementação validada e aprovada para publicação pela PR #73. O resultado do merge, CI, deploy e validação em produção será registrado após a publicação.
 
 ## Testes e evidências
 

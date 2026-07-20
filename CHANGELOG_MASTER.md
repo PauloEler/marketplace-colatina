@@ -1,5 +1,28 @@
 # CHANGELOG MASTER
 
+## 2026-07-20 - Missão 002 Inteligência da Comunidade
+
+### Adicionado
+
+- Dashboard administrativo **Radar da Cidade** em `/admin/inteligencia-comunidade`.
+- Indicadores de volume, estados, períodos e tempo médio até análise.
+- Ranking automático de categorias, palavras frequentes, recorrências e categorias em crescimento.
+- Resposta baseada em amostra recente para a pergunta **O que Colatina mais precisa neste momento?**.
+- Schema interno `comunidade.v1`, sem autoria, preparado para uma avaliação futura de IA.
+
+### Garantias
+
+- Agregação determinística e somente de leitura.
+- Nenhuma migração ou alteração de banco.
+- Nenhum nome ou mensagem completa exibido no Radar.
+- Nenhuma IA, API externa ou decisão automática implementada.
+- Marketplace, Analytics de Afiliados, Empresas Parceiras, Central de Notificações e Hoje em Colatina preservados.
+
+### Publicação
+
+- PR #73 aprovada para integração na `master`.
+- Resultado final do merge, CI, deploy e validação será registrado após a publicação.
+
 ## 2026-07-20 - Missão 001 Ouvir Colatina
 
 ### Publicado
