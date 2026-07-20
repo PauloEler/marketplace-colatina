@@ -36,6 +36,96 @@
     </div>
   </header>
 
+  {% set tracao = dashboard.tracao %}
+  <section class="traction-overview" aria-labelledby="traction-title">
+    <div class="traction-overview-copy">
+      <span class="dashboard-eyebrow">Opera&ccedil;&atilde;o Tra&ccedil;&atilde;o &middot; 30 dias</span>
+      <h2 id="traction-title">Conquistar os primeiros usu&aacute;rios recorrentes</h2>
+      <p>{{ tracao.start_date }} a {{ tracao.end_date }} &middot; dia {{ tracao.elapsed_days }} de 30 &middot; {{ tracao.remaining_days }} dias restantes.</p>
+    </div>
+    <div class="traction-progress" aria-label="Progresso da Operacao Tracao">
+      <span style="--traction-progress: {{ (tracao.elapsed_days / 30 * 100)|round|int }}%"></span>
+    </div>
+    <a class="btn-secundario traction-report-link" href="{{ url_for('relatorio_operacao_tracao') }}">Baixar relat&oacute;rio semanal</a>
+  </section>
+
+  <section class="dashboard-section traction-section" aria-labelledby="traction-fronts-title">
+    <div class="dashboard-section-heading">
+      <div><span>01</span><h2 id="traction-fronts-title">Opera&ccedil;&atilde;o Tra&ccedil;&atilde;o</h2></div>
+      <p>Indicadores operacionais dos &uacute;ltimos 7 e 30 dias.</p>
+    </div>
+    <div class="traction-grid">
+      <article class="traction-card" data-traction-front="usuarios">
+        <header><span>{{ dashboard_icon('users') }}</span><div><h3>Usu&aacute;rios</h3><small>Aquisi&ccedil;&atilde;o e retorno semanal</small></div></header>
+        <dl class="traction-metrics">
+          <div><dt>Novos em 7 dias</dt><dd data-traction-metric="novos-usuarios">{{ tracao.users.novos_7_dias }}</dd></div>
+          <div><dt>Ativos em 7 dias</dt><dd>{{ tracao.users.ativos_7_dias }}</dd></div>
+          <div><dt>Recorrentes</dt><dd data-traction-metric="usuarios-recorrentes">{{ tracao.users.recorrentes }}</dd></div>
+          <div><dt>Retorno semanal</dt><dd>{{ tracao.users.retorno_rotulo }}</dd></div>
+        </dl>
+        <h4>Origem do acesso</h4>
+        <ul class="traction-source-list">{% for origem in tracao.access_sources %}<li><span>{{ origem.label }}</span><strong>{{ origem.total }}</strong></li>{% else %}<li><span>Base inicia na publica&ccedil;&atilde;o</span><strong>&mdash;</strong></li>{% endfor %}</ul>
+      </article>
+
+      <article class="traction-card" data-traction-front="empresas">
+        <header><span>{{ dashboard_icon('store') }}</span><div><h3>Empresas</h3><small>Participa&ccedil;&atilde;o comercial local</small></div></header>
+        <dl class="traction-metrics">
+          <div><dt>Convidadas</dt><dd>{{ tracao.companies.convidadas_rotulo }}</dd></div>
+          <div><dt>Cadastradas</dt><dd data-traction-metric="empresas-cadastradas">{{ tracao.companies.cadastradas }}</dd></div>
+          <div><dt>Parceiras</dt><dd>{{ tracao.companies.parceiras }}</dd></div>
+          <div><dt>Ativas</dt><dd data-traction-metric="empresas-ativas">{{ tracao.companies.ativas }}</dd></div>
+        </dl>
+        <p class="traction-note">Ativa significa empresa com pelo menos um an&uacute;ncio dispon&iacute;vel.</p>
+      </article>
+
+      <article class="traction-card" data-traction-front="marketplace">
+        <header><span>{{ dashboard_icon('shopping') }}</span><div><h3>Marketplace</h3><small>Oferta, pedidos e convers&atilde;o</small></div></header>
+        <dl class="traction-metrics">
+          <div><dt>An&uacute;ncios ativos</dt><dd>{{ tracao.marketplace.anuncios_ativos }}</dd></div>
+          <div><dt>Publicados em 7 dias</dt><dd>{{ tracao.marketplace.anuncios_publicados_7_dias }}</dd></div>
+          <div><dt>Pedidos em 7 dias</dt><dd>{{ tracao.marketplace.pedidos_7_dias }}</dd></div>
+          <div><dt>Convers&atilde;o em 30 dias</dt><dd>{{ tracao.marketplace.conversao_rotulo }}</dd></div>
+          <div><dt>Resposta m&eacute;dia</dt><dd>{{ tracao.marketplace.tempo_medio_resposta }}</dd></div>
+          <div><dt>Receita da plataforma</dt><dd>{{ tracao.marketplace.receita_plataforma_rotulo }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="traction-card" data-traction-front="afiliados">
+        <header><span>{{ dashboard_icon('tag') }}</span><div><h3>Afiliados</h3><small>Interesse nas ofertas parceiras</small></div></header>
+        <dl class="traction-metrics">
+          <div><dt>Cliques em 7 dias</dt><dd>{{ tracao.affiliates.cliques_7_dias }}</dd></div>
+          <div><dt>Cliques em 30 dias</dt><dd>{{ tracao.affiliates.cliques_30_dias }}</dd></div>
+          <div><dt>CTR</dt><dd>{{ tracao.affiliates.ctr_rotulo }}</dd></div>
+          <div><dt>Categoria l&iacute;der</dt><dd>{{ tracao.affiliates.categoria_top }}</dd></div>
+          <div><dt>Tend&ecirc;ncia semanal</dt><dd>{{ tracao.affiliates.tendencia_rotulo }}</dd></div>
+          <div><dt>Receita</dt><dd>{{ tracao.affiliates.receita_rotulo }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="traction-card" data-traction-front="comunidade">
+        <header><span>{{ dashboard_icon('activity') }}</span><div><h3>Comunidade</h3><small>Participa&ccedil;&atilde;o e necessidades</small></div></header>
+        <dl class="traction-metrics">
+          <div><dt>Sugest&otilde;es recebidas</dt><dd>{{ tracao.community.total }}</dd></div>
+          <div><dt>Recebidas em 7 dias</dt><dd>{{ tracao.community.recebidas_7_dias }}</dd></div>
+          <div><dt>Implementadas</dt><dd>{{ tracao.community.implementadas }}</dd></div>
+          <div><dt>Categoria mais sugerida</dt><dd>{{ tracao.community.categoria_top }}</dd></div>
+          <div><dt>Varia&ccedil;&atilde;o semanal</dt><dd>{{ '%+d'|format(tracao.community.variacao_semanal) }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="traction-card traction-radar" data-traction-front="radar">
+        <header><span>{{ dashboard_icon('activity') }}</span><div><h3>Radar da Cidade</h3><small>O que Colatina mais precisa agora?</small></div></header>
+        <strong>{{ tracao.community.radar.titulo }}</strong>
+        <p>{{ tracao.community.radar.descricao }}</p>
+        <a href="{{ url_for('admin_inteligencia_comunidade') }}">Abrir Intelig&ecirc;ncia da Comunidade</a>
+      </article>
+    </div>
+    <aside class="traction-gaps" aria-label="Limites atuais dos indicadores">
+      <strong>Transpar&ecirc;ncia dos dados</strong>
+      <ul>{% for gap in tracao.gaps %}<li>{{ gap }}</li>{% endfor %}</ul>
+    </aside>
+  </section>
+
   <section class="dashboard-section" aria-labelledby="dashboard-overview-title">
     <div class="dashboard-section-heading">
       <div><span>01</span><h2 id="dashboard-overview-title">Visão geral</h2></div>

@@ -1,5 +1,23 @@
 # CHANGELOG MASTER
 
+## 2026-07-20 - Operacao Tracao 1.0
+
+### Adicionado
+
+- Dashboard Executivo unificado com Usuarios, Empresas, Marketplace, Afiliados, Comunidade e Radar da Cidade.
+- Medicao semanal de novos usuarios, atividade autenticada, recorrencia e retorno.
+- Origem de acesso armazenada somente por categoria agregada.
+- Indicadores de empresas, anuncios, pedidos, conversao, resposta, receita interna, afiliados e sugestoes.
+- Relatorio Executivo Semanal em Markdown gerado a partir da mesma fonte do dashboard.
+- OKRs, KPIs, Playbook de Crescimento, RFC, ADR e documentacao operacional.
+
+### Garantias
+
+- Nenhum IP, referrer completo, UTM bruto ou identificador anonimo persistente armazenado.
+- Receita de afiliados e empresas convidadas declaradas como nao mensuradas enquanto nao houver fonte oficial.
+- Funcionalidades anteriores preservadas.
+- Operacao prevista para 20 de julho a 18 de agosto de 2026.
+
 ## 2026-07-20 - Missão 002 Inteligência da Comunidade
 
 ### Adicionado

@@ -81,6 +81,13 @@ from notification_center import (  # noqa: E402
     marcar_como_lida,
     marcar_todas_como_lidas,
 )
+from traction_metrics import (  # noqa: E402
+    build_traction_dashboard,
+    classify_access_source,
+    record_access_source,
+    record_user_activity,
+    render_weekly_report,
+)
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -1014,6 +1021,13 @@ def registrar_acesso_publico():
         "UPDATE estatisticas SET valor = valor + 1 WHERE chave=?",
         ("acessos_site",),
     )
+    record_access_source(
+        db,
+        classify_access_source(
+            request.referrer,
+            request.args.get("utm_source", ""),
+        ),
+    )
     db.commit()
     session["_visita_registrada"] = True
 
@@ -1077,6 +1091,28 @@ def atualizar_usuario_da_sessao():
     session["usuario_nome"] = usuario["nome"]
     session["usuario_username"] = usuario["username"]
     session["is_admin"] = bool(usuario["is_admin"])
+
+
+@app.before_request
+def registrar_atividade_diaria_do_usuario():
+    """Registra somente atividade diaria agregada de contas autenticadas."""
+    usuario_id = session.get("usuario_id")
+    endpoints_ignorados = {"static", "health", "robots", "sitemap"}
+    if (
+        not usuario_id
+        or request.method != "GET"
+        or request.endpoint in endpoints_ignorados
+    ):
+        return
+
+    activity_date = datetime.now(timezone(timedelta(hours=-3))).date().isoformat()
+    if session.get("_traction_activity_date") == activity_date:
+        return
+
+    db = get_db()
+    record_user_activity(db, usuario_id, activity_date)
+    db.commit()
+    session["_traction_activity_date"] = activity_date
 
 
 @app.after_request
@@ -3586,7 +3622,32 @@ def montar_dashboard_executivo(db):
         "WHERE TRIM(COALESCE(loja_nome, ''))<>'' "
         "ORDER BY criado_em DESC, id DESC LIMIT 5"
     ).fetchall()
+    dashboard["tracao"] = build_traction_dashboard(
+        db,
+        OFERTAS_PARCEIROS_HOME,
+        LOCAL_PARTNERS_HOME,
+    )
     return dashboard
+
+
+@app.route("/admin/operacao-tracao/relatorio-semanal.md")
+def relatorio_operacao_tracao():
+    if not admin():
+        return redirect(url_for("index"))
+    dados = build_traction_dashboard(
+        get_db(),
+        OFERTAS_PARCEIROS_HOME,
+        LOCAL_PARTNERS_HOME,
+    )
+    return Response(
+        render_weekly_report(dados),
+        mimetype="text/markdown; charset=utf-8",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="RELATORIO_EXECUTIVO_SEMANAL.md"'
+            )
+        },
+    )
 
 
 @app.route("/admin")
