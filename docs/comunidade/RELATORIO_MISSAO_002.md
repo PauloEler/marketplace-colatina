@@ -35,7 +35,7 @@ Nenhuma tabela, coluna ou índice foi criado. O Radar lê a estrutura da Missão
 
 ## Estado
 
-Implementação validada e aprovada para publicação pela PR #73. O resultado do merge, CI, deploy e validação em produção será registrado após a publicação.
+Publicada em produção. PR #73 integrada na `master`, CI aprovado e validação final concluída.
 
 ## Testes e evidências
 
@@ -60,3 +60,29 @@ O cenário visual controlado possuía seis sugestões e retornou **Saúde** como
 - crescimento compara duas janelas consecutivas de 30 dias e deve ser lido como sinal preliminar;
 - nenhuma receita, decisão ou ação automática é produzida;
 - qualquer IA futura exigirá nova RFC, ADR, avaliação de privacidade e amostra útil.
+
+## Publicação
+
+- PR: #73;
+- hash do merge: `ffa7c653c46f608c6ace31316ead0a9594078b52`;
+- CI da `master`: aprovado no workflow `29754043065`;
+- deploy automático: detectado em produção às 12h14 de 20 de julho de 2026, horário de Brasília;
+- URL validada: `https://mercadocolatina.com.br/admin/inteligencia-comunidade`.
+
+## Validação final em produção
+
+- Radar autenticado carregado com título, resposta principal, indicadores, períodos, ranking, palavras frequentes, crescimento, recorrências e preparação futura para IA;
+- dados reais: uma sugestão, já arquivada, sem exposição de nome ou mensagem completa;
+- resposta apresentada: **Ainda não há dados suficientes**, coerente com o mínimo de três sugestões nos últimos 30 dias;
+- Dashboard Executivo carregado, com Radar, Analytics de Afiliados e Central de Notificações acessíveis;
+- desktop 1440 px: cinco indicadores e duas colunas de conteúdo, sem overflow;
+- tablet 768 px: três indicadores por linha e conteúdo em uma coluna, sem overflow;
+- mobile 390 px: dois indicadores por linha, sem overflow;
+- mobile 320 px: uma coluna, sem overflow;
+- console do site limpo;
+- nenhuma escrita foi realizada no banco durante a validação;
+- funcionalidades anteriores preservadas.
+
+## Encerramento
+
+A Missão 002 está oficialmente publicada e encerrada. A Missão 003 não foi iniciada.
