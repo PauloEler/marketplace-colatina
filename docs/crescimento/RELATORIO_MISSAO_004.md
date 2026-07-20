@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementacao em branch. Sem merge e sem deploy.
+Publicada em producao. Operacao Conquistar Colatina oficialmente iniciada.
 
 ## Problema da cidade
 
@@ -45,6 +45,26 @@ O relatorio semanal e gerado dinamicamente. De segunda a quinta-feira aparece
 como previa; na sexta-feira, como fechamento oficial. O download autenticado foi
 validado pela suite automatizada.
 
+## Publicacao
+
+- PR: #79;
+- merge por squash: `734f2a55a0e99cb8bb2284c8b37ac973c2985cb9`;
+- CI da `master`: aprovado no workflow `29769148411`;
+- deploy automatico no Render: detectado em producao as 15h51 de 20/07/2026, horario de Brasilia;
+- URL validada: `https://mercadocolatina.com.br/admin/tracao-comercial`.
+
+## Validacao final
+
+- Dashboard Tracao Comercial: operacional, com sete indicadores;
+- Painel de Embaixadores: operacional;
+- Missao da Semana: operacional e sem missao inventada na estreia;
+- relatorio semanal: rota autenticada publicada;
+- desktop 1440 px, notebook 1024 px, tablet 768 px e mobile 390/320 px: sem overflow;
+- console da aplicacao: sem erros;
+- erros observados no Chrome vieram exclusivamente de extensoes instaladas;
+- playbooks e documentacao: presentes na `master`;
+- funcionalidades anteriores: preservadas.
+
 ## Proximos passos
 
-Abrir PR Draft e aguardar aprovacao. Nenhum merge ou deploy sera realizado nesta missao sem nova autorizacao.
+Executar a primeira Missao da Semana, registrar somente dados reais e revisar o relatorio executivo na sexta-feira.
