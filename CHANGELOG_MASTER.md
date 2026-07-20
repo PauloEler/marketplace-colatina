@@ -1,5 +1,39 @@
 # CHANGELOG MASTER
 
+## 2026-07-20 - Missão 001 Ouvir Colatina
+
+### Publicado
+
+- PR #71 integrada na `master`.
+- Hash do merge: `5baec757ccf16c16020859f8697fc0d472e2a3cf`.
+- CI da `master` aprovado no workflow `29739307446`.
+- Deploy automático no Render detectado em produção às 08h42, horário de Brasília.
+
+### Adicionado
+
+- Botão global e discreto **Sugira uma melhoria**.
+- Formulário público em `/sugerir`, com nome opcional, categoria e mensagem.
+- Tabela isolada `sugestoes_comunidade` e estados Nova, Em análise, Planejada, Implementada e Arquivada.
+- Painel administrativo em `/admin/sugestoes`, com filtros e métricas próprias.
+- Fundação documental da Operação Cidade Viva e processo permanente orientado por problemas reais da cidade.
+
+### Validado em produção
+
+- Botão e formulário carregando corretamente.
+- Sugestão controlada cadastrada com confirmação visual.
+- Painel administrativo exibindo a sugestão, filtros, estados e métricas corretamente.
+- Alteração da sugestão controlada de Nova para Arquivada confirmada em produção.
+- Tempo médio até análise calculado após a mudança de estado.
+- Desktop 1440 px, tablet 768 px e mobile 390/320 px sem overflow horizontal.
+- Botão responsivo preservado, inclusive em tela estreita de 320 px.
+- Console público e do painel sem erros originados pelo site.
+
+### Restrições preservadas
+
+- Marketplace, Analytics, Afiliados, Empresas Parceiras, Hoje em Colatina e Central de Notificações não foram alterados.
+- Votação comunitária não implementada; permanece condicionada a RFC própria.
+- Missão 002 não iniciada.
+
 ## 2026-07-19 - MX-006.1 Central de Notificações
 
 ### Publicado
