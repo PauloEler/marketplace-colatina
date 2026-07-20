@@ -41,6 +41,7 @@
           <a href="{{ url_for('painel_admin', visao='afiliados') }}" class="dashboard-link"{% if request.args.get('visao') == 'afiliados' %} aria-current="page"{% endif %}>Afiliados</a>
           <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="cockpit-link">Cockpit</a>
           <a href="{{ url_for('admin_sugestoes') }}" class="admin-link"{% if request.endpoint == 'admin_sugestoes' %} aria-current="page"{% endif %}>Sugestões</a>
+          <a href="{{ url_for('admin_inteligencia_comunidade') }}" class="admin-link"{% if request.endpoint == 'admin_inteligencia_comunidade' %} aria-current="page"{% endif %}>Radar</a>
           <a href="/admin" class="admin-link">Admin</a>
         {% endif %}
         <form method="POST" action="/logout" class="nav-logout">
@@ -69,6 +70,7 @@
             <a href="{{ url_for('painel_admin', visao='afiliados') }}" class="mobile-admin"{% if request.args.get('visao') == 'afiliados' %} aria-current="page"{% endif %}>Analytics de Afiliados</a>
             <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="mobile-admin">Cockpit Executivo</a>
             <a href="{{ url_for('admin_sugestoes') }}" class="mobile-admin"{% if request.endpoint == 'admin_sugestoes' %} aria-current="page"{% endif %}>Sugestões da comunidade</a>
+            <a href="{{ url_for('admin_inteligencia_comunidade') }}" class="mobile-admin"{% if request.endpoint == 'admin_inteligencia_comunidade' %} aria-current="page"{% endif %}>Radar da Cidade</a>
             <a href="/admin" class="mobile-admin">Painel Admin</a>
           {% endif %}
           <form method="POST" action="/logout" class="mobile-logout">

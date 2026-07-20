@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Radar da Cidade | Mercado Colatina{% endblock %}
+{% block meta_description %}Inteligência agregada das sugestões recebidas pelo Mercado Colatina.{% endblock %}
+{% block body_class %}community-intelligence-page{% endblock %}
+
+{% block voltar %}<a href="{{ url_for('admin_sugestoes') }}" class="voltar">Voltar às sugestões</a>{% endblock %}
+
+{% block content %}
+<div class="city-radar-shell">
+  <header class="city-radar-hero">
+    <div>
+      <div class="section-kicker">Inteligência da Comunidade</div>
+      <h1>Radar da Cidade</h1>
+      <p>Transforma a escuta da população em sinais comparáveis, sem IA e sem expor mensagens ou nomes.</p>
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('admin_sugestoes') }}">Gerenciar sugestões</a>
+  </header>
+
+  <section class="city-radar-answer {{ 'is-conclusive' if inteligencia.resposta_cidade.conclusiva else 'is-preliminary' }}" aria-labelledby="city-answer-title">
+    <div class="section-kicker">O que Colatina mais precisa neste momento?</div>
+    <h2 id="city-answer-title">{{ inteligencia.resposta_cidade.titulo }}</h2>
+    <p>{{ inteligencia.resposta_cidade.descricao }}</p>
+    <small>Resposta baseada exclusivamente nas sugestões recebidas. Sinais pequenos não são apresentados como certeza.</small>
+  </section>
+
+  <section class="city-radar-metrics" aria-label="Indicadores da comunidade">
+    <article><span>Total de sugestões</span><strong>{{ inteligencia.total }}</strong></article>
+    <article><span>Pendentes</span><strong>{{ inteligencia.pendentes }}</strong></article>
+    <article><span>Implementadas</span><strong>{{ inteligencia.implementadas }}</strong></article>
+    <article><span>Arquivadas</span><strong>{{ inteligencia.arquivadas }}</strong></article>
+    <article><span>Tempo médio até análise</span><strong>{{ inteligencia.tempo_medio_analise }}</strong></article>
+  </section>
+
+  <section class="city-radar-periods" aria-labelledby="city-periods-title">
+    <div class="city-radar-heading">
+      <div><div class="section-kicker">Volume</div><h2 id="city-periods-title">Sugestões por período</h2></div>
+      <span>Janelas cumulativas até agora.</span>
+    </div>
+    <div class="city-radar-period-grid">
+      {% for periodo in inteligencia.periodos %}
+        <article><span>{{ periodo.rotulo }}</span><strong>{{ periodo.total }}</strong></article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="city-radar-grid">
+    <section class="city-radar-card" aria-labelledby="city-ranking-title">
+      <div class="city-radar-heading">
+        <div><div class="section-kicker">Ranking automático</div><h2 id="city-ranking-title">Sugestões por categoria</h2></div>
+      </div>
+      <ol class="city-ranking-list">
+        {% for item in inteligencia.ranking_categorias %}
+          <li>
+            <span class="city-ranking-position">{{ loop.index }}</span>
+            <div><strong>{{ item.categoria }}</strong><span>{{ item.total }} · {{ item.percentual }}%</span><i style="--city-bar: {{ item.percentual }}%"></i></div>
+          </li>
+        {% else %}
+          <li class="city-radar-empty">Nenhuma categoria possui dados.</li>
+        {% endfor %}
+      </ol>
+    </section>
+
+    <section class="city-radar-card" aria-labelledby="city-words-title">
+      <div class="city-radar-heading">
+        <div><div class="section-kicker">Linguagem da cidade</div><h2 id="city-words-title">Palavras mais frequentes</h2></div>
+      </div>
+      <div class="city-word-cloud">
+        {% for item in inteligencia.palavras_frequentes %}
+          <span><strong>{{ item.palavra }}</strong><small>{{ item.sugestoes }} {{ 'sugestão' if item.sugestoes == 1 else 'sugestões' }}</small></span>
+        {% else %}
+          <p class="city-radar-empty">Ainda não há palavras relevantes suficientes.</p>
+        {% endfor %}
+      </div>
+      <p class="city-radar-method">Contagem lexical por sugestões distintas; não é análise semântica.</p>
+    </section>
+
+    <section class="city-radar-card" aria-labelledby="city-growth-title">
+      <div class="city-radar-heading">
+        <div><div class="section-kicker">Tendências</div><h2 id="city-growth-title">Categorias em crescimento</h2></div>
+      </div>
+      <div class="city-signal-list">
+        {% for item in inteligencia.categorias_crescimento %}
+          <article><div><strong>{{ item.categoria }}</strong><span>30 dias atuais: {{ item.atual }} · anteriores: {{ item.anterior }}</span></div><b>+{{ item.variacao }}</b></article>
+        {% else %}
+          <p class="city-radar-empty">Nenhum crescimento verificável entre os períodos.</p>
+        {% endfor %}
+      </div>
+      <p class="city-radar-method">Comparação entre janelas consecutivas de 30 dias. Amostras pequenas são sinais preliminares.</p>
+    </section>
+
+    <section class="city-radar-card" aria-labelledby="city-recurring-title">
+      <div class="city-radar-heading">
+        <div><div class="section-kicker">Recorrência</div><h2 id="city-recurring-title">Sugestões recorrentes</h2></div>
+      </div>
+      <div class="city-signal-list compact">
+        {% for item in inteligencia.sugestoes_recorrentes %}
+          <article><strong>{{ item.palavra }}</strong><b>{{ item.sugestoes }} sugestões</b></article>
+        {% else %}
+          <p class="city-radar-empty">Nenhum termo apareceu em duas ou mais sugestões.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="city-radar-card" aria-labelledby="city-problems-title">
+      <div class="city-radar-heading">
+        <div><div class="section-kicker">Radar lexical</div><h2 id="city-problems-title">Problemas mais citados</h2></div>
+      </div>
+      <div class="city-problem-list">
+        {% for item in inteligencia.problemas_citados %}
+          <span><strong>{{ item.palavra }}</strong><b>{{ item.sugestoes }}</b></span>
+        {% else %}
+          <p class="city-radar-empty">Sem termos relevantes para exibir.</p>
+        {% endfor %}
+      </div>
+      <p class="city-radar-method">Aproximação por termos relevantes; o sistema não interpreta contexto.</p>
+    </section>
+
+    <aside class="city-radar-card city-radar-future" aria-labelledby="city-future-title">
+      <div class="city-radar-heading">
+        <div><div class="section-kicker">Preparação futura</div><h2 id="city-future-title">Arquitetura pronta para IA</h2></div>
+      </div>
+      <p>Os dados possuem schema interno <strong>{{ inteligencia.schema_version }}</strong>, sem autoria. Nenhuma mensagem é enviada ou processada por IA nesta missão.</p>
+      <ul>
+        <li>Sem API externa.</li>
+        <li>Sem nova coleta de dados.</li>
+        <li>Sem decisão automática.</li>
+      </ul>
+    </aside>
+  </div>
+</div>
+{% endblock %}

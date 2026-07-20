@@ -6,24 +6,24 @@
 
 ## Missão da Semana
 
-Entregar a Missão 001 — Ouvir Colatina, criando um canal estruturado para a população sugerir melhorias e uma fila administrativa mensurável para análise.
+Entregar a Missão 002 — Entender Colatina, transformando sugestões em sinais agregados e verificáveis para orientar prioridades.
 
 ## Problema da Semana
 
-Sugestões da população chegavam por conversas dispersas, sem categoria, estado de análise, histórico ou indicador que permitisse priorizá-las.
+As sugestões já são recebidas e organizadas, mas padrões de categoria, período e recorrência ainda exigem leitura manual e podem ser interpretados por impressão.
 
 ## Sprint da Semana
 
-Missão 001 — Ouvir Colatina.
+Missão 002 — Inteligência da Comunidade.
 
 ## Indicador da Semana
 
-Quantidade de sugestões, categorias mais sugeridas, sugestões implementadas e tempo médio até a primeira análise.
+Volume recente, ranking de categorias, recorrência lexical, crescimento por período e tempo médio até a primeira análise.
 
 ## Resultado Esperado
 
-Formulário público acessível, painel administrativo isolado, estados de acompanhamento e métricas operacionais, sem regressão nos módulos existentes.
+Radar administrativo capaz de responder com evidência — ou declarar dados insuficientes — o que Colatina mais precisa neste momento.
 
 ## Estado
 
-Implementação e validação local concluídas. Aguardando revisão da PR Draft, sem merge e sem deploy.
+Implementação e validação concluídas. Aguardando revisão da PR Draft, sem merge e sem deploy.
