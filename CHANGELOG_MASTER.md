@@ -18,6 +18,23 @@
 - Funcionalidades anteriores preservadas.
 - Operacao prevista para 20 de julho a 18 de agosto de 2026.
 
+### Publicacao
+
+- PR #75 integrada na `master`.
+- Hash do merge: `53bc802c015d27b532c50b6f0afef7faa677984d`.
+- CI da `master` aprovado no workflow `29763648628`.
+- Deploy automatico no Render detectado em producao as 14h28, horario de Brasilia.
+
+### Validado em producao
+
+- Dashboard Executivo com as seis frentes e dados reais.
+- Relatorio semanal autenticado disponivel no dashboard.
+- OKRs, KPIs e Playbook presentes na versao publicada.
+- Desktop 1440 px, tablet 768 px, mobile 390 px e 320 px sem overflow horizontal.
+- Console da aplicacao sem erros; mensagem isolada observada pertence a uma extensao do Chrome.
+- Dashboard anterior, Central de Notificacoes, Afiliados, Comunidade e Radar preservados.
+- Operacao Tracao oficialmente iniciada.
+
 ## 2026-07-20 - Missão 002 Inteligência da Comunidade
 
 ### Adicionado
