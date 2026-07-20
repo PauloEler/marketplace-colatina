@@ -40,9 +40,21 @@
 - recorrência e origem: histórico iniciado somente após publicação;
 - relatório semanal: geração sob demanda, sem agendador externo.
 
+## Publicação final
+
+- PR #75 integrada na `master`;
+- hash do merge: `53bc802c015d27b532c50b6f0afef7faa677984d`;
+- CI da `master` aprovado no workflow `29763648628`;
+- deploy do Render detectado em produção às 14h28, horário de Brasília;
+- Dashboard Executivo e relatório semanal validados em produção;
+- OKRs, KPIs e Playbook confirmados na versão publicada;
+- desktop, tablet, mobile e responsividade aprovados;
+- console da aplicação sem erros;
+- funcionalidades anteriores preservadas.
+
 ## Situação
 
-Implementação preparada em branch isolada. Merge e deploy não autorizados nesta etapa. Evidências de testes e PR serão registradas ao final da validação.
+A Operação Tração está oficialmente iniciada e estável em produção.
 
 ## Perguntas do 30º dia
 
