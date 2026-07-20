@@ -98,6 +98,13 @@ from commercial_growth import (  # noqa: E402
     render_commercial_weekly_report,
     update_company_checklist,
 )
+from service_requests import (  # noqa: E402
+    URGENCY_OPTIONS,
+    ServiceRequestValidationError,
+    criar_pedido as criar_pedido_servico,
+    listar_pedidos_abertos,
+    registrar_resposta as registrar_resposta_servico,
+)
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -1318,6 +1325,7 @@ def sitemap():
         "pagina_seja_parceiro",
         "pagina_ajuda",
         "sugerir_melhoria",
+        "encontre_quem_resolve",
         "pagina_privacidade",
         "pagina_termos",
     ]
@@ -3287,6 +3295,95 @@ def sugerir_melhoria():
         categorias=SUGGESTION_CATEGORIES,
         dados=dados,
     )
+
+
+@app.route("/encontre-quem-resolve", methods=["GET", "POST"])
+def encontre_quem_resolve():
+    dados = {"problema": "", "bairro": "", "urgencia": "", "whatsapp": ""}
+    if session.get("usuario_id"):
+        usuario = (
+            get_db()
+            .execute(
+                "SELECT whatsapp, loja_whatsapp FROM usuarios WHERE id=? AND ativo=1",
+                (session["usuario_id"],),
+            )
+            .fetchone()
+        )
+        if usuario:
+            dados["whatsapp"] = usuario["whatsapp"] or usuario["loja_whatsapp"] or ""
+    if request.method == "POST":
+        dados.update(
+            {
+                "problema": request.form.get("problema", ""),
+                "bairro": request.form.get("bairro", ""),
+                "urgencia": request.form.get("urgencia", ""),
+                "whatsapp": request.form.get("whatsapp", ""),
+            }
+        )
+        if request.form.get("website"):
+            return redirect(url_for("encontre_quem_resolve", enviado=1))
+        if request.form.get("consentimento") != "sim":
+            flash("Confirme que empresas locais podem entrar em contato.", "erro")
+            return render_template(
+                "encontre_quem_resolve.html",
+                dados=dados,
+                urgencias=URGENCY_OPTIONS,
+            )
+        try:
+            criar_pedido_servico(
+                get_db(),
+                dados["problema"],
+                dados["bairro"],
+                dados["urgencia"],
+                dados["whatsapp"],
+                session.get("usuario_id"),
+            )
+        except ServiceRequestValidationError as erro:
+            flash(str(erro), "erro")
+        else:
+            flash(
+                "Pedido publicado. Empresas locais já podem encontrar sua necessidade.",
+                "sucesso",
+            )
+            return redirect(url_for("encontre_quem_resolve", enviado=1))
+    return render_template(
+        "encontre_quem_resolve.html",
+        dados=dados,
+        urgencias=URGENCY_OPTIONS,
+    )
+
+
+@app.route("/quem-resolve")
+def painel_quem_resolve():
+    return render_template(
+        "quem_resolve.html",
+        pedidos=listar_pedidos_abertos(get_db()),
+        urgencias=URGENCY_OPTIONS,
+    )
+
+
+@app.route("/quem-resolve/<int:pedido_id>/responder", methods=["POST"])
+def responder_pedido_servico(pedido_id):
+    usuario_id = session.get("usuario_id")
+    if not usuario_id:
+        flash("Entre na sua conta comercial para responder.", "erro")
+        return redirect(url_for("login", next=url_for("painel_quem_resolve")))
+    usuario = (
+        get_db()
+        .execute(
+            "SELECT loja_nome, is_admin FROM usuarios WHERE id=? AND ativo=1",
+            (usuario_id,),
+        )
+        .fetchone()
+    )
+    if not usuario or (not usuario["is_admin"] and not usuario["loja_nome"]):
+        flash("Cadastre o nome da sua loja antes de responder.", "erro")
+        return redirect(url_for("painel_quem_resolve"))
+    destino = registrar_resposta_servico(get_db(), pedido_id)
+    if not destino:
+        flash("Esse pedido não está mais disponível.", "erro")
+        return redirect(url_for("painel_quem_resolve"))
+    return redirect(destino)
 
 
 @app.route("/quem-somos")

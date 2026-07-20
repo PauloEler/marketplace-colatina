@@ -75,6 +75,7 @@ class ModeracaoTestCase(unittest.TestCase):
                 "growth_commercial_companies",
                 "traction_user_activity_daily",
                 "traction_access_source_daily",
+                "pedidos_servico",
                 "sugestoes_comunidade",
                 "notifications",
                 "afiliado_eventos",
@@ -3315,6 +3316,145 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIsNone(sugestoes[0]["nome"])
             self.assertEqual(sugestoes[0]["categoria"], "mobilidade")
             self.assertEqual(sugestoes[0]["status"], "nova")
+
+    def test_encontre_quem_resolve_exibe_fluxo_publico_em_quatro_passos(self):
+        home = self.client.get("/")
+        self.assertEqual(home.status_code, 200)
+        html_home = home.get_data(as_text=True)
+        self.assertIn('class="find-solver-trigger"', html_home)
+        self.assertIn('href="/encontre-quem-resolve"', html_home)
+
+        pagina = self.client.get("/encontre-quem-resolve")
+        self.assertEqual(pagina.status_code, 200)
+        html = pagina.get_data(as_text=True)
+        self.assertIn("O que você precisa resolver?", html)
+        self.assertEqual(html.count("data-service-step="), 4)
+        self.assertIn('maxlength="500"', html)
+        self.assertNotIn('name="categoria"', html)
+        self.assertIn("Sou empresa e quero ajudar", html)
+
+        sitemap = self.client.get("/sitemap.xml").get_data(as_text=True)
+        self.assertIn("/encontre-quem-resolve", sitemap)
+
+    def test_encontre_quem_resolve_valida_publica_e_protege_whatsapp(self):
+        self.client.get("/encontre-quem-resolve")
+        with self.client.session_transaction() as sessao:
+            token = sessao["_csrf_token"]
+
+        sem_consentimento = self.client.post(
+            "/encontre-quem-resolve",
+            data={
+                "csrf_token": token,
+                "problema": "Meu chuveiro parou e preciso de um eletricista.",
+                "bairro": "Centro",
+                "urgencia": "hoje",
+                "whatsapp": "(27) 99999-1234",
+            },
+        )
+        self.assertEqual(sem_consentimento.status_code, 200)
+
+        telefone_na_descricao = self.client.post(
+            "/encontre-quem-resolve",
+            data={
+                "csrf_token": token,
+                "problema": "Preciso de eletricista. Meu número é 27999991234.",
+                "bairro": "Centro",
+                "urgencia": "hoje",
+                "whatsapp": "(27) 99999-1234",
+                "consentimento": "sim",
+            },
+        )
+        self.assertEqual(telefone_na_descricao.status_code, 200)
+        self.assertIn(
+            "Não coloque telefone na descrição",
+            telefone_na_descricao.get_data(as_text=True),
+        )
+
+        valida = self.client.post(
+            "/encontre-quem-resolve",
+            data={
+                "csrf_token": token,
+                "problema": "Meu chuveiro parou e preciso de um eletricista.",
+                "bairro": "Centro",
+                "urgencia": "hoje",
+                "whatsapp": "(27) 99999-1234",
+                "consentimento": "sim",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(valida.status_code, 200)
+        self.assertIn("Pedido publicado", valida.get_data(as_text=True))
+
+        with app.app_context():
+            pedido = get_db().execute("SELECT * FROM pedidos_servico").fetchone()
+            self.assertEqual(pedido["categoria"], "Casa e manutenção")
+            self.assertEqual(pedido["whatsapp"], "5527999991234")
+            self.assertEqual(pedido["status"], "aberto")
+
+        oportunidades = self.client.get("/quem-resolve")
+        html = oportunidades.get_data(as_text=True)
+        self.assertIn("Meu chuveiro parou", html)
+        self.assertNotIn("5527999991234", html)
+        self.assertNotIn("99999-1234", html)
+
+    def test_somente_loja_autenticada_pode_responder_pedido_local(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO pedidos_servico "
+                "(problema, categoria, bairro, urgencia, whatsapp) "
+                "VALUES (?,?,?,?,?)",
+                (
+                    "Preciso instalar uma tomada na cozinha.",
+                    "Casa e manutenção",
+                    "Maria das Graças",
+                    "semana",
+                    "5527999991234",
+                ),
+            )
+            pedido_id = db.execute("SELECT id FROM pedidos_servico").fetchone()[0]
+            db.commit()
+
+        self.client.get("/quem-resolve")
+        with self.client.session_transaction() as sessao:
+            token = sessao["_csrf_token"]
+        visitante = self.client.post(
+            f"/quem-resolve/{pedido_id}/responder",
+            data={"csrf_token": token},
+        )
+        self.assertEqual(visitante.status_code, 302)
+        self.assertIn("/login", visitante.headers["Location"])
+
+        self.autenticar_sessao(self.vendedor_id)
+        sem_loja = self.client.post(
+            f"/quem-resolve/{pedido_id}/responder",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(sem_loja.status_code, 302)
+        self.assertTrue(sem_loja.headers["Location"].endswith("/quem-resolve"))
+
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Eletricista Local' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.commit()
+        resposta = self.client.post(
+            f"/quem-resolve/{pedido_id}/responder",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(resposta.status_code, 302)
+        self.assertTrue(resposta.headers["Location"].startswith("https://wa.me/"))
+        with app.app_context():
+            total = (
+                get_db()
+                .execute(
+                    "SELECT respostas FROM pedidos_servico WHERE id=?", (pedido_id,)
+                )
+                .fetchone()[0]
+            )
+            self.assertEqual(total, 1)
 
     def test_sugestoes_exigem_admin_e_painel_filtra_atualiza_e_mede(self):
         with app.app_context():
