@@ -89,6 +89,15 @@ from traction_metrics import (  # noqa: E402
     render_weekly_report,
 )
 from operation_100 import build_operation_100_dashboard  # noqa: E402
+from commercial_growth import (  # noqa: E402
+    CommercialGrowthValidationError,
+    build_commercial_dashboard,
+    create_ambassador,
+    create_company,
+    create_weekly_mission,
+    render_commercial_weekly_report,
+    update_company_checklist,
+)
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -3662,6 +3671,110 @@ def painel_operacao_100():
             OFERTAS_PARCEIROS_HOME,
             LOCAL_PARTNERS_HOME,
         ),
+    )
+
+
+@app.route("/admin/tracao-comercial")
+def painel_tracao_comercial():
+    if not admin():
+        return redirect(url_for("index"))
+    return render_template(
+        "tracao_comercial.html",
+        comercial=build_commercial_dashboard(get_db()),
+    )
+
+
+@app.route("/admin/tracao-comercial/empresas", methods=["POST"])
+def criar_empresa_comercial():
+    if not admin():
+        return redirect(url_for("index"))
+    try:
+        create_company(
+            get_db(),
+            request.form.get("name"),
+            request.form.get("contact"),
+            request.form.get("neighborhood"),
+            request.form.get("visits_count", 1),
+            request.form.get("interested"),
+            session["usuario_id"],
+        )
+    except CommercialGrowthValidationError as error:
+        flash(str(error), "erro")
+    else:
+        flash("Empresa adicionada a Tracao Comercial.", "ok")
+    return redirect(url_for("painel_tracao_comercial") + "#empresas")
+
+
+@app.route(
+    "/admin/tracao-comercial/empresas/<int:company_id>/checklist", methods=["POST"]
+)
+def atualizar_empresa_comercial(company_id):
+    if not admin():
+        return redirect(url_for("index"))
+    try:
+        updated = update_company_checklist(get_db(), company_id, request.form)
+    except CommercialGrowthValidationError as error:
+        flash(str(error), "erro")
+    else:
+        if not updated:
+            abort(404)
+        flash("Checklist da empresa atualizado.", "ok")
+    return redirect(url_for("painel_tracao_comercial") + f"#empresa-{company_id}")
+
+
+@app.route("/admin/tracao-comercial/embaixadores", methods=["POST"])
+def criar_embaixador_comercial():
+    if not admin():
+        return redirect(url_for("index"))
+    try:
+        create_ambassador(
+            get_db(),
+            request.form.get("name"),
+            request.form.get("contact"),
+            request.form.get("neighborhood"),
+            request.form.get("companies_referred", 0),
+            request.form.get("users_referred", 0),
+            request.form.get("participation"),
+        )
+    except CommercialGrowthValidationError as error:
+        flash(str(error), "erro")
+    else:
+        flash("Embaixador adicionado ao painel.", "ok")
+    return redirect(url_for("painel_tracao_comercial") + "#embaixadores")
+
+
+@app.route("/admin/tracao-comercial/missao-semanal", methods=["POST"])
+def criar_missao_comercial():
+    if not admin():
+        return redirect(url_for("index"))
+    try:
+        create_weekly_mission(
+            get_db(),
+            request.form.get("title"),
+            request.form.get("metric"),
+            request.form.get("target"),
+            session["usuario_id"],
+        )
+    except CommercialGrowthValidationError as error:
+        flash(str(error), "erro")
+    else:
+        flash("Missao principal da semana definida.", "ok")
+    return redirect(url_for("painel_tracao_comercial") + "#missao-semanal")
+
+
+@app.route("/admin/tracao-comercial/relatorio-semanal.md")
+def relatorio_tracao_comercial():
+    if not admin():
+        return redirect(url_for("index"))
+    data = build_commercial_dashboard(get_db())
+    return Response(
+        render_commercial_weekly_report(data),
+        mimetype="text/markdown; charset=utf-8",
+        headers={
+            "Content-Disposition": (
+                'attachment; filename="RELATORIO_EXECUTIVO_CONQUISTAR_COLATINA.md"'
+            )
+        },
     )
 
 

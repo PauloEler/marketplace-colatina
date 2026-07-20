@@ -19,3 +19,17 @@ Conferir o painel oficial do programa de afiliados, identificar a transacao e gu
 ## Primeira empresa parceira pagante
 
 Formalizar escopo, periodo, transparencia e comprovacao financeira antes de classificar a empresa como pagante. Esta Missao nao implementa cobranca nem regras comerciais.
+
+## Operacao bairro por bairro
+
+1. Escolher um unico bairro para a rodada.
+2. Listar empresas que resolvem necessidades cotidianas daquele bairro.
+3. Fazer visita curta, demonstrar a plataforma no celular e ouvir a dificuldade da empresa.
+4. Registrar somente nome comercial, bairro, contato necessario e resultado da visita.
+5. Ajudar a empresa interessada a concluir um primeiro anuncio util.
+6. Acompanhar o checklist ate o primeiro pedido, sem prometer venda ou resultado.
+7. Pedir indicacao de outra empresa apenas depois de entregar valor.
+
+## Conversa recomendada
+
+Apresentar o Mercado Colatina como plataforma local, explicar negociacao direta e publicidade transparente e demonstrar um anuncio real. Nao oferecer planos, descontos ou compromissos ainda nao aprovados.

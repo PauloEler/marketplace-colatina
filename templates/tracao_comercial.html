@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Tra&ccedil;&atilde;o Comercial | Mercado Colatina{% endblock %}
+{% block body_class %}commercial-growth-page{% endblock %}
+{% block content %}
+<div class="commercial-growth-shell">
+  <header class="commercial-growth-hero">
+    <div>
+      <span>Miss&atilde;o 004 &middot; Opera&ccedil;&atilde;o Conquistar Colatina</span>
+      <h1>Tra&ccedil;&atilde;o Comercial</h1>
+      <p>Crescimento bairro por bairro, empresa por empresa e usu&aacute;rio por usu&aacute;rio.</p>
+    </div>
+    <a class="btn btn-verde" href="{{ url_for('relatorio_tracao_comercial') }}">Relat&oacute;rio semanal</a>
+  </header>
+
+  <p class="commercial-growth-updated">Semana {{ comercial.week_label }} &middot; atualizado em {{ comercial.generated_at }}</p>
+
+  <section class="commercial-growth-section" aria-labelledby="commercial-summary-title">
+    <header><span>01</span><div><h2 id="commercial-summary-title">Vis&atilde;o comercial</h2><p>Convers&atilde;o = empresas cadastradas dividido por empresas visitadas.</p></div></header>
+    <div class="commercial-growth-metrics">
+      <article data-commercial-metric="visited"><span>Empresas visitadas</span><strong>{{ comercial.metrics.visited }}</strong></article>
+      <article data-commercial-metric="interested"><span>Interessadas</span><strong>{{ comercial.metrics.interested }}</strong></article>
+      <article data-commercial-metric="registered"><span>Cadastradas</span><strong>{{ comercial.metrics.registered }}</strong></article>
+      <article data-commercial-metric="partners"><span>Parceiras</span><strong>{{ comercial.metrics.partners }}</strong></article>
+      <article data-commercial-metric="neighborhoods"><span>Bairros visitados</span><strong>{{ comercial.metrics.neighborhoods }}</strong></article>
+      <article data-commercial-metric="visits"><span>Visitas realizadas</span><strong>{{ comercial.metrics.visits }}</strong></article>
+      <article data-commercial-metric="conversion"><span>Taxa de convers&atilde;o</span><strong>{{ comercial.metrics.conversion_label }}</strong></article>
+    </div>
+  </section>
+
+  <section id="missao-semanal" class="commercial-growth-section commercial-weekly-mission" aria-labelledby="weekly-mission-title">
+    <header><span>02</span><div><h2 id="weekly-mission-title">Miss&atilde;o da semana</h2><p>Uma &uacute;nica prioridade principal por semana.</p></div></header>
+    <div class="commercial-mission-layout">
+      {% if comercial.mission %}
+      <article class="commercial-current-mission">
+        <span>Miss&atilde;o principal</span>
+        <h3>{{ comercial.mission.title }}</h3>
+        <p>{{ comercial.mission.metric_label }} &middot; {{ comercial.mission.progress }}/{{ comercial.mission.target }}</p>
+        <div aria-label="Progresso de {{ comercial.mission.percentage }} por cento"><i style="--mission-progress:{{ comercial.mission.percentage }}%"></i></div>
+        <strong>{{ comercial.mission.percentage }}%</strong>
+      </article>
+      {% else %}
+      <article class="commercial-current-mission is-empty"><span>Miss&atilde;o principal</span><h3>Ainda n&atilde;o definida</h3><p>Defina abaixo a &uacute;nica prioridade desta semana.</p></article>
+      {% endif %}
+      <form class="commercial-form" method="POST" action="{{ url_for('criar_missao_comercial') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="mission-title">Miss&atilde;o</label>
+        <input id="mission-title" name="title" maxlength="160" required placeholder="Ex.: Conseguir 5 novas empresas">
+        <div class="commercial-form-row">
+          <div><label for="mission-metric">Indicador</label><select id="mission-metric" name="metric" required>{% for key,label in comercial.mission_metrics.items() %}<option value="{{ key }}">{{ label }}</option>{% endfor %}</select></div>
+          <div><label for="mission-target">Meta</label><input id="mission-target" name="target" type="number" min="1" max="10000" value="5" required></div>
+        </div>
+        <button class="btn btn-verde" type="submit">Definir miss&atilde;o</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="empresas" class="commercial-growth-section" aria-labelledby="commercial-companies-title">
+    <header><span>03</span><div><h2 id="commercial-companies-title">Empresas</h2><p>Acompanhamento operacional, sem alterar cadastro, an&uacute;ncios ou pedidos.</p></div></header>
+    <form class="commercial-form commercial-entry-form" method="POST" action="{{ url_for('criar_empresa_comercial') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div><label for="company-name">Empresa</label><input id="company-name" name="name" maxlength="120" required></div>
+      <div><label for="company-contact">Contato (opcional)</label><input id="company-contact" name="contact" maxlength="120"></div>
+      <div><label for="company-neighborhood">Bairro</label><input id="company-neighborhood" name="neighborhood" maxlength="80" required></div>
+      <div><label for="company-visits">Visitas realizadas</label><input id="company-visits" name="visits_count" type="number" min="1" max="999" value="1" required></div>
+      <label class="commercial-inline-check"><input type="checkbox" name="interested"> Demonstrou interesse</label>
+      <button class="btn btn-verde" type="submit">Adicionar empresa</button>
+    </form>
+
+    <div class="commercial-company-list">
+      {% for company in comercial.companies %}
+      <article id="empresa-{{ company.id }}" class="commercial-company-card">
+        <header><div><h3>{{ company.name }}</h3><p>{{ company.neighborhood }}{% if company.contact %} &middot; {{ company.contact }}{% endif %}</p></div><strong>{{ company.visits_count }} visita{{ '' if company.visits_count == 1 else 's' }}</strong></header>
+        <form method="POST" action="{{ url_for('atualizar_empresa_comercial', company_id=company.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label>Visitas <input name="visits_count" type="number" min="1" max="999" value="{{ company.visits_count }}" required></label>
+          <div class="commercial-checklist">
+            <label><input type="checkbox" name="interested"{{ ' checked' if company.interested else '' }}> Empresa interessada</label>
+            <label><input type="checkbox" name="registered"{{ ' checked' if company.registered else '' }}> Empresa cadastrada</label>
+            <label><input type="checkbox" name="ad_published"{{ ' checked' if company.ad_published else '' }}> Publicou an&uacute;ncio</label>
+            <label><input type="checkbox" name="first_order"{{ ' checked' if company.first_order else '' }}> Recebeu primeiro pedido</label>
+            <label><input type="checkbox" name="partner"{{ ' checked' if company.partner else '' }}> Tornou-se parceira</label>
+            <label><input type="checkbox" name="referred_other"{{ ' checked' if company.referred_other else '' }}> Recomendou outra empresa</label>
+          </div>
+          <button class="btn btn-outline" type="submit">Salvar checklist</button>
+        </form>
+      </article>
+      {% else %}
+      <div class="commercial-empty"><h3>Nenhuma empresa registrada</h3><p>A primeira visita formar&aacute; a base comercial.</p></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section id="embaixadores" class="commercial-growth-section" aria-labelledby="ambassadors-title">
+    <header><span>04</span><div><h2 id="ambassadors-title">Embaixadores</h2><p>Contatos vis&iacute;veis somente para administradores.</p></div></header>
+    <form class="commercial-form commercial-entry-form ambassador-form" method="POST" action="{{ url_for('criar_embaixador_comercial') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div><label for="ambassador-name">Nome</label><input id="ambassador-name" name="name" maxlength="100" required></div>
+      <div><label for="ambassador-contact">Contato</label><input id="ambassador-contact" name="contact" maxlength="120" required></div>
+      <div><label for="ambassador-neighborhood">Bairro</label><input id="ambassador-neighborhood" name="neighborhood" maxlength="80" required></div>
+      <div><label for="ambassador-companies">Empresas indicadas</label><input id="ambassador-companies" name="companies_referred" type="number" min="0" max="10000" value="0" required></div>
+      <div><label for="ambassador-users">Usu&aacute;rios indicados</label><input id="ambassador-users" name="users_referred" type="number" min="0" max="10000" value="0" required></div>
+      <div class="commercial-participation"><label for="ambassador-participation">Participa&ccedil;&atilde;o</label><input id="ambassador-participation" name="participation" maxlength="240" required placeholder="Ex.: visitas no Centro e divulga&ccedil;&atilde;o local"></div>
+      <button class="btn btn-verde" type="submit">Adicionar embaixador</button>
+    </form>
+    <div class="commercial-ambassador-list">
+      {% for ambassador in comercial.ambassadors %}
+      <article><div class="commercial-ambassador-avatar" aria-hidden="true">{{ ambassador.name[:1]|upper }}</div><div><h3>{{ ambassador.name }}</h3><p>{{ ambassador.neighborhood }} &middot; {{ ambassador.contact }}</p><small>{{ ambassador.participation }}</small></div><dl><div><dt>Empresas</dt><dd>{{ ambassador.companies_referred }}</dd></div><div><dt>Usu&aacute;rios</dt><dd>{{ ambassador.users_referred }}</dd></div></dl></article>
+      {% else %}
+      <div class="commercial-empty"><h3>Nenhum embaixador registrado</h3><p>Cadastre apenas pessoas que aceitaram participar.</p></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <aside class="commercial-report-note">
+    <strong>Relat&oacute;rio executivo de sexta-feira</strong>
+    <p>O arquivo &eacute; calculado automaticamente com a semana atual. Antes de sexta-feira ele &eacute; identificado como pr&eacute;via; na sexta, como fechamento oficial.</p>
+    <a href="{{ url_for('relatorio_tracao_comercial') }}">Baixar relat&oacute;rio</a>
+  </aside>
+</div>
+{% endblock %}
