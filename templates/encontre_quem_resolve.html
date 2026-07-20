@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Encontre quem resolve | Mercado Colatina{% endblock %}
+{% block meta_description %}Conte o que você precisa e permita que empresas de Colatina entrem em contato para ajudar.{% endblock %}
+{% block body_class %}service-request-page{% endblock %}
+{% block head_extra %}<script src="{{ url_for('static', filename='service-request.js') }}" defer></script>{% endblock %}
+{% block voltar %}<a href="/" class="voltar">Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<div class="service-request-shell">
+  <header class="service-request-hero">
+    <span>Serviços locais</span>
+    <h1>O que você precisa resolver?</h1>
+    <p>Conte o problema primeiro. O Mercado Colatina organiza o pedido e aproxima você de empresas locais.</p>
+    <a href="{{ url_for('painel_quem_resolve') }}">Sou empresa e quero ajudar</a>
+  </header>
+
+  {% if request.args.get('enviado') %}
+    <section id="confirmacao" class="service-request-success" role="status">
+      <span aria-hidden="true">✓</span>
+      <div><h2>Pedido publicado</h2><p>Agora é só aguardar o contato de uma empresa local pelo WhatsApp.</p></div>
+    </section>
+  {% endif %}
+
+  <form class="service-request-form" method="POST" action="{{ url_for('encontre_quem_resolve') }}" data-service-request-form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="service-request-honeypot" aria-hidden="true" hidden><label for="service-website">Site</label><input id="service-website" name="website" tabindex="-1" autocomplete="off"></div>
+    <div class="service-progress" aria-label="Progresso da publicação">
+      <span data-step-label>Passo 1 de 4</span><div><i data-step-progress></i></div>
+    </div>
+
+    <fieldset data-service-step="1">
+      <legend><small>1</small> Conte o problema</legend>
+      <label for="service-problema">O que você precisa resolver?</label>
+      <textarea id="service-problema" name="problema" required minlength="15" maxlength="500" rows="5" placeholder="Ex.: Meu chuveiro parou de esquentar e preciso de um eletricista." autofocus>{{ dados.problema }}</textarea>
+      <p>Escreva do seu jeito. Você não precisa escolher uma categoria.</p>
+      <button class="btn btn-verde full-button" type="button" data-next-step>Continuar</button>
+    </fieldset>
+
+    <fieldset data-service-step="2">
+      <legend><small>2</small> Onde e quando?</legend>
+      <label for="service-bairro">Em qual bairro de Colatina?</label>
+      <input id="service-bairro" name="bairro" required minlength="2" maxlength="80" value="{{ dados.bairro }}" placeholder="Ex.: Centro">
+      <div class="service-urgency-options" role="group" aria-labelledby="service-urgency-label">
+        <strong id="service-urgency-label">Quando você precisa?</strong>
+        {% for chave, rotulo in urgencias.items() %}
+          <label><input type="radio" name="urgencia" value="{{ chave }}" required{{ ' checked' if dados.urgencia == chave else '' }}><span>{{ rotulo }}</span></label>
+        {% endfor %}
+      </div>
+      <div class="service-step-actions"><button type="button" data-previous-step>Voltar</button><button class="btn btn-verde" type="button" data-next-step>Continuar</button></div>
+    </fieldset>
+
+    <fieldset data-service-step="3">
+      <legend><small>3</small> Como falar com você?</legend>
+      <label for="service-whatsapp">Seu WhatsApp com DDD</label>
+      <input id="service-whatsapp" name="whatsapp" type="tel" required inputmode="tel" autocomplete="tel" value="{{ dados.whatsapp }}" placeholder="(27) 99999-9999">
+      <p>O número não fica público. Ele é liberado somente quando uma loja autenticada decide responder.</p>
+      <div class="service-step-actions"><button type="button" data-previous-step>Voltar</button><button class="btn btn-verde" type="button" data-next-step>Revisar</button></div>
+    </fieldset>
+
+    <fieldset data-service-step="4">
+      <legend><small>4</small> Revise e publique</legend>
+      <dl class="service-request-review">
+        <div><dt>Problema</dt><dd data-review-problema></dd></div>
+        <div><dt>Bairro</dt><dd data-review-bairro></dd></div>
+        <div><dt>Prazo</dt><dd data-review-urgencia></dd></div>
+        <div><dt>WhatsApp</dt><dd data-review-whatsapp></dd></div>
+      </dl>
+      <label class="service-consent"><input type="checkbox" name="consentimento" value="sim" required> <span>Autorizo o contato de empresas locais sobre este pedido.</span></label>
+      <div class="service-step-actions"><button type="button" data-previous-step>Corrigir</button><button class="btn btn-verde" type="submit">Publicar pedido</button></div>
+      <p class="service-request-privacy">Não envie documentos, senhas ou informações sensíveis.</p>
+    </fieldset>
+    <noscript><p class="service-noscript">Preencha todos os campos e use “Publicar pedido” ao final do formulário.</p></noscript>
+  </form>
+</div>
+{% endblock %}

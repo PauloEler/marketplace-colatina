@@ -123,6 +123,10 @@
   {% block content %}{% endblock %}
 </main>
 
+<a class="find-solver-trigger" href="{{ url_for('encontre_quem_resolve') }}" aria-label="Encontre quem resolve seu problema em Colatina">
+  <span aria-hidden="true">✓</span>
+  <span>Encontre quem resolve</span>
+</a>
 <a class="community-suggestion-trigger" href="{{ url_for('sugerir_melhoria') }}" aria-label="Sugira uma melhoria para Colatina">
   <span aria-hidden="true">💡</span>
   <span>Sugira uma melhoria</span>

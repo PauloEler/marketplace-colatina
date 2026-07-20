@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Pedidos locais | Mercado Colatina{% endblock %}
+{% block meta_description %}Necessidades publicadas por moradores de Colatina para empresas locais.{% endblock %}
+{% block body_class %}service-opportunities-page{% endblock %}
+{% block voltar %}<a href="{{ url_for('encontre_quem_resolve') }}" class="voltar">Publicar uma necessidade</a>{% endblock %}
+
+{% block content %}
+<div class="service-opportunities-shell">
+  <header class="service-opportunities-hero">
+    <span>Empresas de Colatina</span>
+    <h1>Veja quem precisa do seu serviço</h1>
+    <p>O contato é protegido e só é liberado para lojas autenticadas quando elas escolhem responder.</p>
+  </header>
+  <section class="service-opportunities-list" aria-label="Pedidos de serviços abertos">
+    {% for pedido in pedidos %}
+      <article class="service-opportunity-card">
+        <header><span>{{ pedido.categoria }}</span><strong>{{ urgencias[pedido.urgencia] }}</strong></header>
+        <h2>{{ pedido.problema }}</h2>
+        <p><b>Bairro:</b> {{ pedido.bairro }}</p>
+        <footer>
+          <small>{{ pedido.respostas }} empresa{{ '' if pedido.respostas == 1 else 's' }} já respondeu</small>
+          <form method="POST" action="{{ url_for('responder_pedido_servico', pedido_id=pedido.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-verde" type="submit">Posso resolver</button>
+          </form>
+        </footer>
+      </article>
+    {% else %}
+      <div class="service-opportunities-empty"><h2>Nenhum pedido aberto agora</h2><p>Novas necessidades aparecerão aqui.</p></div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

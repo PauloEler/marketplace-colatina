@@ -272,6 +272,24 @@ def _init_sqlite():
             ON sugestoes_comunidade(status, criado_em);
         CREATE INDEX IF NOT EXISTS idx_sugestoes_categoria_data
             ON sugestoes_comunidade(categoria, criado_em);
+        CREATE TABLE IF NOT EXISTS pedidos_servico (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER,
+            problema TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            bairro TEXT NOT NULL,
+            urgencia TEXT NOT NULL,
+            whatsapp TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'aberto',
+            respostas INTEGER NOT NULL DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_pedidos_servico_status_data
+            ON pedidos_servico(status, criado_em);
+        CREATE INDEX IF NOT EXISTS idx_pedidos_servico_bairro
+            ON pedidos_servico(bairro, status);
         CREATE TABLE IF NOT EXISTS growth_commercial_companies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -720,6 +738,32 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_sugestoes_categoria_data "
         "ON sugestoes_comunidade(categoria, criado_em)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pedidos_servico (
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER,
+            problema TEXT NOT NULL,
+            categoria TEXT NOT NULL,
+            bairro TEXT NOT NULL,
+            urgencia TEXT NOT NULL,
+            whatsapp TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'aberto',
+            respostas INTEGER NOT NULL DEFAULT 0,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pedidos_servico_status_data "
+        "ON pedidos_servico(status, criado_em)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_pedidos_servico_bairro "
+        "ON pedidos_servico(bairro, status)"
     )
     db.execute(
         """
