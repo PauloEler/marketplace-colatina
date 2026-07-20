@@ -88,6 +88,7 @@ from traction_metrics import (  # noqa: E402
     record_user_activity,
     render_weekly_report,
 )
+from operation_100 import build_operation_100_dashboard  # noqa: E402
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -3647,6 +3648,20 @@ def relatorio_operacao_tracao():
                 'attachment; filename="RELATORIO_EXECUTIVO_SEMANAL.md"'
             )
         },
+    )
+
+
+@app.route("/admin/operacao-100")
+def painel_operacao_100():
+    if not admin():
+        return redirect(url_for("index"))
+    return render_template(
+        "operacao_100.html",
+        operacao=build_operation_100_dashboard(
+            get_db(),
+            OFERTAS_PARCEIROS_HOME,
+            LOCAL_PARTNERS_HOME,
+        ),
     )
 
 

@@ -44,6 +44,7 @@ from traction_metrics import (  # noqa: E402
     record_user_activity,
     render_weekly_report,
 )
+from operation_100 import build_operation_100_dashboard  # noqa: E402
 
 
 if USE_PG:
@@ -3696,6 +3697,96 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(str(dados["users"]["recorrentes"]), relatorio)
         self.assertIn(dados["marketplace"]["receita_plataforma_rotulo"], relatorio)
         self.assertIn(dados["affiliates"]["receita_rotulo"], relatorio)
+
+    def test_operacao_100_calcula_funil_progressivo_e_marcos(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET criado_em='2026-07-15 12:00:00', "
+                "loja_nome='Loja Vendedor' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            db.execute(
+                "UPDATE usuarios SET criado_em='2026-07-15 12:00:00' WHERE id=?",
+                (self.comprador_id,),
+            )
+            db.execute(
+                "INSERT INTO pedidos (anuncio_id,comprador_id,vendedor_id,valor,status) "
+                "VALUES (?,?,?,?,?)",
+                (
+                    self.anuncio_id,
+                    self.comprador_id,
+                    self.vendedor_id,
+                    "1200.00",
+                    "concluido",
+                ),
+            )
+            record_access_source(db, "direto", "2026-07-18")
+            record_access_source(db, "google", "2026-07-18")
+            record_user_activity(db, self.vendedor_id, "2026-07-10")
+            record_user_activity(db, self.vendedor_id, "2026-07-20")
+            db.commit()
+            data = build_operation_100_dashboard(
+                db,
+                app_module.OFERTAS_PARCEIROS_HOME,
+                app_module.LOCAL_PARTNERS_HOME,
+                datetime(2026, 7, 20, 15, tzinfo=timezone.utc),
+            )
+        values = {step["key"]: step["value"] for step in data["funnel"]["steps"]}
+        self.assertEqual(values["visitor"], 2)
+        self.assertEqual(values["registration"], 2)
+        self.assertEqual(values["first_ad"], 1)
+        self.assertEqual(values["first_order"], 1)
+        self.assertEqual(values["first_sale"], 1)
+        self.assertEqual(values["recurring"], 1)
+        self.assertEqual(data["users"]["recurring"], 1)
+        self.assertTrue(data["milestones"][0]["done"])
+        self.assertFalse(data["milestones"][5]["automatic"])
+        self.assertEqual(
+            data["affiliates"]["revenue_label"],
+            "N\u00e3o informada pelo parceiro",
+        )
+
+    def test_operacao_100_e_exclusiva_do_admin_e_exibe_todos_os_paineis(self):
+        self.assertEqual(self.client.get("/admin/operacao-100").status_code, 302)
+        self.autenticar_sessao(self.admin_id, admin=True)
+        resposta = self.client.get("/admin/operacao-100")
+        self.assertEqual(resposta.status_code, 200)
+        html = resposta.get_data(as_text=True)
+        for step in (
+            "visitor",
+            "registration",
+            "first_ad",
+            "first_order",
+            "first_sale",
+            "recurring",
+        ):
+            self.assertIn(f'data-funnel-step="{step}"', html)
+        for section in (
+            "Vis&atilde;o di&aacute;ria",
+            "Funil de crescimento",
+            "Empresas",
+            "Comunidade",
+            "Marcos oficiais",
+            "O que impede o crescimento?",
+        ):
+            self.assertIn(section, html)
+
+    def test_operacao_100_responsiva_e_sem_nova_tabela(self):
+        with open(app.root_path + "/static/styles.css", encoding="utf-8") as arquivo:
+            estilos = arquivo.read()
+        self.assertIn(".operation-100-shell", estilos)
+        self.assertIn("@media(max-width:1100px)", estilos)
+        self.assertIn("@media(max-width:760px)", estilos)
+        self.assertIn("@media(max-width:359px)", estilos)
+        with app.app_context():
+            tabelas = {
+                row[0]
+                for row in get_db()
+                .execute("SELECT name FROM sqlite_master WHERE type='table'")
+                .fetchall()
+            }
+        self.assertNotIn("operation_100", tabelas)
 
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
