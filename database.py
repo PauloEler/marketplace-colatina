@@ -167,6 +167,23 @@ def _init_sqlite():
         );
         INSERT OR IGNORE INTO estatisticas (chave, valor)
             VALUES ('acessos_site', 0);
+        CREATE TABLE IF NOT EXISTS traction_user_activity_daily (
+            user_id INTEGER NOT NULL,
+            activity_date DATE NOT NULL,
+            sessions INTEGER NOT NULL DEFAULT 1,
+            first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id, activity_date),
+            FOREIGN KEY (user_id) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_traction_user_activity_date
+            ON traction_user_activity_daily(activity_date, user_id);
+        CREATE TABLE IF NOT EXISTS traction_access_source_daily (
+            access_date DATE NOT NULL,
+            source TEXT NOT NULL,
+            visits INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (access_date, source)
+        );
         CREATE TABLE IF NOT EXISTS afiliado_eventos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             parceiro TEXT NOT NULL,
@@ -504,6 +521,33 @@ def _init_pg():
     db.execute(
         "INSERT INTO estatisticas (chave, valor) VALUES (?, ?) ON CONFLICT (chave) DO NOTHING",
         ("acessos_site", 0),
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS traction_user_activity_daily (
+            user_id INTEGER NOT NULL,
+            activity_date DATE NOT NULL,
+            sessions INTEGER NOT NULL DEFAULT 1,
+            first_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_seen_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (user_id, activity_date),
+            FOREIGN KEY (user_id) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_traction_user_activity_date "
+        "ON traction_user_activity_daily(activity_date, user_id)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS traction_access_source_daily (
+            access_date DATE NOT NULL,
+            source TEXT NOT NULL,
+            visits INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (access_date, source)
+        )
+        """
     )
     db.execute(
         """

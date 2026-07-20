@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 from werkzeug.security import generate_password_hash
@@ -37,6 +37,13 @@ from community_intelligence import (  # noqa: E402
     construir_dataset_inteligencia,
     construir_inteligencia_comunidade,
 )
+from traction_metrics import (  # noqa: E402
+    build_traction_dashboard,
+    classify_access_source,
+    record_access_source,
+    record_user_activity,
+    render_weekly_report,
+)
 
 
 if USE_PG:
@@ -54,6 +61,8 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             for tabela in (
+                "traction_user_activity_daily",
+                "traction_access_source_daily",
                 "sugestoes_comunidade",
                 "notifications",
                 "afiliado_eventos",
@@ -3555,6 +3564,138 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertEqual(
                 db.execute("SELECT COUNT(*) FROM afiliado_eventos").fetchone()[0], 0
             )
+
+    def test_tracao_classifica_origem_sem_persistir_dado_bruto(self):
+        self.assertEqual(classify_access_source(), "direto")
+        self.assertEqual(
+            classify_access_source("https://www.instagram.com/mercado.colatina/"),
+            "instagram",
+        )
+        self.assertEqual(
+            classify_access_source("https://exemplo.com/pagina", "googleads"),
+            "google",
+        )
+        self.assertEqual(
+            classify_access_source("https://exemplo.com/pagina?segredo=1"),
+            "outros",
+        )
+        with app.app_context():
+            db = get_db()
+            colunas = {
+                linha[1]
+                for linha in db.execute(
+                    "PRAGMA table_info(traction_access_source_daily)"
+                ).fetchall()
+            }
+        self.assertEqual(colunas, {"access_date", "source", "visits"})
+        self.assertTrue({"ip", "referrer", "utm", "user_agent"}.isdisjoint(colunas))
+
+    def test_tracao_agrega_origem_e_atividade_por_dia(self):
+        with app.app_context():
+            db = get_db()
+            record_access_source(db, "google", "2026-07-20")
+            record_access_source(db, "google", "2026-07-20")
+            record_user_activity(db, self.comprador_id, "2026-07-20")
+            record_user_activity(db, self.comprador_id, "2026-07-20")
+            db.commit()
+            origem = db.execute(
+                "SELECT visits FROM traction_access_source_daily "
+                "WHERE access_date=? AND source=?",
+                ("2026-07-20", "google"),
+            ).fetchone()[0]
+            atividade = db.execute(
+                "SELECT sessions FROM traction_user_activity_daily "
+                "WHERE activity_date=? AND user_id=?",
+                ("2026-07-20", self.comprador_id),
+            ).fetchone()[0]
+        self.assertEqual(origem, 2)
+        self.assertEqual(atividade, 2)
+
+    def test_dashboard_tracao_calcula_recorrencia_e_nao_inventa_receita(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE usuarios SET loja_nome='Loja Vendedor' WHERE id=?",
+                (self.vendedor_id,),
+            )
+            record_user_activity(db, self.comprador_id, "2026-07-10")
+            record_user_activity(db, self.comprador_id, "2026-07-20")
+            record_access_source(db, "whatsapp", "2026-07-20")
+            db.commit()
+            dados = build_traction_dashboard(
+                db,
+                app_module.OFERTAS_PARCEIROS_HOME,
+                app_module.LOCAL_PARTNERS_HOME,
+                datetime(2026, 7, 20, 15, tzinfo=timezone.utc),
+            )
+        self.assertEqual(dados["users"]["recorrentes"], 1)
+        self.assertEqual(dados["users"]["retorno_rotulo"], "100.0%")
+        self.assertEqual(dados["companies"]["cadastradas"], 1)
+        self.assertEqual(dados["companies"]["ativas"], 1)
+        self.assertEqual(dados["companies"]["convidadas_rotulo"], "Não mensurado")
+        self.assertEqual(
+            dados["affiliates"]["receita_rotulo"],
+            "Não informada pelo parceiro",
+        )
+        self.assertEqual(dados["access_sources"][0]["source"], "whatsapp")
+
+    def test_dashboard_tracao_e_relatorio_semanal_sao_exclusivos_do_admin(self):
+        self.assertEqual(self.client.get("/admin?visao=dashboard").status_code, 302)
+        self.assertEqual(
+            self.client.get("/admin/operacao-tracao/relatorio-semanal.md").status_code,
+            302,
+        )
+        self.autenticar_sessao(self.admin_id, admin=True)
+        dashboard = self.client.get("/admin?visao=dashboard")
+        self.assertEqual(dashboard.status_code, 200)
+        html = dashboard.get_data(as_text=True)
+        html = html.replace("&aacute;", chr(225)).replace("&oacute;", chr(243))
+        for frente in (
+            "usuarios",
+            "empresas",
+            "marketplace",
+            "afiliados",
+            "comunidade",
+            "radar",
+        ):
+            self.assertIn(f'data-traction-front="{frente}"', html)
+        self.assertIn("Baixar relatório semanal", html)
+        relatorio = self.client.get("/admin/operacao-tracao/relatorio-semanal.md")
+        self.assertEqual(relatorio.status_code, 200)
+        self.assertIn(
+            'filename="RELATORIO_EXECUTIVO_SEMANAL.md"',
+            relatorio.headers["Content-Disposition"],
+        )
+        texto = relatorio.get_data(as_text=True)
+        for secao in (
+            "## Resumo da semana",
+            "## Indicadores",
+            "## Problemas encontrados",
+            "## Oportunidades",
+            "## Sugestões",
+            "## Missão da próxima semana",
+        ):
+            self.assertIn(secao, texto)
+
+    def test_tracao_e_responsiva_e_relatorio_usa_mesmos_dados(self):
+        caminho_css = app.root_path + "/static/styles.css"
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            estilos = arquivo.read()
+        self.assertIn(".traction-grid", estilos)
+        self.assertIn("@media(max-width:1100px)", estilos)
+        self.assertIn("@media(max-width:700px)", estilos)
+        self.assertIn("@media(max-width:359px)", estilos)
+        with app.app_context():
+            dados = build_traction_dashboard(
+                get_db(),
+                app_module.OFERTAS_PARCEIROS_HOME,
+                app_module.LOCAL_PARTNERS_HOME,
+                datetime(2026, 7, 20, 15, tzinfo=timezone.utc),
+            )
+        relatorio = render_weekly_report(dados)
+        self.assertIn(str(dados["users"]["recorrentes"]), relatorio)
+        self.assertIn(dados["marketplace"]["receita_plataforma_rotulo"], relatorio)
+        self.assertIn(dados["affiliates"]["receita_rotulo"], relatorio)
 
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
