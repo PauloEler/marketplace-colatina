@@ -1,5 +1,42 @@
 # CHANGELOG MASTER
 
+## 2026-07-20 - Missao 004 Operacao Conquistar Colatina
+
+### Adicionado
+
+- Dashboard administrativo Tracao Comercial em `/admin/tracao-comercial`.
+- Indicadores de empresas visitadas, interessadas, cadastradas, parceiras, bairros, visitas e conversao.
+- Painel de Embaixadores com indicacoes e participacao.
+- Missao da Semana com uma unica prioridade ativa e progresso mensuravel.
+- Checklist do ciclo da empresa, da visita a recomendacao de outra empresa.
+- Relatorio executivo semanal em Markdown, identificado como previa ou fechamento de sexta-feira.
+- Operacao, playbooks, calendario, checklist, RFC, ADR e relatorio da Missao 004.
+
+### Garantias
+
+- Escritas administrativas protegidas por autenticacao e CSRF.
+- Contatos restritos ao administrador.
+- Tabelas comerciais isoladas dos dominios existentes.
+- Nenhuma campanha paga, automacao de marketing, CRM completo ou integracao externa.
+- Marketplace, pedidos, Analytics, Afiliados, Empresas Parceiras, Radar da Cidade, Central de Notificacoes e Hoje em Colatina preservados.
+
+### Publicacao
+
+- PR #79 integrada na `master` por squash merge.
+- Hash do merge: `734f2a55a0e99cb8bb2284c8b37ac973c2985cb9`.
+- CI da `master` aprovado no workflow `29769148411`.
+- Deploy automatico no Render detectado em producao as 15h51, horario de Brasilia.
+
+### Validado em producao
+
+- Dashboard com 7 indicadores e 4 secoes operacionais.
+- Paineis de Empresas, Embaixadores e Missao da Semana disponiveis ao administrador.
+- Relatorio semanal autenticado apontando para a rota publicada.
+- Desktop 1440 px, notebook 1024 px, tablet 768 px e mobile 390/320 px sem overflow horizontal.
+- Console da aplicacao sem erros; mensagens observadas pertenciam a extensoes do Chrome.
+- Funcionalidades anteriores preservadas e sem regressao identificada.
+- Operacao Conquistar Colatina oficialmente iniciada.
+
 ## 2026-07-20 - Missao 003 Operacao Primeiros 100
 
 ### Adicionado
