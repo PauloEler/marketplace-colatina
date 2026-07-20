@@ -22,6 +22,7 @@
 
 - PR Draft #75 criada contra `master`;
 - CI do GitHub aprovado;
+- PR #75 aprovada oficialmente para merge e publicacao;
 - 128 testes automatizados aprovados;
 - Ruff check aprovado;
 - Ruff format check aprovado;
