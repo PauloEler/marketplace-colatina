@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Sugestões | Mercado Colatina{% endblock %}
+{% block body_class %}community-admin-page{% endblock %}
+
+{% block voltar %}<a href="/admin" class="voltar">Voltar ao painel admin</a>{% endblock %}
+
+{% block content %}
+<div class="community-admin-shell">
+  <header class="community-admin-heading">
+    <div>
+      <div class="section-kicker">Ouvir Colatina</div>
+      <h1>Sugestões da comunidade</h1>
+      <p>Organize necessidades relatadas pela população sem transformar uma sugestão em promessa automática.</p>
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('sugerir_melhoria') }}">Abrir formulário público</a>
+  </header>
+
+  <section class="community-admin-metrics" aria-label="Métricas das sugestões">
+    <article><span>Total de sugestões</span><strong>{{ metricas.total }}</strong></article>
+    <article><span>Implementadas</span><strong>{{ metricas.implementadas }}</strong></article>
+    <article><span>Tempo médio até análise</span><strong>{{ metricas.tempo_medio_analise }}</strong></article>
+    <article><span>Categoria principal</span><strong>{{ metricas.categoria_principal.categoria if metricas.categoria_principal else 'Sem dados' }}</strong></article>
+  </section>
+
+  <section class="community-category-ranking" aria-labelledby="community-ranking-title">
+    <div class="community-section-heading">
+      <div><div class="section-kicker">Analytics próprio</div><h2 id="community-ranking-title">Categorias mais sugeridas</h2></div>
+      <span>Dados agregados da escuta comunitária.</span>
+    </div>
+    <div class="community-ranking-list">
+      {% for item in metricas.ranking_categorias %}
+        <div><strong>{{ item.categoria }}</strong><span>{{ item.total }}</span></div>
+      {% else %}
+        <p>Nenhuma categoria possui sugestões ainda.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <form class="community-filters" method="GET" action="{{ url_for('admin_sugestoes') }}" aria-label="Filtrar sugestões">
+    <div>
+      <label for="filtro-status">Status</label>
+      <select id="filtro-status" name="status">
+        <option value="todos">Todos</option>
+        {% for chave, rotulo in status_opcoes.items() %}<option value="{{ chave }}"{{ ' selected' if filtro_status == chave else '' }}>{{ rotulo }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label for="filtro-categoria">Categoria</label>
+      <select id="filtro-categoria" name="categoria">
+        <option value="todas">Todas</option>
+        {% for chave, rotulo in categorias.items() %}<option value="{{ chave }}"{{ ' selected' if filtro_categoria == chave else '' }}>{{ rotulo }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-verde" type="submit">Aplicar filtros</button>
+    <a href="{{ url_for('admin_sugestoes') }}">Limpar</a>
+  </form>
+
+  <section class="community-suggestion-list" aria-labelledby="community-list-title">
+    <div class="community-section-heading">
+      <div><div class="section-kicker">Fila de análise</div><h2 id="community-list-title">Sugestões</h2></div>
+      <span>{{ sugestoes|length }} resultado{{ '' if sugestoes|length == 1 else 's' }}</span>
+    </div>
+
+    {% for sugestao in sugestoes %}
+      <article class="community-suggestion-card status-{{ sugestao.status }}">
+        <div class="community-suggestion-card-top">
+          <div>
+            <span class="community-category">{{ categorias.get(sugestao.categoria, sugestao.categoria) }}</span>
+            <span class="community-status">{{ status_opcoes.get(sugestao.status, sugestao.status) }}</span>
+          </div>
+          <time datetime="{{ sugestao.criado_em }}">{{ formatar_data_sugestao(sugestao.criado_em) }}</time>
+        </div>
+        <p>{{ sugestao.mensagem }}</p>
+        <div class="community-suggestion-card-footer">
+          <small>Enviado por {{ sugestao.nome or 'Pessoa não identificada' }}</small>
+          <form method="POST" action="{{ url_for('admin_atualizar_sugestao', sugestao_id=sugestao.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="filtro_status" value="{{ filtro_status }}">
+            <input type="hidden" name="filtro_categoria" value="{{ filtro_categoria }}">
+            <label for="status-{{ sugestao.id }}">Alterar status</label>
+            <select id="status-{{ sugestao.id }}" name="status">
+              {% for chave, rotulo in status_opcoes.items() %}<option value="{{ chave }}"{{ ' selected' if sugestao.status == chave else '' }}>{{ rotulo }}</option>{% endfor %}
+            </select>
+            <button class="btn btn-verde" type="submit">Salvar</button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <div class="empty-state compact"><h3>Nenhuma sugestão encontrada</h3><p>Altere os filtros ou aguarde novas contribuições da comunidade.</p></div>
+    {% endfor %}
+  </section>
+
+  <aside class="community-voting-note" aria-label="Evolução futura">
+    <strong>Votação futura</strong>
+    <p>A arquitetura está isolada para receber uma futura camada de votação. Identidade, prevenção de abuso e privacidade serão decididas em RFC própria.</p>
+  </aside>
+</div>
+{% endblock %}

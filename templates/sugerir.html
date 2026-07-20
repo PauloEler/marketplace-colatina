@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Sugira uma melhoria | Mercado Colatina{% endblock %}
+{% block meta_description %}Conte o que está faltando em Colatina e ajude a orientar a evolução do Mercado Colatina.{% endblock %}
+{% block body_class %}community-suggestion-page{% endblock %}
+
+{% block voltar %}<a href="/" class="voltar">Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<div class="community-suggestion-shell">
+  <section class="community-suggestion-intro" aria-labelledby="community-suggestion-title">
+    <div class="section-kicker">Ouvir Colatina</div>
+    <h1 id="community-suggestion-title">Está faltando alguma coisa em Colatina?</h1>
+    <p>Conte uma necessidade, uma dificuldade ou uma ideia que poderia facilitar a vida de quem mora na cidade.</p>
+    <ul aria-label="Como sua sugestão será tratada">
+      <li>O nome é opcional.</li>
+      <li>A mensagem será analisada pela equipe.</li>
+      <li>O envio não garante implementação, mas ajuda a orientar prioridades.</li>
+    </ul>
+  </section>
+
+  <form class="form-box community-suggestion-form" method="POST" action="{{ url_for('sugerir_melhoria') }}" aria-labelledby="community-form-title">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="section-kicker">Sua contribuição</div>
+    <h2 id="community-form-title">Sugira uma melhoria</h2>
+
+    <div class="form-grupo">
+      <label for="sugestao-nome">Nome <span>(opcional)</span></label>
+      <input id="sugestao-nome" type="text" name="nome" maxlength="80" autocomplete="name" value="{{ dados.nome }}" placeholder="Como podemos chamar você?">
+    </div>
+
+    <div class="form-grupo">
+      <label for="sugestao-categoria">Categoria</label>
+      <select id="sugestao-categoria" name="categoria" required>
+        <option value="">Escolha uma categoria</option>
+        {% for chave, rotulo in categorias.items() %}
+          <option value="{{ chave }}"{{ ' selected' if dados.categoria == chave else '' }}>{{ rotulo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-grupo">
+      <label for="sugestao-mensagem">Mensagem</label>
+      <textarea id="sugestao-mensagem" name="mensagem" required minlength="10" maxlength="2000" rows="7" aria-describedby="sugestao-ajuda" placeholder="O que está faltando? Quem enfrenta esse problema? Como poderia melhorar?">{{ dados.mensagem }}</textarea>
+      <small id="sugestao-ajuda">Entre 10 e 2.000 caracteres. Não informe senhas, documentos ou dados sensíveis.</small>
+    </div>
+
+    <button class="btn btn-verde full-button" type="submit">Enviar sugestão</button>
+    <p class="community-privacy-note">Sua sugestão não será publicada automaticamente. Nesta versão, somente a administração poderá consultá-la.</p>
+  </form>
+</div>
+{% endblock %}

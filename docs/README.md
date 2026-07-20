@@ -1,6 +1,6 @@
 # Documentação do Mercado Colatina
 
-A referência principal do produto é o [Documento Mestre do Mercado Colatina](../MERCADO_COLATINA_MASTER.md). Ele define missão, visão, valores, identidade, prioridades, regras permanentes e direção do roadmap.
+A camada estratégica vigente é a [Constituição da Operação Cidade Viva](../00_CORE/CONSTITUICAO.md), apoiada pelos demais documentos de [`00_CORE/`](../00_CORE/). O [Documento Mestre do Mercado Colatina](../MERCADO_COLATINA_MASTER.md) permanece como referência histórica e operacional da fase marketplace onde não houver conflito.
 
 Esta pasta reúne documentos operacionais e relatórios técnicos que complementam a constituição do projeto.
 
@@ -20,8 +20,18 @@ Esta pasta reúne documentos operacionais e relatórios técnicos que complement
 
 ## Hierarquia documental
 
-1. `MERCADO_COLATINA_MASTER.md`: autoridade canônica de produto e governança.
-2. RFC da missão: proposta e critérios aprovados para uma evolução específica.
-3. Relatório da missão: registro do que foi executado e validado.
-4. Documentação operacional: instruções de lançamento, segurança, backup e manutenção.
-5. `README.md`: introdução técnica e orientação inicial do repositório.
+1. `00_CORE/`: missão, visão, valores, Constituição e direção estratégica.
+2. ADR: decisão aceita e suas consequências.
+3. RFC da missão: proposta, escopo e critérios aprovados.
+4. Relatório da missão: execução, testes, publicação e resultados.
+5. `MERCADO_COLATINA_MASTER.md`: referência histórica e operacional do marketplace.
+6. Documentação operacional: lançamento, segurança, backup e manutenção.
+7. `README.md`: introdução técnica e orientação inicial do repositório.
+
+## Operação Cidade Viva
+
+- [Programa](../00_CORE/OPERACAO_CIDADE_VIVA.md)
+- [Processo de decisão](estrategia/PROCESSO_DE_DECISAO.md)
+- [Métricas](metricas/KPI_MASTER.md)
+- [Backlogs temáticos](../BACKLOG/IDEIAS.md)
+- [Livro de Bordo](../LIVRO_DE_BORDO.md)

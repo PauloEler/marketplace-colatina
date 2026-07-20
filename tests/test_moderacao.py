@@ -48,6 +48,7 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             for tabela in (
+                "sugestoes_comunidade",
                 "notifications",
                 "afiliado_eventos",
                 "loja_administradores",
@@ -3195,6 +3196,180 @@ class ModeracaoTestCase(unittest.TestCase):
             vitrine.index("Loja Concorrente"),
         )
         self.assertIn("Loja oficial", vitrine)
+
+    def test_ouvir_colatina_exibe_chamada_e_formulario_publico_acessivel(self):
+        home = self.client.get("/")
+        self.assertEqual(home.status_code, 200)
+        html_home = home.get_data(as_text=True)
+        self.assertIn('class="community-suggestion-trigger"', html_home)
+        self.assertIn('href="/sugerir"', html_home)
+        self.assertIn("Sugira uma melhoria", html_home)
+
+        sitemap = self.client.get("/sitemap.xml")
+        self.assertEqual(sitemap.status_code, 200)
+        self.assertIn("/sugerir", sitemap.get_data(as_text=True))
+
+        privacidade = self.client.get("/privacidade")
+        self.assertEqual(privacidade.status_code, 200)
+        self.assertIn("Ouvir Colatina", privacidade.get_data(as_text=True))
+
+        pagina = self.client.get("/sugerir")
+        self.assertEqual(pagina.status_code, 200)
+        html = pagina.get_data(as_text=True)
+        self.assertIn("Está faltando alguma coisa em Colatina?", html)
+        self.assertIn('for="sugestao-nome"', html)
+        self.assertIn('for="sugestao-categoria"', html)
+        self.assertIn('for="sugestao-mensagem"', html)
+        for categoria in (
+            "Comércio",
+            "Empresas",
+            "Empregos",
+            "Eventos",
+            "Saúde",
+            "Segurança",
+            "Mobilidade",
+            "Marketplace",
+            "Cidade",
+            "Outros",
+        ):
+            self.assertIn(categoria, html)
+
+    def test_ouvir_colatina_aceita_nome_opcional_e_valida_conteudo(self):
+        self.client.get("/sugerir")
+        with self.client.session_transaction() as sessao:
+            token = sessao["_csrf_token"]
+
+        invalida = self.client.post(
+            "/sugerir",
+            data={
+                "csrf_token": token,
+                "nome": "",
+                "categoria": "nao_existe",
+                "mensagem": "Mensagem comunitária suficientemente detalhada.",
+            },
+        )
+        self.assertEqual(invalida.status_code, 200)
+
+        curta = self.client.post(
+            "/sugerir",
+            data={
+                "csrf_token": token,
+                "nome": "",
+                "categoria": "mobilidade",
+                "mensagem": "Curta",
+            },
+        )
+        self.assertEqual(curta.status_code, 200)
+
+        valida = self.client.post(
+            "/sugerir",
+            data={
+                "csrf_token": token,
+                "nome": "",
+                "categoria": "mobilidade",
+                "mensagem": "Precisamos organizar melhor as informações sobre mobilidade.",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(valida.status_code, 200)
+        self.assertIn("Sugestão enviada", valida.get_data(as_text=True))
+        with app.app_context():
+            sugestoes = (
+                get_db()
+                .execute(
+                    "SELECT nome, categoria, mensagem, status FROM sugestoes_comunidade"
+                )
+                .fetchall()
+            )
+            self.assertEqual(len(sugestoes), 1)
+            self.assertIsNone(sugestoes[0]["nome"])
+            self.assertEqual(sugestoes[0]["categoria"], "mobilidade")
+            self.assertEqual(sugestoes[0]["status"], "nova")
+
+    def test_sugestoes_exigem_admin_e_painel_filtra_atualiza_e_mede(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO sugestoes_comunidade "
+                "(nome, categoria, mensagem, status, criado_em) "
+                "VALUES (?,?,?,?,datetime('now','-2 hours'))",
+                ("Moradora", "saude", "Divulgar a farmácia de plantão.", "nova"),
+            )
+            db.execute(
+                "INSERT INTO sugestoes_comunidade "
+                "(nome, categoria, mensagem, status) VALUES (?,?,?,?)",
+                (None, "eventos", "Organizar eventos do fim de semana.", "planejada"),
+            )
+            sugestao_id = db.execute(
+                "SELECT id FROM sugestoes_comunidade WHERE categoria='saude'"
+            ).fetchone()[0]
+            db.commit()
+
+        visitante = self.client.get("/admin/sugestoes")
+        self.assertEqual(visitante.status_code, 302)
+        self.autenticar_sessao(self.comprador_id)
+        usuario = self.client.get("/admin/sugestoes")
+        self.assertEqual(usuario.status_code, 302)
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        painel = self.client.get("/admin/sugestoes")
+        self.assertEqual(painel.status_code, 200)
+        html = painel.get_data(as_text=True)
+        self.assertIn("Sugestões da comunidade", html)
+        self.assertIn("Total de sugestões", html)
+        self.assertIn("Categorias mais sugeridas", html)
+        self.assertIn("Divulgar a farmácia de plantão.", html)
+        self.assertIn("Organizar eventos do fim de semana.", html)
+
+        filtrada = self.client.get("/admin/sugestoes?status=nova&categoria=saude")
+        html_filtrado = filtrada.get_data(as_text=True)
+        self.assertIn("Divulgar a farmácia de plantão.", html_filtrado)
+        self.assertNotIn("Organizar eventos do fim de semana.", html_filtrado)
+
+        resposta = self.client.post(
+            f"/admin/sugestoes/{sugestao_id}/status",
+            data={
+                "csrf_token": "token-teste",
+                "status": "implementada",
+                "filtro_status": "todos",
+                "filtro_categoria": "todas",
+            },
+            follow_redirects=True,
+        )
+        self.assertEqual(resposta.status_code, 200)
+        html_atualizado = resposta.get_data(as_text=True)
+        self.assertIn("Status da sugestão atualizado", html_atualizado)
+        self.assertIn("Implementadas</span><strong>1", html_atualizado)
+        self.assertIn("Tempo médio até análise</span><strong>2 h", html_atualizado)
+        with app.app_context():
+            sugestao = (
+                get_db()
+                .execute(
+                    "SELECT status, analisada_em, implementada_em "
+                    "FROM sugestoes_comunidade WHERE id=?",
+                    (sugestao_id,),
+                )
+                .fetchone()
+            )
+            self.assertEqual(sugestao["status"], "implementada")
+            self.assertIsNotNone(sugestao["analisada_em"])
+            self.assertIsNotNone(sugestao["implementada_em"])
+
+    def test_ouvir_colatina_preserva_analytics_e_componentes_anteriores(self):
+        css = app.root_path + "/static/styles.css"
+        with open(css, encoding="utf-8") as arquivo:
+            estilos = arquivo.read()
+        self.assertIn(".community-suggestion-trigger", estilos)
+        self.assertIn("@media(max-width:900px)", estilos)
+        self.assertIn("@media(max-width:640px)", estilos)
+        self.assertIn("@media(max-width:359px)", estilos)
+        self.assertIn(".notification-center", estilos)
+        self.assertIn(".partner-offers", estilos)
+        with app.app_context():
+            db = get_db()
+            self.assertEqual(
+                db.execute("SELECT COUNT(*) FROM afiliado_eventos").fetchone()[0], 0
+            )
 
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)

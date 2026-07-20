@@ -40,6 +40,7 @@
           <a href="{{ url_for('painel_admin', visao='dashboard') }}" class="dashboard-link"{% if request.args.get('visao') == 'dashboard' %} aria-current="page"{% endif %}>Dashboard</a>
           <a href="{{ url_for('painel_admin', visao='afiliados') }}" class="dashboard-link"{% if request.args.get('visao') == 'afiliados' %} aria-current="page"{% endif %}>Afiliados</a>
           <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="cockpit-link">Cockpit</a>
+          <a href="{{ url_for('admin_sugestoes') }}" class="admin-link"{% if request.endpoint == 'admin_sugestoes' %} aria-current="page"{% endif %}>Sugestões</a>
           <a href="/admin" class="admin-link">Admin</a>
         {% endif %}
         <form method="POST" action="/logout" class="nav-logout">
@@ -67,6 +68,7 @@
             <a href="{{ url_for('painel_admin', visao='dashboard') }}" class="mobile-admin"{% if request.args.get('visao') == 'dashboard' %} aria-current="page"{% endif %}>Dashboard Executivo</a>
             <a href="{{ url_for('painel_admin', visao='afiliados') }}" class="mobile-admin"{% if request.args.get('visao') == 'afiliados' %} aria-current="page"{% endif %}>Analytics de Afiliados</a>
             <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="mobile-admin">Cockpit Executivo</a>
+            <a href="{{ url_for('admin_sugestoes') }}" class="mobile-admin"{% if request.endpoint == 'admin_sugestoes' %} aria-current="page"{% endif %}>Sugestões da comunidade</a>
             <a href="/admin" class="mobile-admin">Painel Admin</a>
           {% endif %}
           <form method="POST" action="/logout" class="mobile-logout">
@@ -114,6 +116,11 @@
   {% block voltar %}{% endblock %}
   {% block content %}{% endblock %}
 </main>
+
+<a class="community-suggestion-trigger" href="{{ url_for('sugerir_melhoria') }}" aria-label="Sugira uma melhoria para Colatina">
+  <span aria-hidden="true">💡</span>
+  <span>Sugira uma melhoria</span>
+</a>
 
 {% block footer %}
 <footer class="site-footer">

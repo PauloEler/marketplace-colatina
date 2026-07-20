@@ -4,7 +4,7 @@ Marketplace local em Flask para compra e venda em Colatina e região.
 
 ## Documento principal
 
-O [Documento Mestre do Mercado Colatina](MERCADO_COLATINA_MASTER.md) é a referência oficial para missão, visão, valores, identidade, roadmap, regras permanentes e futuras evoluções do produto.
+A [Constituição da Operação Cidade Viva](00_CORE/CONSTITUICAO.md) é a camada estratégica vigente. O [Documento Mestre do Mercado Colatina](MERCADO_COLATINA_MASTER.md) permanece como referência histórica e operacional do marketplace onde não houver conflito.
 
 A documentação operacional e os relatórios das missões estão organizados no [índice de documentação](docs/README.md).
 

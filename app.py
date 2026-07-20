@@ -36,6 +36,16 @@ from affiliate_analytics import (  # noqa: E402
 from partner_offers import build_partner_offers  # noqa: E402
 from local_partners import LOCAL_PARTNERS_HOME, PARTNER_LEVELS  # noqa: E402
 from daily_city import DAILY_CITY_CARDS  # noqa: E402
+from community_suggestions import (  # noqa: E402
+    SUGGESTION_CATEGORIES,
+    SUGGESTION_STATUSES,
+    SuggestionValidationError,
+    atualizar_status_sugestao,
+    construir_metricas_sugestoes,
+    criar_sugestao,
+    formatar_data_sugestao,
+    listar_sugestoes,
+)
 from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
     configurado as mercadopago_configurado,
@@ -1260,6 +1270,7 @@ def sitemap():
         "pagina_quem_somos",
         "pagina_seja_parceiro",
         "pagina_ajuda",
+        "sugerir_melhoria",
         "pagina_privacidade",
         "pagina_termos",
     ]
@@ -3203,6 +3214,34 @@ def mercadopago_webhook():
     return "", 200
 
 
+@app.route("/sugerir", methods=["GET", "POST"])
+def sugerir_melhoria():
+    dados = {"nome": "", "categoria": "", "mensagem": ""}
+    if request.method == "POST":
+        dados = {
+            "nome": request.form.get("nome", ""),
+            "categoria": request.form.get("categoria", ""),
+            "mensagem": request.form.get("mensagem", ""),
+        }
+        try:
+            criar_sugestao(
+                get_db(), dados["nome"], dados["categoria"], dados["mensagem"]
+            )
+        except SuggestionValidationError as erro:
+            flash(str(erro), "erro")
+        else:
+            flash(
+                "Sugestão enviada. Obrigado por ajudar a construir uma Colatina melhor.",
+                "sucesso",
+            )
+            return redirect(url_for("sugerir_melhoria"))
+    return render_template(
+        "sugerir.html",
+        categorias=SUGGESTION_CATEGORIES,
+        dados=dados,
+    )
+
+
 @app.route("/quem-somos")
 def pagina_quem_somos():
     return render_template(
@@ -3289,15 +3328,19 @@ def pagina_privacidade():
     return render_template(
         "pagina_info.html",
         titulo="Privacidade",
-        resumo="Tratamos apenas os dados necessários para manter sua conta e permitir o contato entre compradores e vendedores.",
+        resumo="Tratamos apenas os dados necessários para operar a plataforma, organizar sugestões e permitir o contato entre compradores e vendedores.",
         secoes=[
             (
                 "Dados utilizados",
-                "Nome, nome de usuário, senha protegida, WhatsApp, informações dos anúncios, histórico dos pedidos e situação dos pagamentos realizados.",
+                "Nome, nome de usuário, senha protegida, WhatsApp, informações dos anúncios, histórico dos pedidos, situação dos pagamentos e sugestões enviadas voluntariamente.",
             ),
             (
                 "Finalidade",
-                "Os dados são usados para autenticação, administração da conta, publicação dos anúncios, organização dos pedidos, contato entre as partes e confirmação dos pagamentos.",
+                "Os dados são usados para autenticação, administração da conta, publicação dos anúncios, organização dos pedidos, contato entre as partes, confirmação dos pagamentos e análise de necessidades relatadas pela comunidade.",
+            ),
+            (
+                "Ouvir Colatina",
+                "No formulário de sugestões, o nome é opcional e não pedimos telefone ou e-mail. A mensagem fica disponível somente para a administração e não é publicada automaticamente.",
             ),
             (
                 "Mercado Pago",
@@ -3649,6 +3692,53 @@ def painel_admin():
         comunicado_tipos=COMUNICADO_TIPOS,
         comunicados=comunicados,
         metricas=metricas,
+    )
+
+
+@app.route("/admin/sugestoes")
+def admin_sugestoes():
+    if not admin():
+        return redirect(url_for("index"))
+    status = request.args.get("status", "todos")
+    categoria = request.args.get("categoria", "todas")
+    if status != "todos" and status not in SUGGESTION_STATUSES:
+        status = "todos"
+    if categoria != "todas" and categoria not in SUGGESTION_CATEGORIES:
+        categoria = "todas"
+    db = get_db()
+    return render_template(
+        "sugestoes_admin.html",
+        sugestoes=listar_sugestoes(db, status, categoria),
+        metricas=construir_metricas_sugestoes(db),
+        categorias=SUGGESTION_CATEGORIES,
+        status_opcoes=SUGGESTION_STATUSES,
+        filtro_status=status,
+        filtro_categoria=categoria,
+        formatar_data_sugestao=formatar_data_sugestao,
+    )
+
+
+@app.route("/admin/sugestoes/<int:sugestao_id>/status", methods=["POST"])
+def admin_atualizar_sugestao(sugestao_id):
+    if not admin():
+        return redirect(url_for("index"))
+    novo_status = request.form.get("status", "")
+    try:
+        atualizada = atualizar_status_sugestao(get_db(), sugestao_id, novo_status)
+    except SuggestionValidationError as erro:
+        flash(str(erro), "erro")
+    else:
+        if not atualizada:
+            abort(404)
+        flash("Status da sugestão atualizado.", "sucesso")
+    filtro_status = request.form.get("filtro_status", "todos")
+    filtro_categoria = request.form.get("filtro_categoria", "todas")
+    return redirect(
+        url_for(
+            "admin_sugestoes",
+            status=filtro_status,
+            categoria=filtro_categoria,
+        )
     )
 
 
