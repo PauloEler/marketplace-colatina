@@ -3,6 +3,7 @@ import os
 import shutil
 import tempfile
 import unittest
+from datetime import datetime
 from unittest.mock import patch
 
 from werkzeug.security import generate_password_hash
@@ -30,6 +31,11 @@ from database import (  # noqa: E402
 from partner_offers import (  # noqa: E402
     PARTNER_OFFERS_CONFIG,
     build_partner_offers,
+)
+from community_intelligence import (  # noqa: E402
+    INTELLIGENCE_SCHEMA_VERSION,
+    construir_dataset_inteligencia,
+    construir_inteligencia_comunidade,
 )
 
 
@@ -3360,6 +3366,185 @@ class ModeracaoTestCase(unittest.TestCase):
         with open(css, encoding="utf-8") as arquivo:
             estilos = arquivo.read()
         self.assertIn(".community-suggestion-trigger", estilos)
+        self.assertIn("@media(max-width:900px)", estilos)
+        self.assertIn("@media(max-width:640px)", estilos)
+        self.assertIn("@media(max-width:359px)", estilos)
+        self.assertIn(".notification-center", estilos)
+        self.assertIn(".partner-offers", estilos)
+        with app.app_context():
+            db = get_db()
+            self.assertEqual(
+                db.execute("SELECT COUNT(*) FROM afiliado_eventos").fetchone()[0], 0
+            )
+
+    def test_inteligencia_comunidade_calcula_ranking_periodos_e_recorrencias(self):
+        agora = datetime(2026, 7, 20, 12, 0, 0)
+        registros = (
+            (
+                "saude",
+                "Farmácia de plantão precisa divulgar médico e farmácia.",
+                "nova",
+                "2026-07-20 09:00:00",
+                None,
+                None,
+            ),
+            (
+                "saude",
+                "Farmácia e médico no bairro.",
+                "em_analise",
+                "2026-07-15 10:00:00",
+                "2026-07-16 10:00:00",
+                None,
+            ),
+            (
+                "saude",
+                "Atendimento médico na farmácia central.",
+                "implementada",
+                "2026-06-10 08:00:00",
+                "2026-06-11 08:00:00",
+                "2026-06-15 08:00:00",
+            ),
+            (
+                "empregos",
+                "Emprego e vagas para eletricista.",
+                "planejada",
+                "2026-07-10 12:00:00",
+                None,
+                None,
+            ),
+            (
+                "empregos",
+                "Emprego para eletricista e vagas.",
+                "arquivada",
+                "2026-05-30 12:00:00",
+                "2026-06-01 12:00:00",
+                None,
+            ),
+            (
+                "eventos",
+                "Eventos culturais no fim de semana.",
+                "nova",
+                "2026-04-01 12:00:00",
+                None,
+                None,
+            ),
+        )
+        with app.app_context():
+            db = get_db()
+            for (
+                categoria,
+                mensagem,
+                status,
+                criada,
+                analisada,
+                implementada,
+            ) in registros:
+                db.execute(
+                    "INSERT INTO sugestoes_comunidade "
+                    "(categoria,mensagem,status,criado_em,analisada_em,implementada_em) "
+                    "VALUES (?,?,?,?,?,?)",
+                    (categoria, mensagem, status, criada, analisada, implementada),
+                )
+            db.commit()
+            inteligencia = construir_inteligencia_comunidade(db, agora)
+            dataset = construir_dataset_inteligencia(db, agora)
+
+        self.assertEqual(inteligencia["total"], 6)
+        self.assertEqual(inteligencia["pendentes"], 4)
+        self.assertEqual(inteligencia["implementadas"], 1)
+        self.assertEqual(inteligencia["arquivadas"], 1)
+        self.assertEqual(inteligencia["tempo_medio_analise"], "1 d 8 h")
+        self.assertEqual(
+            [periodo["total"] for periodo in inteligencia["periodos"]],
+            [1, 2, 3, 5],
+        )
+        self.assertEqual(
+            [item["categoria"] for item in inteligencia["ranking_categorias"]],
+            ["Saúde", "Empregos", "Eventos"],
+        )
+        self.assertEqual(
+            inteligencia["categorias_crescimento"][0]["categoria"], "Saúde"
+        )
+        self.assertEqual(inteligencia["categorias_crescimento"][0]["variacao"], 1)
+        palavras = {
+            item["palavra"]: item["sugestoes"]
+            for item in inteligencia["palavras_frequentes"]
+        }
+        self.assertEqual(palavras["Farmácia"], 3)
+        self.assertEqual(palavras["Médico"], 3)
+        self.assertEqual(palavras["Emprego"], 2)
+        self.assertTrue(inteligencia["resposta_cidade"]["conclusiva"])
+        self.assertEqual(inteligencia["resposta_cidade"]["titulo"], "Saúde")
+        self.assertEqual(dataset["schema_version"], INTELLIGENCE_SCHEMA_VERSION)
+        self.assertNotIn("nome", dataset["registros"][0])
+
+    def test_inteligencia_comunidade_nao_inventa_tendencia_com_amostra_pequena(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO sugestoes_comunidade "
+                "(categoria,mensagem,status) VALUES (?,?,?)",
+                ("mobilidade", "Precisamos de mais horários de ônibus.", "nova"),
+            )
+            db.execute(
+                "INSERT INTO sugestoes_comunidade "
+                "(categoria,mensagem,status,criado_em) VALUES (?,?,?,datetime('now','-90 days'))",
+                ("saude", "Farmácia com horário ampliado.", "arquivada"),
+            )
+            db.execute(
+                "INSERT INTO sugestoes_comunidade "
+                "(categoria,mensagem,status,criado_em) VALUES (?,?,?,datetime('now','-120 days'))",
+                ("empregos", "Mais vagas de emprego local.", "implementada"),
+            )
+            db.commit()
+            inteligencia = construir_inteligencia_comunidade(db)
+
+        self.assertFalse(inteligencia["resposta_cidade"]["conclusiva"])
+        self.assertEqual(
+            inteligencia["resposta_cidade"]["titulo"],
+            "Ainda não há dados suficientes",
+        )
+        self.assertIn("pelo menos 3", inteligencia["resposta_cidade"]["descricao"])
+
+    def test_radar_da_cidade_e_exclusivo_do_admin_e_exibe_dados_agregados(self):
+        mensagem = "Farmácia de plantão e atendimento médico no bairro central."
+        with app.app_context():
+            db = get_db()
+            for indice in range(3):
+                db.execute(
+                    "INSERT INTO sugestoes_comunidade "
+                    "(categoria,mensagem,status) VALUES (?,?,?)",
+                    ("saude", f"{mensagem} Referência {indice}.", "nova"),
+                )
+            db.commit()
+
+        self.assertEqual(
+            self.client.get("/admin/inteligencia-comunidade").status_code, 302
+        )
+        self.autenticar_sessao(self.comprador_id)
+        self.assertEqual(
+            self.client.get("/admin/inteligencia-comunidade").status_code, 302
+        )
+        self.autenticar_sessao(self.admin_id, admin=True)
+        resposta = self.client.get("/admin/inteligencia-comunidade")
+        self.assertEqual(resposta.status_code, 200)
+        html = resposta.get_data(as_text=True)
+        self.assertIn("Radar da Cidade", html)
+        self.assertIn("O que Colatina mais precisa neste momento?", html)
+        self.assertIn("Sugestões por período", html)
+        self.assertIn("Palavras mais frequentes", html)
+        self.assertIn("Categorias em crescimento", html)
+        self.assertIn("Sugestões recorrentes", html)
+        self.assertIn("Problemas mais citados", html)
+        self.assertIn("comunidade.v1", html)
+        self.assertNotIn(mensagem, html)
+
+    def test_radar_da_cidade_e_responsivo_e_preserva_modulos_anteriores(self):
+        caminho_css = app.root_path + "/static/styles.css"
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            estilos = arquivo.read()
+        self.assertIn(".city-radar-shell", estilos)
+        self.assertIn(".city-radar-grid{", estilos)
         self.assertIn("@media(max-width:900px)", estilos)
         self.assertIn("@media(max-width:640px)", estilos)
         self.assertIn("@media(max-width:359px)", estilos)

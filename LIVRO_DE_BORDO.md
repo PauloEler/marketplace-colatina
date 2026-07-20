@@ -26,6 +26,18 @@
 
 **Lições aprendidas:** a validação do fluxo administrativo revelou e permitiu corrigir uma falha no cálculo do tempo médio antes da entrega; métricas precisam ser testadas com transições reais de estado.
 
+### Missão 002 — Entender Colatina
+
+**Problema resolvido:** a fila de sugestões não oferecia uma leitura agregada de períodos, crescimento, recorrência e linguagem usada pela comunidade.
+
+**Resultado:** Radar da Cidade entregue para revisão, exclusivamente administrativo e baseado em regras determinísticas, sem IA ou nova coleta de dados.
+
+**Métricas e fonte:** tabela `sugestoes_comunidade`; volume, estados, categorias, janelas de 7/30/90 dias, tempo até análise e frequência lexical por sugestões distintas.
+
+**Decisão da próxima semana:** aguardar revisão da PR Draft; nenhuma integração de IA será iniciada sem RFC, ADR, base de privacidade e amostra suficiente.
+
+**Lições aprendidas:** uma prioridade “atual” precisa de amostra recente. O sistema só responderá conclusivamente com pelo menos três sugestões nos últimos 30 dias.
+
 ---
 
 ## Modelo para novas semanas

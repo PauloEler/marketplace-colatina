@@ -12,5 +12,7 @@ Decisões do produto podem ser tomadas por impressão quando dados agregados e c
 | usuários recorrentes | recorrência ainda precisa de definição e linha de base | especificado em métricas |
 | qualidade e atualização das fontes | informação local perde valor quando envelhece | hipótese |
 | receitas por parceiro | cliques não confirmam receita | dependência externa |
+| Radar da Cidade | sugestões isoladas não revelam padrões comparáveis | entregue para revisão na Missão 002 |
+| análise semântica futura | palavras não representam contexto ou sinônimos | descoberta; depende de RFC, privacidade e amostra útil |
 
 Analytics deverá minimizar dados, evitar identificação desnecessária e declarar limitações de cada indicador.

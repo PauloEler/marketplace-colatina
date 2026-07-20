@@ -12,7 +12,10 @@
       <h1>Sugestões da comunidade</h1>
       <p>Organize necessidades relatadas pela população sem transformar uma sugestão em promessa automática.</p>
     </div>
-    <a class="btn btn-outline" href="{{ url_for('sugerir_melhoria') }}">Abrir formulário público</a>
+    <div class="community-admin-actions">
+      <a class="btn btn-outline" href="{{ url_for('admin_inteligencia_comunidade') }}">Radar da Cidade</a>
+      <a class="btn btn-outline" href="{{ url_for('sugerir_melhoria') }}">Abrir formulário público</a>
+    </div>
   </header>
 
   <section class="community-admin-metrics" aria-label="Métricas das sugestões">

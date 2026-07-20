@@ -46,6 +46,7 @@ from community_suggestions import (  # noqa: E402
     formatar_data_sugestao,
     listar_sugestoes,
 )
+from community_intelligence import construir_inteligencia_comunidade  # noqa: E402
 from mercadopago_service import (  # noqa: E402
     MercadoPagoError,
     configurado as mercadopago_configurado,
@@ -3715,6 +3716,16 @@ def admin_sugestoes():
         filtro_status=status,
         filtro_categoria=categoria,
         formatar_data_sugestao=formatar_data_sugestao,
+    )
+
+
+@app.route("/admin/inteligencia-comunidade")
+def admin_inteligencia_comunidade():
+    if not admin():
+        return redirect(url_for("index"))
+    return render_template(
+        "inteligencia_comunidade.html",
+        inteligencia=construir_inteligencia_comunidade(get_db()),
     )
 
 
