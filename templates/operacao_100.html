@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Opera&ccedil;&atilde;o Primeiros 100 | Mercado Colatina{% endblock %}
+{% block body_class %}operation-100-page{% endblock %}
+{% block content %}
+<div class="operation-100-shell">
+  <header class="operation-100-hero">
+    <div>
+      <span class="operation-100-eyebrow">Miss&atilde;o 003 &middot; crescimento baseado em dados</span>
+      <h1>Opera&ccedil;&atilde;o Primeiros 100</h1>
+      <p>Acompanhar diariamente quem usa, participa e volta ao Mercado Colatina.</p>
+    </div>
+    <div class="operation-100-goal" aria-label="{{ operacao.users.recurring }} de {{ operacao.target }} usu&aacute;rios recorrentes">
+      <strong>{{ operacao.users.recurring }}<small>/{{ operacao.target }}</small></strong>
+      <span>usu&aacute;rios recorrentes</span>
+      <div aria-hidden="true"><i style="--operation-progress:{{ operacao.progress }}%"></i></div>
+    </div>
+  </header>
+
+  <p class="operation-100-updated">Atualizado em {{ operacao.generated_at }}. Dados administrativos agregados.</p>
+
+  <section class="operation-100-section" aria-labelledby="operation-overview-title">
+    <header><span>01</span><div><h2 id="operation-overview-title">Vis&atilde;o di&aacute;ria</h2><p>Os indicadores essenciais da meta dos primeiros 100.</p></div></header>
+    <div class="operation-100-metrics">
+      <article data-operation-metric="registered-users"><span>Usu&aacute;rios cadastrados</span><strong>{{ operacao.users.registered }}</strong></article>
+      <article data-operation-metric="active-users"><span>Usu&aacute;rios ativos</span><strong>{{ operacao.users.active }}</strong><small>&Uacute;ltimos 7 dias</small></article>
+      <article data-operation-metric="recurring-users"><span>Usu&aacute;rios recorrentes</span><strong>{{ operacao.users.recurring }}</strong><small>Duas semanas consecutivas</small></article>
+      <article data-operation-metric="registered-companies"><span>Empresas cadastradas</span><strong>{{ operacao.companies.registered }}</strong></article>
+      <article data-operation-metric="partner-companies"><span>Empresas parceiras</span><strong>{{ operacao.companies.partners }}</strong></article>
+      <article data-operation-metric="active-ads"><span>An&uacute;ncios ativos</span><strong>{{ operacao.marketplace.active_ads }}</strong></article>
+      <article data-operation-metric="orders"><span>Pedidos</span><strong>{{ operacao.marketplace.orders }}</strong><small>Hist&oacute;rico total</small></article>
+      <article data-operation-metric="affiliate-clicks"><span>Cliques afiliados</span><strong>{{ operacao.affiliates.clicks }}</strong><small>&Uacute;ltimos 30 dias</small></article>
+      <article data-operation-metric="affiliate-revenue"><span>Receita dos afiliados</span><strong class="operation-100-text-value">{{ operacao.affiliates.revenue_label }}</strong></article>
+      <article data-operation-metric="community-suggestions"><span>Sugest&otilde;es da comunidade</span><strong>{{ operacao.community.total }}</strong></article>
+      <article data-operation-metric="response-time"><span>Tempo m&eacute;dio de resposta</span><strong class="operation-100-text-value">{{ operacao.marketplace.average_response }}</strong><small>&Uacute;ltimos 30 dias</small></article>
+    </div>
+  </section>
+
+  <section class="operation-100-section" aria-labelledby="growth-funnel-title">
+    <header><span>02</span><div><h2 id="growth-funnel-title">Funil de crescimento</h2><p>{{ operacao.funnel.window }} &middot; convers&atilde;o progressiva entre etapas.</p></div></header>
+    <ol class="growth-funnel">
+      {% for step in operacao.funnel.steps %}
+      <li data-funnel-step="{{ step.key }}">
+        <div><span>{{ loop.index }}</span><strong>{{ step.label }}</strong></div>
+        <b>{{ step.value }}</b>
+        {% if not loop.first %}<small>{{ step.conversion_label }} da etapa anterior</small>{% else %}<small>Base agregada</small>{% endif %}
+        <p>{{ step.source }}</p>
+      </li>
+      {% endfor %}
+    </ol>
+    <p class="operation-100-method">{{ operacao.funnel.note }}</p>
+  </section>
+
+  <div class="operation-100-columns">
+    <section class="operation-100-section" aria-labelledby="companies-100-title">
+      <header><span>03</span><div><h2 id="companies-100-title">Empresas</h2><p>Participa&ccedil;&atilde;o e ativa&ccedil;&atilde;o comercial.</p></div></header>
+      <dl class="operation-100-list">
+        <div><dt>Convidadas</dt><dd>{{ operacao.companies.invited_label }}</dd></div>
+        <div><dt>Cadastradas</dt><dd>{{ operacao.companies.registered }}</dd></div>
+        <div><dt>Parceiras</dt><dd>{{ operacao.companies.partners }}</dd></div>
+        <div><dt>Ativas</dt><dd>{{ operacao.companies.active }}</dd></div>
+        <div><dt>Sem an&uacute;ncio ativo</dt><dd>{{ operacao.companies.without_ads }}</dd></div>
+      </dl>
+      <p class="operation-100-method">Empresa ativa possui ao menos um an&uacute;ncio dispon&iacute;vel. Convites ainda n&atilde;o t&ecirc;m fonte oficial.</p>
+    </section>
+
+    <section class="operation-100-section" aria-labelledby="community-100-title">
+      <header><span>04</span><div><h2 id="community-100-title">Comunidade</h2><p>Integra&ccedil;&atilde;o direta com o Radar da Cidade.</p></div></header>
+      <div class="operation-community-summary">
+        <article><span>Total</span><strong>{{ operacao.community.total }}</strong></article>
+        <article><span>Implementadas</span><strong>{{ operacao.community.implemented }}</strong></article>
+        <article><span>Pendentes</span><strong>{{ operacao.community.pending }}</strong></article>
+      </div>
+      <div class="operation-community-radar">
+        <span>Radar atual</span><strong>{{ operacao.community.radar.titulo }}</strong><p>{{ operacao.community.radar.descricao }}</p>
+      </div>
+      <h3>Categorias mais sugeridas</h3>
+      <ol class="operation-community-ranking">{% for item in operacao.community.categories[:5] %}<li><span>{{ item.categoria }}</span><strong>{{ item.total }}</strong></li>{% else %}<li><span>Aguardando sugest&otilde;es</span><strong>&mdash;</strong></li>{% endfor %}</ol>
+      <a class="operation-100-link" href="{{ url_for('admin_inteligencia_comunidade') }}">Abrir Radar da Cidade</a>
+    </section>
+  </div>
+
+  <div class="operation-100-columns operation-100-last-row">
+    <section class="operation-100-section" aria-labelledby="milestones-title">
+      <header><span>05</span><div><h2 id="milestones-title">Marcos oficiais</h2><p>Progresso autom&aacute;tico sempre que existe fonte confi&aacute;vel.</p></div></header>
+      <ul class="operation-milestones">{% for item in operacao.milestones %}<li class="{{ 'is-done' if item.done else '' }}"><span aria-hidden="true">{{ '&#10003;'|safe if item.done else '&#9633;'|safe }}</span><div><strong>{{ item.label }}</strong>{% if item.note %}<small>{{ item.note }}</small>{% endif %}</div></li>{% endfor %}</ul>
+    </section>
+    <section class="operation-100-section operation-blockers" aria-labelledby="blockers-title">
+      <header><span>06</span><div><h2 id="blockers-title">O que impede o crescimento?</h2><p>Leitura objetiva dos dados dispon&iacute;veis agora.</p></div></header>
+      <ul>{% for blocker in operacao.blockers %}<li>{{ blocker }}</li>{% endfor %}</ul>
+      <p class="operation-100-method">Nenhuma conclus&atilde;o &eacute; criada sem fonte mensur&aacute;vel.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}
