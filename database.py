@@ -272,6 +272,53 @@ def _init_sqlite():
             ON sugestoes_comunidade(status, criado_em);
         CREATE INDEX IF NOT EXISTS idx_sugestoes_categoria_data
             ON sugestoes_comunidade(categoria, criado_em);
+        CREATE TABLE IF NOT EXISTS growth_commercial_companies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            contact TEXT NOT NULL DEFAULT '',
+            neighborhood TEXT NOT NULL,
+            visits_count INTEGER NOT NULL DEFAULT 1,
+            interested INTEGER NOT NULL DEFAULT 0,
+            registered INTEGER NOT NULL DEFAULT 0,
+            ad_published INTEGER NOT NULL DEFAULT 0,
+            first_order INTEGER NOT NULL DEFAULT 0,
+            partner INTEGER NOT NULL DEFAULT 0,
+            referred_other INTEGER NOT NULL DEFAULT 0,
+            created_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES usuarios(id)
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_growth_company_name
+            ON growth_commercial_companies(lower(name));
+        CREATE INDEX IF NOT EXISTS idx_growth_company_neighborhood
+            ON growth_commercial_companies(neighborhood, created_at);
+        CREATE TABLE IF NOT EXISTS growth_ambassadors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            contact TEXT NOT NULL,
+            neighborhood TEXT NOT NULL,
+            companies_referred INTEGER NOT NULL DEFAULT 0,
+            users_referred INTEGER NOT NULL DEFAULT 0,
+            participation TEXT NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS growth_weekly_missions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            target INTEGER NOT NULL,
+            week_start DATE NOT NULL,
+            week_end DATE NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1,
+            created_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_growth_weekly_mission_active
+            ON growth_weekly_missions(active, week_start);
         CREATE TABLE IF NOT EXISTS denuncias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             anuncio_id INTEGER NOT NULL,
@@ -673,6 +720,71 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_sugestoes_categoria_data "
         "ON sugestoes_comunidade(categoria, criado_em)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS growth_commercial_companies (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            contact TEXT NOT NULL DEFAULT '',
+            neighborhood TEXT NOT NULL,
+            visits_count INTEGER NOT NULL DEFAULT 1,
+            interested INTEGER NOT NULL DEFAULT 0,
+            registered INTEGER NOT NULL DEFAULT 0,
+            ad_published INTEGER NOT NULL DEFAULT 0,
+            first_order INTEGER NOT NULL DEFAULT 0,
+            partner INTEGER NOT NULL DEFAULT 0,
+            referred_other INTEGER NOT NULL DEFAULT 0,
+            created_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_growth_company_name "
+        "ON growth_commercial_companies(lower(name))"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_growth_company_neighborhood "
+        "ON growth_commercial_companies(neighborhood, created_at)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS growth_ambassadors (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            contact TEXT NOT NULL,
+            neighborhood TEXT NOT NULL,
+            companies_referred INTEGER NOT NULL DEFAULT 0,
+            users_referred INTEGER NOT NULL DEFAULT 0,
+            participation TEXT NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS growth_weekly_missions (
+            id SERIAL PRIMARY KEY,
+            title TEXT NOT NULL,
+            metric TEXT NOT NULL,
+            target INTEGER NOT NULL,
+            week_start DATE NOT NULL,
+            week_end DATE NOT NULL,
+            active INTEGER NOT NULL DEFAULT 1,
+            created_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_growth_weekly_mission_active "
+        "ON growth_weekly_missions(active, week_start)"
     )
     db.execute(
         """

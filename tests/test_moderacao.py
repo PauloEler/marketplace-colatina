@@ -45,6 +45,14 @@ from traction_metrics import (  # noqa: E402
     render_weekly_report,
 )
 from operation_100 import build_operation_100_dashboard  # noqa: E402
+from commercial_growth import (  # noqa: E402
+    build_commercial_dashboard,
+    create_ambassador,
+    create_company,
+    create_weekly_mission,
+    render_commercial_weekly_report,
+    update_company_checklist,
+)
 
 
 if USE_PG:
@@ -62,6 +70,9 @@ class ModeracaoTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             for tabela in (
+                "growth_weekly_missions",
+                "growth_ambassadors",
+                "growth_commercial_companies",
                 "traction_user_activity_daily",
                 "traction_access_source_daily",
                 "sugestoes_comunidade",
@@ -3787,6 +3798,163 @@ class ModeracaoTestCase(unittest.TestCase):
                 .fetchall()
             }
         self.assertNotIn("operation_100", tabelas)
+
+    def test_tracao_comercial_registra_empresa_embaixador_e_missao_unica(self):
+        now = datetime(2026, 7, 20, 15, tzinfo=timezone.utc)
+        with app.app_context():
+            db = get_db()
+            create_company(
+                db,
+                "Padaria Centro",
+                "27999990000",
+                "Centro",
+                2,
+                True,
+                self.admin_id,
+            )
+            company_id = db.execute(
+                "SELECT id FROM growth_commercial_companies"
+            ).fetchone()[0]
+            self.assertTrue(
+                update_company_checklist(
+                    db,
+                    company_id,
+                    {
+                        "visits_count": "3",
+                        "interested": "on",
+                        "registered": "on",
+                        "ad_published": "on",
+                        "first_order": "on",
+                        "partner": "on",
+                        "referred_other": "on",
+                    },
+                )
+            )
+            create_ambassador(
+                db,
+                "Maria Bairro",
+                "27999991111",
+                "Centro",
+                2,
+                5,
+                "Visitas e divulgacao local",
+            )
+            create_weekly_mission(
+                db,
+                "Conseguir cinco empresas",
+                "empresas_cadastradas",
+                5,
+                self.admin_id,
+                now,
+            )
+            create_weekly_mission(
+                db,
+                "Visitar o bairro Centro",
+                "empresas_visitadas",
+                10,
+                self.admin_id,
+                now,
+            )
+            data = build_commercial_dashboard(db, now)
+            active_missions = db.execute(
+                "SELECT COUNT(*) FROM growth_weekly_missions WHERE active=1"
+            ).fetchone()[0]
+        self.assertEqual(data["metrics"]["visited"], 1)
+        self.assertEqual(data["metrics"]["registered"], 1)
+        self.assertEqual(data["metrics"]["partners"], 1)
+        self.assertEqual(data["metrics"]["visits"], 3)
+        self.assertEqual(data["metrics"]["conversion_label"], "100.0%")
+        self.assertEqual(len(data["ambassadors"]), 1)
+        self.assertEqual(data["mission"]["title"], "Visitar o bairro Centro")
+        self.assertEqual(active_missions, 1)
+
+    def test_relatorio_comercial_usa_metricas_reais_e_identifica_previa(self):
+        with app.app_context():
+            data = build_commercial_dashboard(
+                get_db(), datetime(2026, 7, 20, 15, tzinfo=timezone.utc)
+            )
+        report = render_commercial_weekly_report(data)
+        self.assertIn("**Status:** Previa da semana", report)
+        self.assertIn("## Empresas conquistadas", report)
+        self.assertIn("## Indicadores da plataforma", report)
+        self.assertIn("## Missao seguinte", report)
+
+    def test_tracao_comercial_e_exclusiva_do_admin_e_protegida_por_csrf(self):
+        self.assertEqual(self.client.get("/admin/tracao-comercial").status_code, 302)
+        self.autenticar_sessao(self.admin_id, admin=True)
+        page = self.client.get("/admin/tracao-comercial")
+        self.assertEqual(page.status_code, 200)
+        html = page.get_data(as_text=True)
+        for marker in (
+            'data-commercial-metric="visited"',
+            "Miss&atilde;o da semana",
+            "Empresas",
+            "Embaixadores",
+            "Relat&oacute;rio executivo de sexta-feira",
+        ):
+            self.assertIn(marker, html)
+        rejected = self.client.post(
+            "/admin/tracao-comercial/empresas",
+            data={"name": "Sem token", "neighborhood": "Centro"},
+        )
+        self.assertEqual(rejected.status_code, 302)
+        with app.app_context():
+            self.assertEqual(
+                get_db()
+                .execute("SELECT COUNT(*) FROM growth_commercial_companies")
+                .fetchone()[0],
+                0,
+            )
+        created = self.client.post(
+            "/admin/tracao-comercial/empresas",
+            data={
+                "csrf_token": "token-teste",
+                "name": "Loja Nova",
+                "contact": "27999992222",
+                "neighborhood": "Sao Silvano",
+                "visits_count": "1",
+                "interested": "on",
+            },
+        )
+        self.assertEqual(created.status_code, 302)
+        report = self.client.get("/admin/tracao-comercial/relatorio-semanal.md")
+        self.assertEqual(report.status_code, 200)
+        self.assertIn(
+            'filename="RELATORIO_EXECUTIVO_CONQUISTAR_COLATINA.md"',
+            report.headers["Content-Disposition"],
+        )
+
+    def test_tracao_comercial_cria_apenas_tabelas_isoladas_e_e_responsiva(self):
+        with app.app_context():
+            db = get_db()
+            tables = {
+                row[0]
+                for row in db.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()
+            }
+            company_columns = {
+                row[1]
+                for row in db.execute(
+                    "PRAGMA table_info(growth_commercial_companies)"
+                ).fetchall()
+            }
+        self.assertTrue(
+            {
+                "growth_commercial_companies",
+                "growth_ambassadors",
+                "growth_weekly_missions",
+            }.issubset(tables)
+        )
+        self.assertTrue(
+            {"contact", "neighborhood", "created_by"}.issubset(company_columns)
+        )
+        with open(app.root_path + "/static/styles.css", encoding="utf-8") as file:
+            styles = file.read()
+        self.assertIn(".commercial-growth-shell", styles)
+        self.assertIn("@media(max-width:800px)", styles)
+        self.assertIn("@media(max-width:500px)", styles)
+        self.assertIn("@media(max-width:359px)", styles)
 
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)

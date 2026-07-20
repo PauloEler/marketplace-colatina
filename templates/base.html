@@ -39,6 +39,7 @@
         {% if session.get('is_admin') %}
           <a href="{{ url_for('painel_admin', visao='dashboard') }}" class="dashboard-link"{% if request.args.get('visao') == 'dashboard' %} aria-current="page"{% endif %}>Dashboard</a>
           <a href="{{ url_for('painel_operacao_100') }}" class="dashboard-link"{% if request.endpoint == 'painel_operacao_100' %} aria-current="page"{% endif %}>Opera&ccedil;&atilde;o 100</a>
+          <a href="{{ url_for('painel_tracao_comercial') }}" class="dashboard-link"{% if request.endpoint == 'painel_tracao_comercial' %} aria-current="page"{% endif %}>Tra&ccedil;&atilde;o Comercial</a>
           <a href="{{ url_for('painel_admin', visao='afiliados') }}" class="dashboard-link"{% if request.args.get('visao') == 'afiliados' %} aria-current="page"{% endif %}>Afiliados</a>
           <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="cockpit-link">Cockpit</a>
           <a href="{{ url_for('admin_sugestoes') }}" class="admin-link"{% if request.endpoint == 'admin_sugestoes' %} aria-current="page"{% endif %}>Sugestões</a>
@@ -69,6 +70,7 @@
           {% if session.get('is_admin') %}
             <a href="{{ url_for('painel_admin', visao='dashboard') }}" class="mobile-admin"{% if request.args.get('visao') == 'dashboard' %} aria-current="page"{% endif %}>Dashboard Executivo</a>
             <a href="{{ url_for('painel_operacao_100') }}" class="mobile-admin"{% if request.endpoint == 'painel_operacao_100' %} aria-current="page"{% endif %}>Opera&ccedil;&atilde;o Primeiros 100</a>
+            <a href="{{ url_for('painel_tracao_comercial') }}" class="mobile-admin"{% if request.endpoint == 'painel_tracao_comercial' %} aria-current="page"{% endif %}>Tra&ccedil;&atilde;o Comercial</a>
             <a href="{{ url_for('painel_admin', visao='afiliados') }}" class="mobile-admin"{% if request.args.get('visao') == 'afiliados' %} aria-current="page"{% endif %}>Analytics de Afiliados</a>
             <a href="{{ url_for('painel_admin', visao='cockpit') }}" class="mobile-admin">Cockpit Executivo</a>
             <a href="{{ url_for('admin_sugestoes') }}" class="mobile-admin"{% if request.endpoint == 'admin_sugestoes' %} aria-current="page"{% endif %}>Sugestões da comunidade</a>

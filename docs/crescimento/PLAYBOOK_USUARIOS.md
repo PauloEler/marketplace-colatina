@@ -24,3 +24,12 @@
 ## Decisao baseada em dados
 
 Toda acao deve declarar canal, periodo e etapa do funil que pretende melhorar. O resultado principal e recorrencia; alcance e cadastro isolados sao indicadores auxiliares.
+
+## Conquistar usuarios localmente
+
+- demonstrar uma tarefa concreta: buscar, anunciar ou falar com uma empresa;
+- compartilhar o link oficial e explicar que a negociacao ocorre diretamente;
+- evitar cadastro sem utilidade imediata;
+- convidar a pessoa a voltar na semana seguinte para acompanhar novos anuncios;
+- transformar dificuldade recorrente em sugestao para o Radar da Cidade;
+- medir retorno semanal, nunca apenas distribuicao de links.
