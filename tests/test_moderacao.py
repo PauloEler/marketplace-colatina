@@ -3247,6 +3247,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn('for="sugestao-nome"', html)
         self.assertIn('for="sugestao-categoria"', html)
         self.assertIn('for="sugestao-mensagem"', html)
+        self.assertIn('class="community-cancel-link" href="/"', html)
+        self.assertIn("Cancelar e voltar", html)
+        self.assertLess(html.index("Enviar sugestão"), html.index("Cancelar e voltar"))
         for categoria in (
             "Comércio",
             "Empresas",
