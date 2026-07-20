@@ -6,24 +6,24 @@
 
 ## Missão da Semana
 
-Instituir a Operação Cidade Viva como sistema oficial de estratégia e governança do Mercado Colatina.
+Entregar a Missão 001 — Ouvir Colatina, criando um canal estruturado para a população sugerir melhorias e uma fila administrativa mensurável para análise.
 
 ## Problema da Semana
 
-Decisões, ideias e métricas estavam distribuídas entre conversas e documentos de diferentes fases, dificultando continuidade e priorização.
+Sugestões da população chegavam por conversas dispersas, sem categoria, estado de análise, histórico ou indicador que permitisse priorizá-las.
 
 ## Sprint da Semana
 
-Macro Projeto 001 — Operação Cidade Viva — Versão 1.0.
+Missão 001 — Ouvir Colatina.
 
 ## Indicador da Semana
 
-Percentual da estrutura documental obrigatória criada, conectada e validada.
+Quantidade de sugestões, categorias mais sugeridas, sugestões implementadas e tempo médio até a primeira análise.
 
 ## Resultado Esperado
 
-Uma fonte estratégica clara para missão, decisão, backlog, métricas e aprendizado, sem alterar o produto em produção.
+Formulário público acessível, painel administrativo isolado, estados de acompanhamento e métricas operacionais, sem regressão nos módulos existentes.
 
 ## Estado
 
-Em revisão por PR Draft. Resultado e próxima decisão serão registrados após a revisão.
+Implementação e validação local concluídas. Aguardando revisão da PR Draft, sem merge e sem deploy.

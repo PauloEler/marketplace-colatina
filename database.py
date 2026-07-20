@@ -240,6 +240,21 @@ def _init_sqlite():
             ON notifications(usuario_id, status, criado_em);
         CREATE INDEX IF NOT EXISTS idx_notifications_tipo_data
             ON notifications(tipo, criado_em);
+        CREATE TABLE IF NOT EXISTS sugestoes_comunidade (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            categoria TEXT NOT NULL,
+            mensagem TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'nova',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            analisada_em TIMESTAMP,
+            implementada_em TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_sugestoes_status_data
+            ON sugestoes_comunidade(status, criado_em);
+        CREATE INDEX IF NOT EXISTS idx_sugestoes_categoria_data
+            ON sugestoes_comunidade(categoria, criado_em);
         CREATE TABLE IF NOT EXISTS denuncias (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             anuncio_id INTEGER NOT NULL,
@@ -591,6 +606,29 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_notifications_tipo_data "
         "ON notifications(tipo, criado_em)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sugestoes_comunidade (
+            id SERIAL PRIMARY KEY,
+            nome TEXT,
+            categoria TEXT NOT NULL,
+            mensagem TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'nova',
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            analisada_em TIMESTAMP,
+            implementada_em TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sugestoes_status_data "
+        "ON sugestoes_comunidade(status, criado_em)"
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sugestoes_categoria_data "
+        "ON sugestoes_comunidade(categoria, criado_em)"
     )
     db.execute(
         """
