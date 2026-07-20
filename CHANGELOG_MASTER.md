@@ -20,8 +20,21 @@
 
 ### Publicação
 
-- PR #73 aprovada para integração na `master`.
-- Resultado final do merge, CI, deploy e validação será registrado após a publicação.
+- PR #73 integrada na `master`.
+- Hash do merge: `ffa7c653c46f608c6ace31316ead0a9594078b52`.
+- CI da `master` aprovado no workflow `29754043065`.
+- Deploy automático no Render detectado em produção às 12h14, horário de Brasília.
+
+### Validado em produção
+
+- Radar autenticado carregando em `/admin/inteligencia-comunidade`.
+- Dashboard Executivo preservado e com acesso ao Radar, Afiliados e Central de Notificações.
+- Dados reais exibidos sem nomes ou mensagens completas.
+- Amostra de uma sugestão tratada corretamente como insuficiente para apontar uma prioridade da cidade.
+- Desktop 1440 px, tablet 768 px, mobile 390 px e 320 px sem overflow horizontal.
+- Console do site sem erros ou avisos.
+- Banco preservado, sem migração e sem escrita durante a validação.
+- Home, Marketplace, Ofertas de Parceiros, Empresas Parceiras, Hoje em Colatina, Analytics e Central de Notificações preservados.
 
 ## 2026-07-20 - Missão 001 Ouvir Colatina
 
