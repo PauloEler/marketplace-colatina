@@ -65,10 +65,35 @@ O nome é opcional. Não são armazenados IP, localização, contato ou vínculo
 - não há notificação, e-mail ou integração externa;
 - métricas de produção somente existirão depois de eventual merge e deploy autorizados.
 
+## Publicação
+
+- PR: #71;
+- hash do merge: `5baec757ccf16c16020859f8697fc0d472e2a3cf`;
+- CI da `master`: aprovado no workflow `29739307446`;
+- deploy automático no Render: detectado em produção em 20/07/2026 às 08h42, horário de Brasília;
+- URL: `https://mercadocolatina.com.br`.
+
+## Validação em produção
+
+- botão **Sugira uma melhoria**: aprovado;
+- formulário público: aprovado;
+- cadastro controlado: aprovado, com confirmação visual após o envio;
+- painel administrativo: aprovado, com sugestão, filtros, estados e métricas;
+- alteração de status: aprovada, de Nova para Arquivada;
+- cálculo do tempo médio até análise: aprovado após a mudança de estado;
+- desktop 1440 px: aprovado, sem overflow;
+- tablet 768 px: aprovado, sem overflow;
+- mobile 390 px: aprovado, sem overflow;
+- mobile 320 px: aprovado, sem overflow;
+- botão responsivo: aprovado nas quatro larguras;
+- console público e administrativo: sem erros originados pelo site.
+
+O registro controlado foi identificado como teste de publicação e arquivado após a validação. Mensagens observadas no console administrativo foram isoladas como originadas por extensões do Chrome, sem relação com o Mercado Colatina.
+
 ## Próximos passos
 
-Revisar a PR Draft. Qualquer votação futura deverá responder a identidade, privacidade, moderação e prevenção a abuso em RFC e ADR próprios.
+Medir o uso real do canal. Qualquer votação futura deverá responder a identidade, privacidade, moderação e prevenção a abuso em RFC e ADR próprios.
 
 ## Estado da publicação
 
-PR Draft #71 aberta para revisão. Sem merge. Sem deploy. Aguardando aprovação.
+Publicada em produção. O primeiro fluxo de participação da comunidade está ativo.
