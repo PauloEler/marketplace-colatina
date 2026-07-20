@@ -1,5 +1,42 @@
 # CHANGELOG MASTER
 
+## 2026-07-20 - Missao 005 Sprint 5.1 Encontre Quem Resolve
+
+### Adicionado
+
+- Jornada publica mobile-first para descrever uma necessidade local em quatro passos.
+- Classificacao interna baseada no problema, sem exigir categoria do morador.
+- Mural `/quem-resolve` para empresas acompanharem pedidos locais.
+- Resposta por WhatsApp restrita a lojas autenticadas e administradores.
+- Tabela `pedidos_servico` e dominio isolado das regras do marketplace.
+- Protecao do contato, consentimento explicito, CSRF, limites e bloqueio de telefone na descricao publica.
+- RFC, ADR, arquitetura e relatorios da Sprint 5.1.
+
+### Garantias
+
+- WhatsApp nao exibido na listagem publica.
+- Fluxo basico preservado sem JavaScript.
+- Anuncios, pedidos, afiliados, empresas parceiras, notificacoes e dashboards anteriores preservados.
+- Nenhuma integracao externa, pagamento, chat ou IA adicionada.
+
+### Publicacao
+
+- PR #82 integrada na `master` por squash merge.
+- Hash do merge: `f511b1a97db2c9e74bbeb473882ca610804d50ef`.
+- CI da `master` aprovado no workflow `29781849320`.
+- Deploy automatico no Render detectado em producao por volta de 18h54, horario de Brasilia.
+
+### Validado em producao
+
+- Rota publica, fluxo de quatro passos e revisao final carregando corretamente.
+- Mural das empresas inicializado com estado vazio real e sem erro de banco.
+- Dashboard Executivo autenticado preservado.
+- Desktop 1440/1024 px, tablet 768 px e mobile 390/320 px validados.
+- Formularios e paineis novos sem overflow horizontal; alvos principais com 48 px.
+- Console da aplicacao sem erros.
+- Home, Ofertas de Parceiros, Empresas Parceiras, Hoje em Colatina, Afiliados e Central de Notificacoes preservados.
+- Nenhum pedido tecnico falso foi persistido em producao; gravacao e resposta autenticada foram confirmadas pelos 138 testes automatizados e pelo CI.
+
 ## 2026-07-20 - Missao 004 Operacao Conquistar Colatina
 
 ### Adicionado
