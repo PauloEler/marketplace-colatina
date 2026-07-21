@@ -3016,6 +3016,43 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Publicar anúncio", html_autenticado)
         self.assertIn('class="btn btn-outline ux005c-secondary-cta"', html_autenticado)
 
+    def test_patch_ux_006b_reforca_apenas_o_hero_da_home_compacta(self):
+        with patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn(
+            '<h1 id="hero-title"><span>O melhor da cidade,</span>'
+            "<em>mais perto.</em></h1>",
+            html,
+        )
+        self.assertLess(
+            html.index('class="home-official-panorama"'),
+            html.index("data-ux005c-search"),
+        )
+        self.assertIn("home-compact-ux006a", html)
+
+        caminho_css = os.path.join(app.static_folder, "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            css = arquivo.read()
+
+        self.assertIn("/* PATCH UX-006B", css)
+        self.assertIn("width:min(78%,84rem)", css)
+        self.assertIn("white-space:nowrap", css)
+        self.assertIn(
+            ".home-compact-ux006a .ux005c-first-fold .ux005c-primary-cta",
+            css,
+        )
+        self.assertNotIn(".home-city-movement .ux005c-primary-cta", css)
+
+    def test_patch_ux_006b_preserva_feature_flag_e_home_legada(self):
+        with patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", False):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertNotIn("home-compact-ux006a", html)
+        self.assertIn("ux005c-first-fold", html)
+        self.assertIn("data-ux005c-search", html)
+        self.assertIn('id="ofertas"', html)
+
     def test_compartilhamento_direciona_para_whatsapp_business(self):
         caminho_js = os.path.join(app.static_folder, "store-share.js")
         with open(caminho_js, encoding="utf-8") as arquivo:
@@ -3031,7 +3068,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertEqual(pagina.status_code, 200)
         self.assertIn('<body class="mds-home mx-home-premium home-official">', html)
         self.assertEqual(html.count("<h1"), 1)
-        self.assertIn("O melhor da cidade, <em>mais perto.</em>", html)
+        self.assertIn("<span>O melhor da cidade,</span><em>mais perto.</em>", html)
         self.assertIn('<label for="busca">Buscar produtos e serviços</label>', html)
         self.assertIn('<label for="categoria">Categoria</label>', html)
         self.assertIn('aria-label="Buscar no Mercado Colatina"', html)
