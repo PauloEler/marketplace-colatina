@@ -12,8 +12,9 @@
 {% block head_extra %}
 <link rel="canonical" href="{{ site_url }}">
 <script src="{{ url_for('static', filename='partner-offers-carousel.js') }}" defer></script>
+{% if home_finish_007b_enabled %}<script src="{{ url_for('static', filename='home-finish-007b.js') }}" defer></script>{% endif %}
 {% endblock %}
-{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive home-compact-ux006a{% endif %}{% if home_2_enabled %} home-2-mission007{% endif %}{% if home_city_balloon_enabled %} home-city-balloon-ux007a{% endif %}{% endblock %}
+{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive home-compact-ux006a{% endif %}{% if home_2_enabled %} home-2-mission007{% endif %}{% if home_city_balloon_enabled %} home-city-balloon-ux007a{% endif %}{% if home_finish_007b_enabled %} home-finish-ux007b{% endif %}{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
@@ -208,9 +209,18 @@
     <span class="home-city-balloon-symbol" aria-hidden="true">💬</span>
     <div>
       <span>Balão da Cidade</span>
-      <h2 id="home-city-balloon-title">O que você precisa hoje?</h2>
+      <h2 id="home-city-balloon-title"{% if home_finish_007b_enabled %} data-city-balloon-message{% endif %}>{% if home_finish_007b_enabled %}O que você procura hoje?{% else %}O que você precisa hoje?{% endif %}</h2>
     </div>
   </div>
+  {% if home_finish_007b_enabled %}
+  <ul class="home-city-balloon-phrases" data-city-balloon-phrases hidden>
+    <li>O que você procura hoje?</li>
+    <li>Precisa de um eletricista?</li>
+    <li>Descubra empresas locais.</li>
+    <li>Veja as ofertas do dia.</li>
+    <li>Publique sua necessidade.</li>
+  </ul>
+  {% endif %}
   <nav aria-label="Atalhos úteis da cidade">
     <a href="#home-stores-title">Encontrar uma empresa</a>
     <a href="#ofertas">Comprar um produto</a>
@@ -630,6 +640,7 @@
       <a href="/#como-funciona">Como Funciona</a>
       <a href="/privacidade">Política de Privacidade</a>
       <a href="/termos">Termos de Uso</a>
+      {% if home_finish_007b_enabled %}<a class="home-footer-suggestion" href="{{ url_for('sugerir_melhoria') }}">Sugira uma melhoria</a>{% endif %}
     </nav>
   </div>
   <div class="footer-bottom">
