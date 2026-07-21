@@ -1,5 +1,31 @@
 # CHANGELOG MASTER
 
+## 2026-07-21 - PATCH UX-006A Home compacta
+
+### Publicado
+
+- PR #87 integrada na `master` por squash merge.
+- Hash do merge: `3bfcf4db152151b7d57f7624e844215eb139e403`.
+- CI da `master` aprovado no workflow `29832962948`.
+- Deploy automático do código confirmado como `live` no Render.
+- Feature flag `HOME_CIDADE_VIVA_ENABLED=true` ativada no ambiente de produção; novo deploy confirmado como `live` às 10h14, horário de Brasília.
+
+### Melhorado
+
+- Home transformada em uma composição compacta, sem remoção de funcionalidades.
+- Seção **Cidade Viva** posicionada imediatamente após **Encontre Quem Resolve**.
+- Sete blocos resumidos com acesso **Ver todos** à composição integral.
+- Altura das listas reduzida em desktop, tablet e mobile.
+- Implementação preservada como reversível pela feature flag.
+
+### Validado em produção
+
+- Home compacta, Cidade Viva, busca e Encontre Quem Resolve operacionais.
+- Sete links **Ver todos** testados com destinos íntegros.
+- Desktop 1440 px, tablet 768 px e mobile 390/320 px sem overflow horizontal.
+- Console da aplicação sem erros.
+- Backend, banco e funcionalidades anteriores preservados.
+
 ## 2026-07-21 - PATCH UX-005C Primeira dobra
 
 ### Publicado

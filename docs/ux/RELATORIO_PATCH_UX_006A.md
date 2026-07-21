@@ -68,3 +68,19 @@ Com `HOME_CIDADE_VIVA_ENABLED=false`, a classe `home-compact-ux006a` não existe
 - novas capturas armazenadas em `docs/ux/evidencias/patch_ux_006a/final/`;
 - teste de reversão: o revert do patch restaurou exatamente a árvore da `master` e os 143 testes da versão revertida foram aprovados;
 - backend e banco permaneceram fora do diff do patch.
+
+## Publicação em produção
+
+- PR publicada: `#87`;
+- hash do merge: `3bfcf4db152151b7d57f7624e844215eb139e403`;
+- CI pós-merge: workflow `29832962948`, aprovado;
+- deploy automático do commit confirmado como `live` no Render;
+- feature flag de produção: `HOME_CIDADE_VIVA_ENABLED=true`;
+- deploy da atualização de ambiente: `dep-d9fn0ojrjlhs73alujrg`, confirmado como `live` em 21/07/2026 às 10h14, horário de Brasília;
+- Home compacta e Cidade Viva confirmadas em produção;
+- sete links “Ver todos” abriram a composição integral e localizaram os destinos esperados;
+- busca validada com `celular`, retornando `/?q=celular&categoria=`;
+- Encontre Quem Resolve direcionou corretamente para `/encontre-quem-resolve`;
+- 1440, 768, 390 e 320 px validados sem overflow horizontal;
+- console da Home, dos links, da busca e do fluxo de serviços sem erros;
+- estabilidade e funcionalidades anteriores preservadas.
