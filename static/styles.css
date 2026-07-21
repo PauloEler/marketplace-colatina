@@ -4545,3 +4545,61 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-compact-more,
   .home-compact-ux006a .home-city-more{justify-content:center;margin-top:.5rem}
 }
+
+/* PATCH UX-006B - Hero 2.0.
+   Escopo isolado no Hero da Home compacta; reversao por um unico commit. */
+@media(min-width:961px){
+  .home-compact-ux006a .ux005c-first-fold{width:min(78%,84rem)}
+  .home-compact-ux006a .ux005c-first-fold .home-official-hero-stage{--ho-search-dock:6.75rem;min-height:31.5rem}
+  .home-compact-ux006a .ux005c-first-fold .home-official-copy{width:58%;padding:1.25rem 1rem 6.5rem clamp(1.5rem,3.2vw,3rem)}
+  .home-compact-ux006a .ux005c-first-fold .home-official-panorama{
+    width:56%;
+    height:calc(100% - var(--ho-search-dock));
+    clip-path:polygon(24% 0,100% 0,100% 100%,2% 100%,14% 58%);
+  }
+}
+.home-compact-ux006a .ux005c-first-fold h1{max-width:none;font-size:clamp(3.2rem,4.4vw,4.2rem);line-height:.96}
+.home-compact-ux006a .ux005c-first-fold h1>span,
+.home-compact-ux006a .ux005c-first-fold h1>em{display:block;white-space:nowrap}
+.home-compact-ux006a .ux005c-first-fold .home-hero-copy>p{max-width:34rem;margin-top:.75rem}
+.home-compact-ux006a .ux005c-first-fold .home-hero-actions{gap:.65rem;margin-top:.8rem}
+.home-compact-ux006a .ux005c-first-fold .ux005c-primary-cta{
+  min-height:3.45rem;
+  padding:0 1.65rem;
+  font-size:.98rem;
+  font-weight:850;
+  box-shadow:0 14px 30px rgba(8,45,32,.24);
+}
+.home-compact-ux006a .ux005c-first-fold .ux005c-secondary-cta{align-self:center;min-height:3rem;padding:0 1.25rem;font-size:.86rem}
+
+@media(max-width:960px){
+  .home-compact-ux006a .ux005c-first-fold{width:100%}
+  .home-compact-ux006a .ux005c-first-fold .home-official-copy{padding:1.15rem 2rem .85rem}
+  .home-compact-ux006a .ux005c-first-fold .home-official-panorama{
+    position:relative;
+    display:block;
+    order:2;
+    width:100%;
+    height:11rem;
+    clip-path:polygon(0 12%,100% 0,100% 100%,0 100%);
+  }
+  .home-compact-ux006a .ux005c-first-fold .home-official-search{order:3}
+}
+
+@media(max-width:640px){
+  .home-compact-ux006a .ux005c-first-fold .home-official-copy{padding:.9rem 1rem .7rem}
+  .home-compact-ux006a .ux005c-first-fold h1{max-width:none;font-size:clamp(2rem,9.5vw,2.35rem);line-height:.98}
+  .home-compact-ux006a .ux005c-first-fold .home-hero-copy>p{margin-top:.55rem;font-size:.82rem;line-height:1.4}
+  .home-compact-ux006a .ux005c-first-fold .home-hero-actions{margin-top:.6rem}
+  .home-compact-ux006a .ux005c-first-fold .ux005c-primary-cta{min-height:3.1rem;padding:0 .8rem;font-size:.86rem}
+  .home-compact-ux006a .ux005c-first-fold .ux005c-secondary-cta{min-height:2.8rem;padding:0 .65rem;font-size:.78rem}
+  .home-compact-ux006a .ux005c-first-fold .home-official-panorama{height:7.5rem}
+  .home-compact-ux006a .ux005c-first-fold .home-official-search{margin-top:.45rem}
+}
+
+@media(max-width:359px){
+  .home-compact-ux006a .ux005c-first-fold h1{font-size:1.75rem}
+  .home-compact-ux006a .ux005c-first-fold .home-hero-actions{grid-template-columns:1fr 1fr}
+  .home-compact-ux006a .ux005c-first-fold .home-hero-actions>.share-panel{grid-column:1/-1}
+  .home-compact-ux006a .ux005c-first-fold .home-official-panorama{height:6.75rem}
+}
