@@ -14,6 +14,8 @@ services:
         generateValue: true
       - key: FLASK_ENV
         value: production
+      - key: HOME_2_ENABLED
+        value: "false"
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD

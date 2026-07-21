@@ -13,10 +13,76 @@
 <link rel="canonical" href="{{ site_url }}">
 <script src="{{ url_for('static', filename='partner-offers-carousel.js') }}" defer></script>
 {% endblock %}
-{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive home-compact-ux006a{% endif %}{% endblock %}
+{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive home-compact-ux006a{% endif %}{% if home_2_enabled %} home-2-mission007{% endif %}{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
+{% if home_2_enabled %}
+<section class="home-premium-hero home2-hero" aria-labelledby="hero-title">
+  <div class="home2-hero-stage">
+    <div class="home2-hero-copy">
+      <div class="home-local-kicker">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        Marketplace de Colatina
+      </div>
+      <h1 id="hero-title"><span>O melhor da cidade,</span><em>mais perto.</em></h1>
+      <p>Tudo o que você precisa em Colatina, de um jeito simples e perto de você.</p>
+      <div class="home2-hero-actions" aria-label="Principais caminhos">
+        <a href="#ofertas" class="btn home2-primary-cta">
+          <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          Comprar agora
+        </a>
+        <a href="{{ '/criar' if session.get('usuario_id') else '/cadastro' }}" class="btn home2-secondary-cta">Anunciar grátis</a>
+      </div>
+    </div>
+    <figure class="home2-panorama">
+      <img src="{{ url_for('static', filename='colatina-rio-doce-panorama-hvl.jpg') }}" alt="Vista panorâmica de Colatina, do Rio Doce e da Ponte Florentino Avidos" width="1280" height="720" fetchpriority="high" decoding="async">
+      <figcaption>Foto: <a href="https://commons.wikimedia.org/wiki/File:Vista_parcial_de_Colatina_ES.JPG" rel="external">HVL / Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by/4.0/" rel="external">CC BY 4.0</a></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="home2-search-band" aria-labelledby="home2-search-title">
+  <div class="home2-search-heading">
+    <span>Busca rápida</span>
+    <h2 id="home2-search-title">O que você procura?</h2>
+  </div>
+  <form class="home2-search-form" data-home2-search method="GET" action="/" role="search" aria-label="Buscar no Mercado Colatina">
+    <div class="search-field search-field-query">
+      <label for="busca">Buscar produtos e serviços</label>
+      <div class="search-control">
+        <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+        <input id="busca" type="search" name="q" placeholder="Ex.: celular, sofá ou eletricista" autocomplete="off">
+      </div>
+    </div>
+    <div class="search-field search-field-category">
+      <label for="categoria">Categoria</label>
+      <select id="categoria" name="categoria">
+        <option value="">Todas as categorias</option>
+        {% for c in categorias %}
+          <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit">
+      <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      Encontrar agora
+    </button>
+  </form>
+</section>
+
+<section class="home-solver-strip home2-solver" aria-labelledby="home-solver-title">
+  <div class="home-solver-copy">
+    <span>Encontre Quem Resolve</span>
+    <h2 id="home-solver-title">Precisa de um serviço local?</h2>
+    <p>Descreva o que você precisa e aproxime-se de empresas locais.</p>
+  </div>
+  <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">
+    Descrever minha necessidade
+    <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+  </a>
+</section>
+{% else %}
 <section class="home-premium-hero home-official-hero ux005c-first-fold {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
   <div class="home-official-hero-stage">
     <div class="home-hero-copy home-official-copy">
@@ -95,6 +161,7 @@
     <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
   </a>
 </section>
+{% endif %}
 {% endif %}
 
 {% if home_cidade_viva_enabled and metricas_cidade %}

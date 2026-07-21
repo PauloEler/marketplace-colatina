@@ -17,6 +17,7 @@ os.environ["FLASK_ENV"] = "testing"
 os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ.pop("STORE_MANAGER_ASSIGNMENTS", None)
 os.environ.pop("HOME_CIDADE_VIVA_ENABLED", None)
+os.environ.pop("HOME_2_ENABLED", None)
 os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
 for indice_oferta in range(1, 7):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
@@ -3052,6 +3053,95 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("ux005c-first-fold", html)
         self.assertIn("data-ux005c-search", html)
         self.assertIn('id="ofertas"', html)
+
+    def test_missao_007_home_2_fica_desligada_por_padrao(self):
+        self.assertFalse(app_module.HOME_2_ENABLED)
+
+        with patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-compact-ux006a", html)
+        self.assertNotIn("home-2-mission007", html)
+        self.assertIn("ux005c-first-fold", html)
+        self.assertIn("data-ux005c-search", html)
+        self.assertIn("share-panel", html)
+        self.assertNotIn("data-home2-search", html)
+
+    def test_missao_007_home_2_separa_as_quatro_funcoes(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-2-mission007", html)
+        self.assertIn('class="home-premium-hero home2-hero"', html)
+        self.assertIn('class="home2-search-band"', html)
+        self.assertIn('class="home-solver-strip home2-solver"', html)
+        self.assertIn("data-home-city-movement", html)
+
+        hero = html[
+            html.index('class="home-premium-hero home2-hero"') : html.index(
+                'class="home2-search-band"'
+            )
+        ]
+        primeira_dobra = html[: html.index('class="home2-search-band"')]
+        self.assertNotIn("data-home2-search", hero)
+        self.assertNotIn("share-panel", hero)
+        self.assertNotIn("home-hero-logo", hero)
+        self.assertEqual(primeira_dobra.count("mercado-colatina-logo-v0.9.svg"), 1)
+        self.assertIn("O melhor da cidade,", hero)
+        self.assertIn("Comprar agora", hero)
+        self.assertIn("Anunciar grátis", hero)
+
+        self.assertLess(
+            html.index('class="home-premium-hero home2-hero"'),
+            html.index('class="home2-search-band"'),
+        )
+        self.assertLess(
+            html.index('class="home2-search-band"'),
+            html.index('class="home-solver-strip home2-solver"'),
+        )
+        self.assertLess(
+            html.index('class="home-solver-strip home2-solver"'),
+            html.index("data-home-city-movement"),
+        )
+
+    def test_missao_007_home_2_preserva_rotas_acessibilidade_e_escopo_css(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn('role="search"', html)
+        self.assertIn('aria-label="Buscar no Mercado Colatina"', html)
+        self.assertIn('<label for="busca">Buscar produtos e serviços</label>', html)
+        self.assertIn('<label for="categoria">Categoria</label>', html)
+        self.assertIn('href="#ofertas"', html)
+        self.assertIn('href="/cadastro"', html)
+        self.assertIn('href="/encontre-quem-resolve"', html)
+
+        caminho_css = os.path.join(app.static_folder, "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            css = arquivo.read()
+
+        self.assertIn("/* Missao 007 - Home 2.0", css)
+        self.assertIn(".home-2-mission007 .home2-hero", css)
+        self.assertIn("@media(max-width:840px)", css)
+        self.assertIn("@media(max-width:640px)", css)
+        self.assertIn("@media(max-width:359px)", css)
+        self.assertIn("outline:3px solid var(--ho-river)", css)
+
+    def test_missao_007_home_2_depende_da_cidade_viva_sem_forcar_a_flag(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", False),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertNotIn("home-2-mission007", html)
+        self.assertIn("ux005c-first-fold", html)
 
     def test_compartilhamento_direciona_para_whatsapp_business(self):
         caminho_js = os.path.join(app.static_folder, "store-share.js")
