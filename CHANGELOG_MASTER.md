@@ -1,5 +1,31 @@
 # CHANGELOG MASTER
 
+## 2026-07-21 - PATCH UX-005C Primeira dobra
+
+### Publicado
+
+- PR #84 integrada na `master` por squash merge.
+- Hash do merge: `62c2686155153342b75aaf909cc0f1833ba4df80`.
+- CI da `master` aprovado no workflow `29821308245`.
+- Deploy automático no Render detectado em produção às 07h14min49s, horário de Brasília.
+
+### Melhorado
+
+- Hero mais compacto e orientado às ações principais.
+- CTAs **Comprar agora** e **Anunciar grátis** com maior clareza.
+- Busca rápida com exemplo e botão **Encontrar agora**.
+- Faixa **Encontre Quem Resolve** posicionada antes das categorias.
+- Categorias com foco visível e navegação mobile horizontal.
+- Fotografia preservada no desktop e omitida até 960 px para priorizar ações.
+
+### Validado em produção
+
+- Desktop 1440 × 900, mobile 390 × 844 e mobile 320 × 720 sem overflow horizontal.
+- Hero, busca, primeira dobra, dez categorias e quatro caminhos principais operacionais.
+- Destinos de compra, cadastro, busca, categorias e **Encontre Quem Resolve** preservados.
+- Console da aplicação sem erros; mensagens observadas pertenciam exclusivamente a uma extensão do Chrome.
+- Produtos, pedidos, empresas, dashboards, backend e banco de dados preservados.
+
 ## 2026-07-20 - Missao 005 Sprint 5.1 Encontre Quem Resolve
 
 ### Adicionado
