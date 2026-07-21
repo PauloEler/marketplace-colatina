@@ -36,4 +36,27 @@ Definir `HOME_FINISH_007B_ENABLED=false` e reiniciar o serviço, ou reverter o �
 - sem overflow horizontal;
 - console sem erros ou avisos.
 
-O CI oficial será registrado pela PR Draft.
+## Publicação
+
+- PR: `#93`.
+- Merge por squash: `95a788a8feec3ccc6c6c0d6a871037dd1a0571cf`.
+- CI da `master`: aprovado no workflow `29854578089`.
+- Deploy automático do código: `live` no Render às 14h51, horário de Brasília.
+- `HOME_FINISH_007B_ENABLED=true` ativada no Render.
+- Deploy da configuração: `live` às 14h54, horário de Brasília.
+
+## Validação final em produção
+
+| Largura | Resultado |
+| --- | --- |
+| Desktop 1440 px | Hero, busca, Encontre Quem Resolve, Cidade Viva, cards e rodapé aprovados; Balão alinhado ao topo de Cidade Viva; sem overflow. |
+| Tablet 768 px | Balão empilhado abaixo de Cidade Viva; cards uniformes; rodapé compacto; sem overflow. |
+| Mobile 390 px | Conteúdo empilhado, cards uniformes, sugestão no rodapé e sem overflow. |
+| Mobile 320 px | Layout íntegro, cards uniformes e sem overflow. |
+
+- console sem erros ou avisos;
+- cinco mensagens do Balão publicadas;
+- rotação automaticamente pausada quando `prefers-reduced-motion: reduce` está ativa;
+- botão flutuante de sugestão removido da Home e link institucional preservado no rodapé;
+- Hero, busca, Encontre Quem Resolve, Cidade Viva, produtos, empresas, parceiros, backend, banco, rotas e dashboards preservados;
+- produção estável após o deploy.

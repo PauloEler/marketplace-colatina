@@ -1,5 +1,31 @@
 # CHANGELOG MASTER
 
+## 2026-07-21 - PATCH UX-007B Acabamento final da Home
+
+### Publicado
+
+- PR #93 integrada na `master` por squash merge.
+- Hash do merge: `95a788a8feec3ccc6c6c0d6a871037dd1a0571cf`.
+- CI da `master` aprovado no workflow `29854578089`.
+- Deploy automatico do codigo confirmado como `live` no Render as 14h51, horario de Brasilia.
+- Feature flag `HOME_FINISH_007B_ENABLED=true` ativada no ambiente de producao; deploy da configuracao confirmado como `live` as 14h54.
+
+### Melhorado
+
+- Cards uniformizados em largura, altura, recorte e alinhamento dentro de cada colecao.
+- Balao da Cidade integrado ao topo de Cidade Viva no desktop e empilhado em tablet e mobile.
+- Mensagens rotativas sem numeros ficticios e com respeito a `prefers-reduced-motion`.
+- Acao **Sugira uma melhoria** movida para o rodape institucional.
+- Rodape reduzido em aproximadamente 20% a 25%, preservando links, logo e informacoes.
+
+### Validado em producao
+
+- Home, Hero, busca, Encontre Quem Resolve e Cidade Viva operacionais.
+- Cards de produtos, lojas, ofertas e empresas parceiras com dimensoes uniformes.
+- Desktop 1440 px, tablet 768 px e mobile 390/320 px sem overflow horizontal.
+- Console da aplicacao sem erros ou avisos.
+- Backend, banco, rotas, dashboards e funcionalidades anteriores preservados.
+
 ## 2026-07-21 - PATCH UX-006A Home compacta
 
 ### Publicado
