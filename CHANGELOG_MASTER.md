@@ -1,5 +1,33 @@
 # CHANGELOG MASTER
 
+## 2026-07-21 - PATCH UX-007C Alinhamento final
+
+### Publicado
+
+- PR #95 integrada na `master` por squash merge.
+- Hash do merge: `cf282d76ac718d0930d6a8b882ee135fbda1ff2c`.
+- CI da `master` aprovado no workflow `29859624953`.
+- Deploy automático do código confirmado como `live` no Render às 16h02, horário de Brasília.
+- Feature flag `HOME_FINISH_007C_ENABLED=true` ativada em produção; deploy da configuração confirmado como `live` às 16h06.
+
+### Melhorado
+
+- Busca Rápida, Encontre Quem Resolve e Cidade Viva passaram a compartilhar a mesma largura útil.
+- Cidade Viva distribui dois indicadores em duas colunas, sem área vazia artificial.
+- Balão da Cidade alinhado ao topo da seção como coluna editorial no desktop.
+- Sete ações “Ver todos” padronizadas no canto inferior direito das seções.
+- Espaçamento do rodapé reduzido, preservando todos os links e informações.
+
+### Validado em produção
+
+- Flag UX-007C presente no HTML publicado.
+- Três blocos principais medindo 1280 px na auditoria desktop e começando na mesma coluna.
+- Cidade Viva e Balão iniciando na mesma coordenada vertical.
+- Sete links “Ver todos” presentes e com destinos válidos.
+- Hero, produtos, empresas e ofertas de parceiros preservados.
+- Sem overflow horizontal da página.
+- Console da aplicação sem erros; aviso observado pertence exclusivamente a uma extensão do navegador.
+
 ## 2026-07-21 - PATCH UX-007B Acabamento final da Home
 
 ### Publicado

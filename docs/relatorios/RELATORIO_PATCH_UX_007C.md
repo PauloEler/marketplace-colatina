@@ -47,4 +47,22 @@ Hero, conteúdo e funcionamento da busca, Encontre Quem Resolve, produtos, empre
 
 ## Publicação
 
-PR Draft, sem merge e sem deploy. Aguardar auditoria visual.
+- PR: `#95`.
+- Merge por squash: `cf282d76ac718d0930d6a8b882ee135fbda1ff2c`.
+- CI da `master`: aprovado no workflow `29859624953`.
+- Deploy automático do código: `live` no Render às 16h02, horário de Brasília.
+- `HOME_FINISH_007C_ENABLED=true` ativada no Render.
+- Deploy da configuração: `live` às 16h06, horário de Brasília.
+
+## Validação final em produção
+
+- classe `home-finish-ux007c` confirmada no HTML da Home;
+- Busca Rápida, Encontre Quem Resolve e Cidade Viva com 1280 px de largura e início comum na auditoria desktop;
+- Cidade Viva e Balão alinhados na coordenada vertical de 795 px;
+- dois indicadores reais distribuídos em duas colunas;
+- sete links “Ver todos” presentes e com destinos preenchidos;
+- Hero, produtos, empresas e Ofertas de Parceiros operacionais;
+- nenhum overflow horizontal da página;
+- console da aplicação sem erros; o único registro observado foi originado por uma extensão do navegador e não pelo Mercado Colatina;
+- comportamento responsivo de 1024, 768, 390 e 320 px preservado conforme as evidências e testes aprovados do commit publicado;
+- produção estável após o deploy.
