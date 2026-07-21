@@ -2982,6 +2982,38 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b'href="/criar"', pagina_autenticada.data)
         self.assertIn(b'href="#ofertas"', pagina_autenticada.data)
 
+    def test_patch_ux_005c_prioriza_acoes_na_primeira_dobra(self):
+        html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("ux005c-first-fold", html)
+        self.assertIn("Comprar agora", html)
+        self.assertIn("Anunciar grátis", html)
+        self.assertIn("O que você procura?", html)
+        self.assertIn('placeholder="Ex.: celular, sofá ou eletricista"', html)
+        self.assertIn("Encontrar agora", html)
+        self.assertIn('class="home-solver-strip"', html)
+        self.assertIn('id="home-solver-title">Encontre Quem Resolve</h2>', html)
+        self.assertIn('href="/encontre-quem-resolve"', html)
+        self.assertIn("Descrever minha necessidade", html)
+        self.assertIn("data-ux005c-categories", html)
+        self.assertLess(
+            html.index("data-ux005c-search"), html.index("home-solver-strip")
+        )
+        self.assertLess(
+            html.index("home-solver-strip"), html.index("data-ux005c-categories")
+        )
+        self.assertLess(
+            html.index("data-ux005c-categories"), html.index('id="ofertas"')
+        )
+
+        html_resultados = self.client.get("/?q=celular").data.decode("utf-8")
+        self.assertNotIn('class="home-solver-strip"', html_resultados)
+
+        self.autenticar_sessao(self.comprador_id)
+        html_autenticado = self.client.get("/").data.decode("utf-8")
+        self.assertIn("Publicar anúncio", html_autenticado)
+        self.assertIn('class="btn btn-outline ux005c-secondary-cta"', html_autenticado)
+
     def test_compartilhamento_direciona_para_whatsapp_business(self):
         caminho_js = os.path.join(app.static_folder, "store-share.js")
         with open(caminho_js, encoding="utf-8") as arquivo:
