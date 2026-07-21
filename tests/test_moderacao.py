@@ -20,6 +20,7 @@ os.environ.pop("HOME_CIDADE_VIVA_ENABLED", None)
 os.environ.pop("HOME_2_ENABLED", None)
 os.environ.pop("HOME_CITY_BALLOON_ENABLED", None)
 os.environ.pop("HOME_FINISH_007B_ENABLED", None)
+os.environ.pop("HOME_FINISH_007C_ENABLED", None)
 os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
 for indice_oferta in range(1, 7):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
@@ -3277,6 +3278,55 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("prefers-reduced-motion: reduce", javascript)
         self.assertIn("visibilitychange", javascript)
         self.assertIn("window.setInterval(rotate, 5200)", javascript)
+
+    def test_patch_ux_007c_fica_desligado_por_padrao_e_preserva_007b(self):
+        self.assertFalse(app_module.HOME_FINISH_007C_ENABLED)
+
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", True),
+            patch.object(app_module, "HOME_FINISH_007B_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-finish-ux007b", html)
+        self.assertNotIn("home-finish-ux007c", html)
+
+    def test_patch_ux_007c_aplica_alinhamento_somente_com_dependencias(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", True),
+            patch.object(app_module, "HOME_FINISH_007B_ENABLED", True),
+            patch.object(app_module, "HOME_FINISH_007C_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-finish-ux007c", html)
+
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", True),
+            patch.object(app_module, "HOME_FINISH_007B_ENABLED", False),
+            patch.object(app_module, "HOME_FINISH_007C_ENABLED", True),
+        ):
+            html_sem_007b = self.client.get("/").data.decode("utf-8")
+
+        self.assertNotIn("home-finish-ux007c", html_sem_007b)
+
+    def test_patch_ux_007c_css_isola_alinhamento_e_rodape(self):
+        caminho_css = os.path.join(app.static_folder, "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            css = arquivo.read()
+
+        self.assertIn("/* PATCH UX-007C", css)
+        self.assertIn(".home-finish-ux007c .home2-search-band", css)
+        self.assertIn("--finish-007c-content-width:80rem", css)
+        self.assertIn("[data-city-metric]:nth-child(2):last-child", css)
+        self.assertIn(".home-finish-ux007c .home-compact-more", css)
+        self.assertIn(".home-finish-ux007c .home-premium-footer", css)
 
     def test_compartilhamento_direciona_para_whatsapp_business(self):
         caminho_js = os.path.join(app.static_folder, "store-share.js")
