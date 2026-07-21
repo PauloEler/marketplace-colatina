@@ -47,9 +47,26 @@ A auditoria também confirmou que o botão flutuante antigo não cobre a nova fa
 
 ## Publicação
 
-Merge: não realizado.
+PR: `#84`.
 
-Deploy: não realizado.
+Merge: `62c2686155153342b75aaf909cc0f1833ba4df80`, por squash merge.
+
+CI da `master`: aprovado no workflow `29821308245`.
+
+Deploy: automático no Render, detectado em produção em 21/07/2026 às 07h14min49s, horário de Brasília.
+
+## Validação em produção
+
+- Hero, busca e faixa **Encontre Quem Resolve** carregando corretamente;
+- CTAs **Comprar agora**, **Anunciar grátis**, **Encontrar agora** e **Descrever minha necessidade** operacionais;
+- dez categorias presentes e seus destinos preservados;
+- desktop 1440 × 900 sem overflow;
+- mobile 390 × 844 e 320 × 720 sem overflow horizontal;
+- fotografia preservada no desktop e omitida no mobile conforme a decisão de UX;
+- atalho flutuante duplicado ocultado quando a faixa equivalente está presente;
+- console da aplicação sem erros;
+- mensagens registradas pelo navegador eram externas ao site e originadas por uma extensão do Chrome;
+- nenhuma regressão identificada nos módulos preservados.
 
 ## Medição posterior
 
