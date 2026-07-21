@@ -4885,3 +4885,265 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-2-mission007 .home2-primary-cta:hover,
   .home-2-mission007 .home2-secondary-cta:hover{transform:none}
 }
+
+/* PATCH UX-007A - Balao da Cidade.
+   Todo ajuste visual depende exclusivamente da feature flag do patch. */
+.home-city-balloon-ux007a{
+  --city-card-radius:1rem;
+  --city-card-padding:.95rem;
+  --city-content-width:80rem;
+}
+.home-city-balloon-ux007a .home-city-balloon-layout{
+  order:25;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(16rem,21vw,18rem);
+  align-items:stretch;
+  gap:1rem;
+  width:min(var(--city-content-width),calc(100% - 2rem));
+  margin:1rem auto 0;
+}
+.home-city-balloon-ux007a .home-city-balloon-layout .home-city-movement{
+  grid-column:1;
+  grid-row:1;
+  width:100%;
+  margin:0;
+  padding:1.1rem;
+}
+.home-city-balloon-ux007a .home-city-movement-empty{
+  display:flex;
+  min-height:19rem;
+  flex-direction:column;
+  justify-content:center;
+  gap:1.25rem;
+  padding:clamp(1.25rem,3vw,2.5rem);
+  background:linear-gradient(135deg,#f4f8f5,#edf5f7);
+}
+.home-city-balloon-ux007a .home-city-empty-copy{max-width:38rem}
+.home-city-balloon-ux007a .home-city-empty-copy h2{
+  margin-top:.35rem;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(2rem,4vw,3.25rem);
+  font-weight:400;
+}
+.home-city-balloon-ux007a .home-city-empty-copy p{margin-top:.55rem;color:#52685f;line-height:1.6}
+.home-city-balloon-ux007a .home-city-empty-actions{display:flex;flex-wrap:wrap;gap:.55rem}
+.home-city-balloon-ux007a .home-city-empty-actions a{
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  padding:.55rem .9rem;
+  border:1px solid #cbded2;
+  border-radius:999px;
+  background:#fff;
+  color:var(--ho-forest,#155f3b);
+  font-size:.76rem;
+  font-weight:800;
+  text-decoration:none;
+}
+.home-city-balloon-ux007a .home-city-empty-actions a:focus-visible{
+  outline:3px solid var(--ho-river,#2e83a8);
+  outline-offset:3px;
+}
+.home-city-balloon-ux007a .home-city-balloon{
+  position:relative;
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  gap:.9rem;
+  padding:1.15rem;
+  border:1px solid #cbded2;
+  border-radius:1.35rem;
+  background:linear-gradient(155deg,#edf7f0 0%,#f7fbf8 58%,#eaf3f7 100%);
+  color:var(--ho-ink,#17382b);
+  box-shadow:0 14px 34px rgba(25,74,52,.09);
+  grid-column:2;
+  grid-row:1;
+}
+.home-city-balloon-ux007a .home-city-balloon:after{
+  position:absolute;
+  right:2rem;
+  bottom:-.65rem;
+  width:1.25rem;
+  height:1.25rem;
+  border-right:1px solid #cbded2;
+  border-bottom:1px solid #cbded2;
+  background:#eef7f3;
+  content:"";
+  transform:rotate(45deg);
+}
+.home-city-balloon-ux007a .home-city-balloon-heading{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  align-items:start;
+  gap:.65rem;
+}
+.home-city-balloon-ux007a .home-city-balloon-symbol{
+  display:grid;
+  place-items:center;
+  width:2.65rem;
+  height:2.65rem;
+  border-radius:.85rem;
+  background:#fff;
+  font-size:1.35rem;
+}
+.home-city-balloon-ux007a .home-city-balloon-heading>div>span{
+  color:var(--ho-forest,#155f3b);
+  font-size:.62rem;
+  font-weight:850;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.home-city-balloon-ux007a .home-city-balloon h2{
+  margin-top:.25rem;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(1.35rem,2vw,1.7rem);
+  font-weight:400;
+  line-height:1.08;
+}
+.home-city-balloon-ux007a .home-city-balloon nav{display:grid;gap:.25rem}
+.home-city-balloon-ux007a .home-city-balloon nav a{
+  display:flex;
+  align-items:center;
+  min-height:2.35rem;
+  padding:.45rem .55rem;
+  border-radius:.65rem;
+  color:#315c49;
+  font-size:.78rem;
+  font-weight:750;
+  text-decoration:none;
+}
+.home-city-balloon-ux007a .home-city-balloon nav a:before{
+  margin-right:.5rem;
+  color:var(--ho-river,#2e83a8);
+  content:"•";
+}
+.home-city-balloon-ux007a .home-city-balloon nav a:hover{background:rgba(255,255,255,.72)}
+.home-city-balloon-ux007a .home-city-balloon-proof{
+  display:grid;
+  gap:.25rem;
+  padding:.65rem;
+  border-top:1px solid rgba(21,95,59,.14);
+  border-bottom:1px solid rgba(21,95,59,.14);
+  color:#52685f;
+  font-size:.7rem;
+}
+.home-city-balloon-ux007a .home-city-balloon-proof strong{color:var(--ho-forest,#155f3b);font-size:.88rem}
+.home-city-balloon-ux007a .home-city-balloon-actions{display:grid;gap:.5rem;margin-top:auto;position:relative;z-index:1}
+.home-city-balloon-ux007a .home-city-balloon-actions a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:.6rem .75rem;
+  border-radius:999px;
+  font-size:.7rem;
+  font-weight:900;
+  letter-spacing:.035em;
+  text-align:center;
+  text-decoration:none;
+  text-transform:uppercase;
+}
+.home-city-balloon-ux007a .home-city-balloon-primary{background:var(--ho-forest,#155f3b);color:#fff}
+.home-city-balloon-ux007a .home-city-balloon-secondary{border:1px solid var(--ho-forest,#155f3b);background:#fff;color:var(--ho-forest,#155f3b)}
+.home-city-balloon-ux007a .home-city-balloon a:focus-visible{
+  outline:3px solid var(--ho-river,#2e83a8);
+  outline-offset:3px;
+}
+
+/* A mesma largura util, raio e densidade orientam todos os cards resumidos. */
+.home-city-balloon-ux007a .home-category-section,
+.home-city-balloon-ux007a .home-product-showcase,
+.home-city-balloon-ux007a .home-stores,
+.home-city-balloon-ux007a .home-city-recent,
+.home-city-balloon-ux007a .home-partner-offers,
+.home-city-balloon-ux007a .home-local-partners{
+  width:min(var(--city-content-width),calc(100% - 2rem));
+}
+.home-city-balloon-ux007a .home-category-card,
+.home-city-balloon-ux007a .home-product-card,
+.home-city-balloon-ux007a .home-city-metric,
+.home-city-balloon-ux007a .home-city-recent-card,
+.home-city-balloon-ux007a .home-store-card,
+.home-city-balloon-ux007a .partner-offer-card,
+.home-city-balloon-ux007a .home-local-partner-card{
+  border-radius:var(--city-card-radius);
+}
+.home-city-balloon-ux007a .home-category-card{padding:.55rem .4rem}
+.home-city-balloon-ux007a .home-product-card .card-body,
+.home-city-balloon-ux007a .home-city-metric,
+.home-city-balloon-ux007a .home-city-recent-card,
+.home-city-balloon-ux007a .home-store-card,
+.home-city-balloon-ux007a .home-local-partner-card{padding:var(--city-card-padding)}
+.home-city-balloon-ux007a .home-product-showcase>.grid,
+.home-city-balloon-ux007a .home-stores-grid,
+.home-city-balloon-ux007a .home-local-partners-grid{gap:.9rem}
+
+/* Rodape compacto, com todas as informacoes e caminhos preservados. */
+.home-city-balloon-ux007a .home-premium-footer{margin-top:1.5rem}
+.home-city-balloon-ux007a .home-footer-bridge{height:1.35rem}
+.home-city-balloon-ux007a .home-footer-bridge:before{height:2rem}
+.home-city-balloon-ux007a .home-footer-bridge:after{height:2rem}
+.home-city-balloon-ux007a .home-footer-grid{padding:1.35rem 0 1rem;row-gap:1rem}
+.home-city-balloon-ux007a .home-footer-brand img{width:11.5rem;height:auto}
+.home-city-balloon-ux007a .home-footer-brand p{margin-top:.4rem;font-size:.86rem;line-height:1.45}
+.home-city-balloon-ux007a .home-premium-footer .footer-bottom{padding:.7rem 0}
+.home-city-balloon-ux007a .community-suggestion-trigger{
+  position:static;
+  width:max-content;
+  max-width:calc(100% - 2rem);
+  margin:.75rem auto 0;
+}
+
+@media(max-width:960px){
+  .home-city-balloon-ux007a .home-city-balloon-layout{
+    grid-template-columns:1fr;
+    width:min(var(--city-content-width),calc(100% - 2rem));
+  }
+  .home-city-balloon-ux007a .home-city-balloon-layout .home-city-movement,
+  .home-city-balloon-ux007a .home-city-balloon{grid-column:1}
+  .home-city-balloon-ux007a .home-city-balloon-layout .home-city-movement{grid-row:1}
+  .home-city-balloon-ux007a .home-city-balloon{grid-row:2}
+  .home-city-balloon-ux007a .home-city-balloon{
+    display:grid;
+    grid-template-columns:minmax(12rem,.8fr) minmax(13rem,1fr);
+    align-items:center;
+    gap:.8rem;
+  }
+  .home-city-balloon-ux007a .home-city-balloon-proof{display:none}
+  .home-city-balloon-ux007a .home-city-balloon-actions{
+    grid-column:1/-1;
+    grid-template-columns:1fr 1fr;
+    min-width:0;
+    margin-top:0;
+  }
+}
+
+@media(max-width:640px){
+  .home-city-balloon-ux007a{--city-card-padding:.9rem}
+  .home-city-balloon-ux007a .home-city-balloon-layout,
+  .home-city-balloon-ux007a .home-category-section,
+  .home-city-balloon-ux007a .home-product-showcase,
+  .home-city-balloon-ux007a .home-stores,
+  .home-city-balloon-ux007a .home-city-recent,
+  .home-city-balloon-ux007a .home-partner-offers,
+  .home-city-balloon-ux007a .home-local-partners{width:calc(100% - .5rem)}
+  .home-city-balloon-ux007a .home-city-balloon-layout{margin-top:.8rem}
+  .home-city-balloon-ux007a .home-city-balloon{
+    display:flex;
+    width:100%;
+    padding:1rem;
+    border-radius:1rem;
+  }
+  .home-city-balloon-ux007a .home-city-balloon-proof{display:grid}
+  .home-city-balloon-ux007a .home-city-balloon-actions{width:100%;min-width:0}
+  .home-city-balloon-ux007a .home-city-balloon-actions{display:grid;grid-template-columns:1fr}
+  .home-city-balloon-ux007a .home-footer-grid{padding:1rem 0 .75rem;row-gap:.8rem}
+  .home-city-balloon-ux007a .home-footer-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-city-balloon-ux007a .home-footer-brand{grid-column:1/-1}
+  .home-city-balloon-ux007a .home-footer-grid nav{padding-top:.75rem}
+  .home-city-balloon-ux007a .home-footer-grid nav:last-child{
+    grid-column:1/-1;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .home-city-balloon-ux007a .home-footer-grid nav:last-child strong{grid-column:1/-1}
+}
