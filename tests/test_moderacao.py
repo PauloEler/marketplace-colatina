@@ -3143,7 +3143,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertFalse(app_module.HOME_CIDADE_VIVA_ENABLED)
         self.assertIn('<body class="mds-home mx-home-premium home-official">', html)
         self.assertNotIn("home-city-alive", html)
-        self.assertNotIn("Cidade em movimento", html)
+        self.assertNotIn("Cidade Viva", html)
         self.assertNotIn("data-home-city-recent", html)
         self.assertIn('id="confianca"', html)
         self.assertIn('id="hoje-em-colatina"', html)
@@ -3186,12 +3186,13 @@ class ModeracaoTestCase(unittest.TestCase):
             html = self.client.get("/").data.decode("utf-8")
 
         self.assertIn("home-city-alive", html)
-        self.assertIn("Cidade em movimento", html)
+        self.assertIn("home-compact-ux006a", html)
+        self.assertIn("Cidade Viva", html)
         self.assertIn('data-city-metric="anuncios"', html)
         self.assertIn('data-city-metric="empresas"', html)
         self.assertIn('data-city-metric="necessidades"', html)
         self.assertIn("4 de 7 resultados", html)
-        self.assertIn("Ver todos os produtos", html)
+        self.assertIn("Ver todos", html)
         self.assertEqual(html.count('class="card home-product-card"'), 4)
         self.assertEqual(html.count('class="home-city-recent-card"'), 3)
         self.assertNotIn("usuÃ¡rios online", html.lower())
@@ -3220,7 +3221,7 @@ class ModeracaoTestCase(unittest.TestCase):
             html = self.client.get("/?todos=1").data.decode("utf-8")
 
         self.assertNotIn("home-city-alive", html)
-        self.assertNotIn("Cidade em movimento", html)
+        self.assertNotIn("Cidade Viva", html)
         self.assertEqual(html.count('class="card home-product-card"'), 6)
         self.assertIn('id="confianca"', html)
         self.assertIn('id="hoje-em-colatina"', html)
@@ -3236,6 +3237,64 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("@media(max-width:960px)", css)
         self.assertIn("@media(max-width:640px)", css)
         self.assertIn("scroll-snap-type:x mandatory", css)
+
+    def test_patch_ux_006a_posiciona_cidade_viva_apos_encontre_quem_resolve(self):
+        with patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-compact-ux006a", html)
+        self.assertIn('<span aria-hidden="true">🌇</span> Cidade Viva', html)
+        self.assertLess(
+            html.index('class="home-solver-strip"'),
+            html.index("data-home-city-movement"),
+        )
+        self.assertLess(
+            html.index("data-home-city-movement"),
+            html.index("data-ux005c-categories"),
+        )
+
+    def test_patch_ux_006a_oferece_ver_todos_em_todos_os_resumos(self):
+        with patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True):
+            html = self.client.get("/").data.decode("utf-8")
+
+        destinos = (
+            "#hoje-em-colatina",
+            "#categories-title",
+            "#ofertas",
+            "#ofertas-parceiros",
+            "#home-stores-title",
+            "#empresas-parceiras",
+        )
+        for destino in destinos:
+            self.assertIn(f"?todos=1{destino}", html)
+        self.assertGreaterEqual(html.count(">Ver todos</a>"), 6)
+
+    def test_patch_ux_006a_flag_desligada_preserva_listas_integrais(self):
+        html = self.client.get("/").data.decode("utf-8")
+
+        self.assertNotIn("home-compact-ux006a", html)
+        self.assertEqual(html.count('class="home-category-card'), 10)
+        self.assertEqual(html.count("data-partner-card"), 6)
+        self.assertEqual(html.count("data-affiliate-offer"), 6)
+
+    def test_patch_ux_006a_css_compacta_somente_com_feature_flag(self):
+        caminho_css = os.path.join(app.static_folder, "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            css = arquivo.read()
+
+        self.assertIn(".home-compact-ux006a .home-city-movement{order:25}", css)
+        self.assertIn(
+            ".home-compact-ux006a .home-category-card:nth-child(n+6){display:none}",
+            css,
+        )
+        self.assertIn(
+            ".home-compact-ux006a .partner-offer-card:nth-child(n+4){display:none}",
+            css,
+        )
+        self.assertIn(
+            ".home-compact-ux006a .home-local-partner-card:nth-child(n+4){display:none}",
+            css,
+        )
 
     def test_home_exibe_qr_code_oficial_para_acessar_o_site(self):
         html = self.client.get("/").data.decode("utf-8")
