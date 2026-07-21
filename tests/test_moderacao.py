@@ -3202,6 +3202,10 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("--city-content-width:80rem", css)
         self.assertIn(".home-city-balloon-ux007a .home-premium-footer", css)
         self.assertIn("@media(max-width:960px)", css)
+        self.assertIn(
+            "grid-template-columns:minmax(0,1fr)",
+            css,
+        )
         self.assertIn("@media(max-width:640px)", css)
 
     def test_compartilhamento_direciona_para_whatsapp_business(self):
