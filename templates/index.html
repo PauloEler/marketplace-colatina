@@ -17,7 +17,7 @@
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
-<section class="home-premium-hero home-official-hero {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
+<section class="home-premium-hero home-official-hero ux005c-first-fold {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
   <div class="home-official-hero-stage">
     <div class="home-hero-copy home-official-copy">
       <img class="home-hero-logo" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="330" height="92">
@@ -30,16 +30,16 @@
       <p>Refine o que procura e encontre ofertas disponíveis em Colatina.</p>
       {% else %}
       <h1 id="hero-title">O melhor da cidade, <em>mais perto.</em></h1>
-      <p>Do comércio local aos serviços que fazem Colatina acontecer. Conectamos pessoas, valorizamos o que é nosso.</p>
+      <p>Compre, venda ou encontre quem resolve o que você precisa — tudo mais perto, em Colatina.</p>
       <div class="home-hero-actions" aria-label="Principais caminhos">
-        <a href="#ofertas" class="btn btn-verde">
+        <a href="#ofertas" class="btn btn-verde ux005c-primary-cta">
           <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-          Comprar
+          Comprar agora
         </a>
         {% if session.get('usuario_id') %}
-        <a href="/criar" class="btn btn-outline">Publicar anúncio</a>
+        <a href="/criar" class="btn btn-outline ux005c-secondary-cta">Publicar anúncio</a>
         {% else %}
-        <a href="/cadastro" class="btn btn-outline">Anunciar</a>
+        <a href="/cadastro" class="btn btn-outline ux005c-secondary-cta">Anunciar grátis</a>
         {% endif %}
         {{ painel_compartilhar(site_url, 'Mercado Colatina', 'Conheça o Mercado Colatina, a praça digital para comprar e vender na cidade.', 'Compartilhar') }}
       </div>
@@ -51,16 +51,16 @@
       <figcaption>Foto: <a href="https://commons.wikimedia.org/wiki/File:Vista_parcial_de_Colatina_ES.JPG" rel="external">HVL / Wikimedia Commons</a> · <a href="https://creativecommons.org/licenses/by/4.0/" rel="external">CC BY 4.0</a></figcaption>
     </figure>
 
-    <form class="home-premium-search home-official-search" method="GET" action="/" role="search" aria-label="Buscar no Mercado Colatina">
+    <form class="home-premium-search home-official-search" data-ux005c-search method="GET" action="/" role="search" aria-label="Buscar no Mercado Colatina">
       <div class="home-search-heading">
-        <span>Busca local</span>
-        <strong>Encontre em Colatina</strong>
+        <span>Busca rápida</span>
+        <strong>O que você procura?</strong>
       </div>
       <div class="search-field search-field-query">
         <label for="busca">Buscar produtos e serviços</label>
         <div class="search-control">
           <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-          <input id="busca" type="search" name="q" placeholder="Buscar em Colatina" value="{{ busca }}" autocomplete="off">
+          <input id="busca" type="search" name="q" placeholder="Ex.: celular, sofá ou eletricista" value="{{ busca }}" autocomplete="off">
         </div>
       </div>
       <div class="search-field search-field-category">
@@ -74,11 +74,28 @@
       </div>
       <button type="submit">
         <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-        Buscar
+        Encontrar agora
       </button>
     </form>
   </div>
 </section>
+
+{% if not busca and not cat_sel %}
+<section class="home-solver-strip" aria-labelledby="home-solver-title">
+  <span class="home-solver-icon" aria-hidden="true">
+    <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5-5L7.6 3.4l3 3 2.1-2.1a4 4 0 0 0 2 2Z"></path><path d="m5 8-3 3 10 10 3-3"></path><path d="m14 14 6-6"></path><path d="m17 5 2 2"></path></svg>
+  </span>
+  <div class="home-solver-copy">
+    <span>Precisa de um serviço?</span>
+    <h2 id="home-solver-title">Encontre Quem Resolve</h2>
+    <p>Descreva o problema e aproxime-se de empresas locais.</p>
+  </div>
+  <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">
+    Descrever minha necessidade
+    <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+  </a>
+</section>
+{% endif %}
 
 <section class="home-visit-proof" aria-label="Visitas ao Mercado Colatina">
   <span class="home-visit-icon" aria-hidden="true">
@@ -91,7 +108,7 @@
   <p>O Mercado Colatina já está sendo descoberto por quem compra, vende e movimenta a nossa cidade.</p>
 </section>
 
-<section class="home-category-section" aria-labelledby="categories-title">
+<section class="home-category-section" data-ux005c-categories aria-labelledby="categories-title">
   <div class="home-section-heading">
     <div>
       <div class="section-kicker">Explore a cidade</div>
