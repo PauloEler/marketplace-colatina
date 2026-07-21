@@ -16,8 +16,6 @@ os.environ["DATABASE_PATH"] = os.path.join(TEST_DIR, "test.db")
 os.environ["FLASK_ENV"] = "testing"
 os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ.pop("STORE_MANAGER_ASSIGNMENTS", None)
-os.environ.pop("HOME_CIDADE_VIVA_ENABLED", None)
-os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
 for indice_oferta in range(1, 7):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
 
@@ -3136,106 +3134,6 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
         self.assertEqual(posicoes, sorted(posicoes))
-
-    def test_cidade_viva_fica_desativada_por_padrao_e_preserva_home_anterior(self):
-        html = self.client.get("/").data.decode("utf-8")
-
-        self.assertFalse(app_module.HOME_CIDADE_VIVA_ENABLED)
-        self.assertIn('<body class="mds-home mx-home-premium home-official">', html)
-        self.assertNotIn("home-city-alive", html)
-        self.assertNotIn("Cidade em movimento", html)
-        self.assertNotIn("data-home-city-recent", html)
-        self.assertIn('id="confianca"', html)
-        self.assertIn('id="hoje-em-colatina"', html)
-
-    def test_cidade_viva_limita_vitrine_e_exibe_dados_reais_sem_inventar_metricas(self):
-        with app.app_context():
-            db = get_db()
-            for indice in range(2, 8):
-                db.execute(
-                    "INSERT INTO anuncios "
-                    "(usuario_id, titulo, descricao, preco, categoria, condicao, "
-                    "ativo, estoque) VALUES (?,?,?,?,?,?,1,1)",
-                    (
-                        self.vendedor_id,
-                        f"Produto Cidade Viva {indice}",
-                        "Produto real usado no teste da composiÃ§Ã£o.",
-                        f"{indice}0,00",
-                        "Outros",
-                        "Usado",
-                    ),
-                )
-            db.execute(
-                "INSERT INTO pedidos_servico "
-                "(problema, categoria, bairro, urgencia, whatsapp, status) "
-                "VALUES (?,?,?,?,?,'aberto')",
-                (
-                    "Preciso consertar uma tomada residencial",
-                    "Casa e manutenÃ§Ã£o",
-                    "Centro",
-                    "semana",
-                    "5527999999999",
-                ),
-            )
-            db.commit()
-
-        with (
-            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
-            patch.object(app_module, "HOME_CIDADE_VIVA_PRODUCT_LIMIT", 4),
-        ):
-            html = self.client.get("/").data.decode("utf-8")
-
-        self.assertIn("home-city-alive", html)
-        self.assertIn("Cidade em movimento", html)
-        self.assertIn('data-city-metric="anuncios"', html)
-        self.assertIn('data-city-metric="empresas"', html)
-        self.assertIn('data-city-metric="necessidades"', html)
-        self.assertIn("4 de 7 resultados", html)
-        self.assertIn("Ver todos os produtos", html)
-        self.assertEqual(html.count('class="card home-product-card"'), 4)
-        self.assertEqual(html.count('class="home-city-recent-card"'), 3)
-        self.assertNotIn("usuÃ¡rios online", html.lower())
-        self.assertNotIn("movimentaÃ§Ã£o estimada", html.lower())
-
-    def test_cidade_viva_ver_todos_restaura_composicao_integral_da_home(self):
-        with app.app_context():
-            db = get_db()
-            for indice in range(2, 7):
-                db.execute(
-                    "INSERT INTO anuncios "
-                    "(usuario_id, titulo, descricao, preco, categoria, condicao, "
-                    "ativo, estoque) VALUES (?,?,?,?,?,?,1,1)",
-                    (
-                        self.vendedor_id,
-                        f"Produto integral {indice}",
-                        "Produto para validar a reversÃ£o da vitrine.",
-                        f"{indice}5,00",
-                        "Outros",
-                        "Usado",
-                    ),
-                )
-            db.commit()
-
-        with patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True):
-            html = self.client.get("/?todos=1").data.decode("utf-8")
-
-        self.assertNotIn("home-city-alive", html)
-        self.assertNotIn("Cidade em movimento", html)
-        self.assertEqual(html.count('class="card home-product-card"'), 6)
-        self.assertIn('id="confianca"', html)
-        self.assertIn('id="hoje-em-colatina"', html)
-
-    def test_cidade_viva_css_mantem_flag_e_breakpoints_isolados(self):
-        caminho_css = os.path.join(app.static_folder, "styles.css")
-        with open(caminho_css, encoding="utf-8") as arquivo:
-            css = arquivo.read()
-
-        self.assertIn(".home-city-alive main", css)
-        self.assertIn(".home-city-alive .home-product-showcase>.grid", css)
-        self.assertIn("grid-template-columns:repeat(4,minmax(0,1fr))", css)
-        self.assertIn("@media(max-width:960px)", css)
-        self.assertIn("@media(max-width:640px)", css)
-        self.assertIn("scroll-snap-type:x mandatory", css)
 
     def test_home_exibe_qr_code_oficial_para_acessar_o_site(self):
         html = self.client.get("/").data.decode("utf-8")
