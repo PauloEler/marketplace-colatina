@@ -19,6 +19,7 @@ os.environ.pop("STORE_MANAGER_ASSIGNMENTS", None)
 os.environ.pop("HOME_CIDADE_VIVA_ENABLED", None)
 os.environ.pop("HOME_2_ENABLED", None)
 os.environ.pop("HOME_CITY_BALLOON_ENABLED", None)
+os.environ.pop("HOME_FINISH_007B_ENABLED", None)
 os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
 for indice_oferta in range(1, 7):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
@@ -3207,6 +3208,75 @@ class ModeracaoTestCase(unittest.TestCase):
             css,
         )
         self.assertIn("@media(max-width:640px)", css)
+
+    def test_patch_ux_007b_fica_desligado_por_padrao_e_preserva_007a(self):
+        self.assertFalse(app_module.HOME_FINISH_007B_ENABLED)
+
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-city-balloon-ux007a", html)
+        self.assertNotIn("home-finish-ux007b", html)
+        self.assertNotIn("data-city-balloon-phrases", html)
+        self.assertIn("O que voc\u00ea precisa hoje?", html)
+
+    def test_patch_ux_007b_aplica_acabamento_e_frases_reais(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", True),
+            patch.object(app_module, "HOME_FINISH_007B_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-finish-ux007b", html)
+        self.assertIn("home-finish-007b.js", html)
+        self.assertIn("data-city-balloon-message", html)
+        self.assertIn("data-city-balloon-phrases", html)
+        self.assertIn("O que voc\u00ea procura hoje?", html)
+        self.assertIn("Precisa de um eletricista?", html)
+        self.assertIn("Descubra empresas locais.", html)
+        self.assertIn("Veja as ofertas do dia.", html)
+        self.assertIn("Publique sua necessidade.", html)
+        self.assertIn("home-footer-suggestion", html)
+
+    def test_patch_ux_007b_depende_do_balao_007a(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", False),
+            patch.object(app_module, "HOME_FINISH_007B_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertNotIn("home-finish-ux007b", html)
+        self.assertNotIn("home-finish-007b.js", html)
+
+    def test_patch_ux_007b_css_isola_cards_balao_rodape_e_sugestao(self):
+        caminho_css = os.path.join(app.static_folder, "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            css = arquivo.read()
+
+        self.assertIn("/* PATCH UX-007B", css)
+        self.assertIn(".home-finish-ux007b .home-product-card", css)
+        self.assertIn("aspect-ratio:4/3", css)
+        self.assertIn(".home-finish-ux007b .home-city-balloon", css)
+        self.assertIn(".home-finish-ux007b .community-suggestion-trigger", css)
+        self.assertIn(".home-finish-ux007b .home-footer-suggestion", css)
+        self.assertIn(".home-finish-ux007b .home-premium-footer", css)
+
+    def test_patch_ux_007b_rotacao_respeita_reducao_de_movimento(self):
+        caminho_js = os.path.join(app.static_folder, "home-finish-007b.js")
+        with open(caminho_js, encoding="utf-8") as arquivo:
+            javascript = arquivo.read()
+
+        self.assertIn("prefers-reduced-motion: reduce", javascript)
+        self.assertIn("visibilitychange", javascript)
+        self.assertIn("window.setInterval(rotate, 5200)", javascript)
 
     def test_compartilhamento_direciona_para_whatsapp_business(self):
         caminho_js = os.path.join(app.static_folder, "store-share.js")
