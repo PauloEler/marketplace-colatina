@@ -4419,3 +4419,129 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-city-metric:hover,
   .home-city-recent-card:hover{transform:none}
 }
+
+/* PATCH UX-006A — resumo compacto, totalmente isolado pela feature flag. */
+.home-compact-ux006a .home-city-movement{order:25}
+.home-compact-ux006a .home-category-section,
+.home-compact-ux006a .home-product-showcase,
+.home-compact-ux006a .home-city-movement,
+.home-compact-ux006a .home-stores,
+.home-compact-ux006a .home-city-recent,
+.home-compact-ux006a .home-partner-offers,
+.home-compact-ux006a .home-local-partners{margin-top:.75rem;padding-top:1rem;padding-bottom:1rem}
+.home-compact-ux006a .section-head,
+.home-compact-ux006a .home-section-heading{margin-bottom:.75rem}
+.home-compact-ux006a .section-head>div,
+.home-compact-ux006a .home-section-heading>div,
+.home-compact-ux006a .home-section-heading>p{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+}
+.home-compact-ux006a .section-description,
+.home-compact-ux006a .home-stores-lead,
+.home-compact-ux006a .home-section-heading>p{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.home-compact-ux006a .home-category-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.home-compact-ux006a .home-category-card{min-height:4.6rem;padding:.4rem .3rem}
+.home-compact-ux006a .home-category-card:nth-child(n+6){display:none}
+.home-compact-ux006a .home-product-showcase>.grid{gap:.75rem}
+.home-compact-ux006a .home-product-card,
+.home-compact-ux006a .home-product-card:nth-child(1),
+.home-compact-ux006a .home-product-card:nth-child(2),
+.home-compact-ux006a .home-product-card:nth-child(n+3){grid-column:auto;grid-row:auto}
+.home-compact-ux006a .home-product-card .card-media,
+.home-compact-ux006a .home-product-card:nth-child(1) .card-media{height:9rem}
+.home-compact-ux006a .home-product-card .card-body{padding:.75rem}
+.home-compact-ux006a .home-product-card .card-preco{font-size:1.45rem}
+.home-compact-ux006a .home-product-card .card-titulo{margin-top:.35rem;min-height:2.5rem}
+.home-compact-ux006a .home-product-card .card-meta,
+.home-compact-ux006a .home-product-card .card-product-cta{display:none}
+.home-compact-ux006a .home-product-card .card-store-link{margin:0 .75rem .75rem;padding:.55rem}
+.home-compact-ux006a .home-city-movement,
+.home-compact-ux006a .home-city-recent{padding:1rem}
+.home-compact-ux006a .home-city-metric,
+.home-compact-ux006a .home-city-recent-card{min-height:5.75rem;padding:.75rem}
+.home-compact-ux006a .home-city-metric strong{font-size:1.6rem}
+.home-compact-ux006a .home-stores{padding:1rem}
+.home-compact-ux006a .home-stores-grid{gap:.75rem}
+.home-compact-ux006a .home-store-card{padding:.8rem}
+.home-compact-ux006a .home-store-description{display:none}
+.home-compact-ux006a .home-store-metrics{margin:.65rem 0}
+.home-compact-ux006a .home-store-footer small{display:none}
+.home-compact-ux006a .partner-offers-controls{display:none}
+.home-compact-ux006a .partner-offer-card:nth-child(n+4){display:none}
+.home-compact-ux006a .partner-offer-card{flex-basis:calc((100% - 1.5rem)/3)}
+.home-compact-ux006a .partner-offer-card img{height:7.5rem;object-fit:cover}
+.home-compact-ux006a .partner-offer-button{min-height:2.5rem}
+.home-compact-ux006a .home-local-partners-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  overflow:visible;
+  padding-bottom:0;
+}
+.home-compact-ux006a .home-local-partner-card{min-height:0;padding:.8rem}
+.home-compact-ux006a .home-local-partner-card:nth-child(n+4){display:none}
+.home-compact-ux006a .home-local-partner-slogan{
+  display:-webkit-box;
+  overflow:hidden;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+.home-compact-more,
+.home-compact-ux006a .home-city-more{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:.65rem;
+}
+.home-compact-more a,
+.home-compact-ux006a .home-city-more .btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:.55rem .9rem;
+  border:1px solid var(--ho-line,#d9e4dc);
+  border-radius:999px;
+  background:#fff;
+  color:var(--ho-forest,#155f3b);
+  font-size:.78rem;
+  font-weight:800;
+  text-decoration:none;
+}
+.home-compact-more a:focus-visible,
+.home-compact-ux006a .home-city-more .btn:focus-visible{
+  outline:3px solid var(--ho-river,#2e83a8);
+  outline-offset:3px;
+}
+
+@media(max-width:640px){
+  .home-compact-ux006a .home-category-section,
+  .home-compact-ux006a .home-product-showcase,
+  .home-compact-ux006a .home-city-movement,
+  .home-compact-ux006a .home-stores,
+  .home-compact-ux006a .home-city-recent,
+  .home-compact-ux006a .home-partner-offers,
+  .home-compact-ux006a .home-local-partners{margin-top:.6rem;padding-top:.8rem;padding-bottom:.8rem}
+  .home-compact-ux006a .home-category-card:nth-child(5){display:none}
+  .home-compact-ux006a .home-product-card .card-media,
+  .home-compact-ux006a .home-product-card:nth-child(1) .card-media{height:8rem}
+  .home-compact-ux006a .home-product-card,
+  .home-compact-ux006a .home-store-card,
+  .home-compact-ux006a .home-city-metric,
+  .home-compact-ux006a .home-city-recent-card{flex-basis:74%}
+  .home-compact-ux006a .partner-offer-card{flex-basis:calc((100% - .5rem)/2)}
+  .home-compact-ux006a .home-local-partners-grid{
+    display:flex;
+    gap:.65rem;
+    overflow-x:auto;
+    padding-bottom:.45rem;
+    scroll-snap-type:x mandatory;
+  }
+  .home-compact-ux006a .home-local-partner-card{flex:0 0 74%;scroll-snap-align:start}
+  .home-compact-more,
+  .home-compact-ux006a .home-city-more{justify-content:center;margin-top:.5rem}
+}

@@ -13,7 +13,7 @@
 <link rel="canonical" href="{{ site_url }}">
 <script src="{{ url_for('static', filename='partner-offers-carousel.js') }}" defer></script>
 {% endblock %}
-{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive{% endif %}{% endblock %}
+{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive home-compact-ux006a{% endif %}{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
@@ -97,6 +97,30 @@
 </section>
 {% endif %}
 
+{% if home_cidade_viva_enabled and metricas_cidade %}
+<section class="home-city-movement" aria-labelledby="home-city-movement-title" data-home-city-movement>
+  <div class="section-head home-city-movement-heading">
+    <div>
+      <div class="section-kicker">Dados reais da plataforma</div>
+      <h2 id="home-city-movement-title"><span aria-hidden="true">🌇</span> Cidade Viva</h2>
+      <p class="section-description">O essencial do Mercado Colatina em um resumo rápido.</p>
+    </div>
+  </div>
+  <div class="home-city-movement-grid">
+    {% for metrica in metricas_cidade %}
+    <a class="home-city-metric" href="{{ metrica.url }}" data-city-metric="{{ metrica.id }}">
+      <strong>{{ metrica.valor }}</strong>
+      <span>{{ metrica.rotulo }}</span>
+      <small>{{ metrica.acao }} →</small>
+    </a>
+    {% endfor %}
+  </div>
+  <div class="home-compact-more">
+    <a href="{{ url_for('index', todos=1) }}#hoje-em-colatina">Ver todos</a>
+  </div>
+</section>
+{% endif %}
+
 <section class="home-visit-proof" aria-label="Visitas ao Mercado Colatina">
   <span class="home-visit-icon" aria-hidden="true">
     <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -138,6 +162,11 @@
     </a>
     {% endfor %}
   </nav>
+  {% if home_cidade_viva_enabled %}
+  <div class="home-compact-more">
+    <a href="{{ url_for('index', todos=1) }}#categories-title">Ver todos</a>
+  </div>
+  {% endif %}
 </section>
 
 {% if info_plano %}
@@ -201,9 +230,9 @@
     </article>
     {% endfor %}
   </div>
-  {% if home_cidade_viva_enabled and total_anuncios_home > anuncios_home|length %}
+  {% if home_cidade_viva_enabled %}
   <div class="home-city-more">
-    <a class="btn btn-verde" href="{{ url_for('index', todos=1) }}#ofertas">Ver todos os produtos</a>
+    <a class="btn btn-verde" href="{{ url_for('index', todos=1) }}#ofertas">Ver todos</a>
   </div>
   {% endif %}
   {% else %}
@@ -215,27 +244,6 @@
   </div>
   {% endif %}
 </section>
-
-{% if home_cidade_viva_enabled and metricas_cidade %}
-<section class="home-city-movement" aria-labelledby="home-city-movement-title" data-home-city-movement>
-  <div class="section-head home-city-movement-heading">
-    <div>
-      <div class="section-kicker">Dados reais da plataforma</div>
-      <h2 id="home-city-movement-title">Cidade em movimento</h2>
-      <p class="section-description">Um retrato rápido do que está acontecendo agora no Mercado Colatina.</p>
-    </div>
-  </div>
-  <div class="home-city-movement-grid">
-    {% for metrica in metricas_cidade %}
-    <a class="home-city-metric" href="{{ metrica.url }}" data-city-metric="{{ metrica.id }}">
-      <strong>{{ metrica.valor }}</strong>
-      <span>{{ metrica.rotulo }}</span>
-      <small>{{ metrica.acao }} →</small>
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
 
 {% if not busca and not cat_sel %}
 <section id="ofertas-parceiros" class="home-partner-offers" aria-labelledby="partner-offers-title" data-partner-carousel data-responsive-layout="wide-6 desktop-5 tablet-3 mobile-2" data-analytics-endpoint="{{ url_for('registrar_evento_afiliado') }}" data-analytics-csrf="{{ csrf_token() }}" data-analytics-source="home">
@@ -267,6 +275,11 @@
     </article>
     {% endfor %}
   </div>
+  {% if home_cidade_viva_enabled %}
+  <div class="home-compact-more">
+    <a href="{{ url_for('index', todos=1) }}#ofertas-parceiros">Ver todos</a>
+  </div>
+  {% endif %}
 </section>
 
 <section id="planos" class="home-seller-callout" aria-labelledby="seller-callout-title">
@@ -326,9 +339,9 @@
     </article>
     {% endfor %}
   </div>
-  {% if home_cidade_viva_enabled and total_lojas_home > lojas_destaque|length %}
+  {% if home_cidade_viva_enabled %}
   <div class="home-city-more">
-    <a class="btn btn-outline" href="{{ url_for('index', todos=1) }}#home-stores-title">Ver todas as empresas</a>
+    <a class="btn btn-outline" href="{{ url_for('index', todos=1) }}#home-stores-title">Ver todos</a>
   </div>
   {% endif %}
 </section>
@@ -351,6 +364,9 @@
       <small>R$ {{ a.preco }} · {{ a.bairro or 'Colatina' }}</small>
     </a>
     {% endfor %}
+  </div>
+  <div class="home-compact-more">
+    <a href="{{ url_for('index', todos=1) }}#ofertas">Ver todos</a>
   </div>
 </section>
 {% endif %}
@@ -413,6 +429,11 @@
     </article>
     {% endfor %}
   </div>
+  {% if home_cidade_viva_enabled %}
+  <div class="home-compact-more">
+    <a href="{{ url_for('index', todos=1) }}#empresas-parceiras">Ver todos</a>
+  </div>
+  {% endif %}
 </section>
 
 <section id="hoje-em-colatina" class="home-daily-city" aria-labelledby="home-daily-city-title" data-daily-city-panel>
