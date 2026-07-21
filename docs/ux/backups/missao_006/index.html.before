@@ -13,7 +13,7 @@
 <link rel="canonical" href="{{ site_url }}">
 <script src="{{ url_for('static', filename='partner-offers-carousel.js') }}" defer></script>
 {% endblock %}
-{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive{% endif %}{% endblock %}
+{% block body_class %}mds-home mx-home-premium home-official{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
@@ -156,20 +156,14 @@
       <p class="section-description">{% if busca or cat_sel %}Ofertas que correspondem aos filtros selecionados.{% else %}Descubra o que está disponível perto de você agora.{% endif %}</p>
     </div>
     <div class="section-result-summary">
-      <span class="result-count">
-        {% if home_cidade_viva_enabled and total_anuncios_home > anuncios_home|length %}
-          {{ anuncios_home|length }} de {{ total_anuncios_home }} resultados
-        {% else %}
-          {{ anuncios_home|length }} resultado{{ '' if anuncios_home|length == 1 else 's' }}
-        {% endif %}
-      </span>
+      <span class="result-count">{{ anuncios|length }} resultado{{ '' if anuncios|length == 1 else 's' }}</span>
       {% if busca or cat_sel %}<a href="/" class="clear-link">Limpar filtros</a>{% endif %}
     </div>
   </div>
 
-  {% if anuncios_home %}
+  {% if anuncios %}
   <div class="grid">
-    {% for a in anuncios_home %}
+    {% for a in anuncios %}
     <article class="card home-product-card">
       <a href="/anuncio/{{ a.id }}" class="card-main-link" aria-label="Ver anúncio: {{ a.titulo }} por R$ {{ a.preco }}">
         <div class="card-media">
@@ -201,11 +195,6 @@
     </article>
     {% endfor %}
   </div>
-  {% if home_cidade_viva_enabled and total_anuncios_home > anuncios_home|length %}
-  <div class="home-city-more">
-    <a class="btn btn-verde" href="{{ url_for('index', todos=1) }}#ofertas">Ver todos os produtos</a>
-  </div>
-  {% endif %}
   {% else %}
   <div class="empty-state">
     <svg class="empty-state-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path></svg>
@@ -215,27 +204,6 @@
   </div>
   {% endif %}
 </section>
-
-{% if home_cidade_viva_enabled and metricas_cidade %}
-<section class="home-city-movement" aria-labelledby="home-city-movement-title" data-home-city-movement>
-  <div class="section-head home-city-movement-heading">
-    <div>
-      <div class="section-kicker">Dados reais da plataforma</div>
-      <h2 id="home-city-movement-title">Cidade em movimento</h2>
-      <p class="section-description">Um retrato rápido do que está acontecendo agora no Mercado Colatina.</p>
-    </div>
-  </div>
-  <div class="home-city-movement-grid">
-    {% for metrica in metricas_cidade %}
-    <a class="home-city-metric" href="{{ metrica.url }}" data-city-metric="{{ metrica.id }}">
-      <strong>{{ metrica.valor }}</strong>
-      <span>{{ metrica.rotulo }}</span>
-      <small>{{ metrica.acao }} →</small>
-    </a>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
 
 {% if not busca and not cat_sel %}
 <section id="ofertas-parceiros" class="home-partner-offers" aria-labelledby="partner-offers-title" data-partner-carousel data-responsive-layout="wide-6 desktop-5 tablet-3 mobile-2" data-analytics-endpoint="{{ url_for('registrar_evento_afiliado') }}" data-analytics-csrf="{{ csrf_token() }}" data-analytics-source="home">
@@ -290,13 +258,7 @@
       <h2 id="home-stores-title">Lojas em destaque</h2>
       <p class="home-stores-lead">Conheça quem vende na cidade e visite cada vitrine.</p>
     </div>
-    <span class="result-count">
-      {% if home_cidade_viva_enabled and total_lojas_home > lojas_destaque|length %}
-        {{ lojas_destaque|length }} de {{ total_lojas_home }} lojas
-      {% else %}
-        {{ lojas_destaque|length }} loja{{ '' if lojas_destaque|length == 1 else 's' }}
-      {% endif %}
-    </span>
+    <span class="result-count">{{ lojas_destaque|length }} loja{{ '' if lojas_destaque|length == 1 else 's' }}</span>
   </div>
   <div class="home-stores-grid">
     {% for loja in lojas_destaque %}
@@ -324,32 +286,6 @@
         <a class="btn btn-verde" href="{{ url_loja_publica(loja) }}">Abrir loja</a>
       </div>
     </article>
-    {% endfor %}
-  </div>
-  {% if home_cidade_viva_enabled and total_lojas_home > lojas_destaque|length %}
-  <div class="home-city-more">
-    <a class="btn btn-outline" href="{{ url_for('index', todos=1) }}#home-stores-title">Ver todas as empresas</a>
-  </div>
-  {% endif %}
-</section>
-{% endif %}
-
-{% if home_cidade_viva_enabled and novidades_home %}
-<section class="home-city-recent" aria-labelledby="home-city-recent-title" data-home-city-recent>
-  <div class="section-head">
-    <div>
-      <div class="section-kicker">Chegaram agora</div>
-      <h2 id="home-city-recent-title">Anúncios recentes</h2>
-      <p class="section-description">Novidades publicadas por pessoas e empresas da cidade.</p>
-    </div>
-  </div>
-  <div class="home-city-recent-grid">
-    {% for a in novidades_home %}
-    <a class="home-city-recent-card" href="/anuncio/{{ a.id }}">
-      <span>{{ categoria_label(a.categoria) }}</span>
-      <strong>{{ a.titulo }}</strong>
-      <small>R$ {{ a.preco }} · {{ a.bairro or 'Colatina' }}</small>
-    </a>
     {% endfor %}
   </div>
 </section>

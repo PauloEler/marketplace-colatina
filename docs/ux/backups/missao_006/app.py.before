@@ -109,16 +109,6 @@ from service_requests import (  # noqa: E402
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
 FLASK_ENV = os.environ.get("FLASK_ENV", "production")
-HOME_CIDADE_VIVA_ENABLED = os.environ.get(
-    "HOME_CIDADE_VIVA_ENABLED", "false"
-).strip().lower() in {"1", "true", "on", "sim"}
-try:
-    HOME_CIDADE_VIVA_PRODUCT_LIMIT = int(
-        os.environ.get("HOME_CIDADE_VIVA_PRODUCT_LIMIT", "4")
-    )
-except ValueError:
-    HOME_CIDADE_VIVA_PRODUCT_LIMIT = 4
-HOME_CIDADE_VIVA_PRODUCT_LIMIT = min(8, max(3, HOME_CIDADE_VIVA_PRODUCT_LIMIT))
 
 if not SECRET_KEY:
     if FLASK_ENV == "production":
@@ -1188,7 +1178,6 @@ def index():
     db = get_db()
     busca = request.args.get("q", "").strip()[:100]
     categoria = request.args.get("categoria", "")
-    mostrar_todos = request.args.get("todos") == "1"
     if categoria and categoria not in CATEGORIA_ALIASES:
         categoria = ""
 
@@ -1257,51 +1246,6 @@ def index():
             }
         )
 
-    home_cidade_viva_enabled = (
-        HOME_CIDADE_VIVA_ENABLED and not busca and not categoria and not mostrar_todos
-    )
-    anuncios_home = anuncios
-    lojas_destaque_home = lojas_destaque
-    novidades_home = []
-    metricas_cidade = []
-    if home_cidade_viva_enabled:
-        anuncios_home = anuncios[:HOME_CIDADE_VIVA_PRODUCT_LIMIT]
-        novidades_home = anuncios[
-            HOME_CIDADE_VIVA_PRODUCT_LIMIT : HOME_CIDADE_VIVA_PRODUCT_LIMIT + 3
-        ]
-        lojas_destaque_home = lojas_destaque[:3]
-        pedidos_abertos = db.execute(
-            "SELECT COUNT(*) FROM pedidos_servico WHERE status='aberto'"
-        ).fetchone()[0]
-        metricas_brutas = (
-            ("anuncios", len(anuncios), "anúncios ativos", "Ver ofertas", "#ofertas"),
-            (
-                "empresas",
-                len(lojas_linhas),
-                "empresas com anúncios",
-                "Ver empresas",
-                "#home-stores-title",
-            ),
-            (
-                "necessidades",
-                pedidos_abertos,
-                "necessidades abertas",
-                "Quem precisa de ajuda",
-                url_for("encontre_quem_resolve"),
-            ),
-        )
-        metricas_cidade = [
-            {
-                "id": identificador,
-                "valor": valor,
-                "rotulo": rotulo,
-                "acao": acao,
-                "url": destino,
-            }
-            for identificador, valor, rotulo, acao, destino in metricas_brutas
-            if valor > 0
-        ]
-
     info_plano = None
     if session.get("usuario_id"):
         usuario = db.execute(
@@ -1319,13 +1263,7 @@ def index():
     return render_template(
         "index.html",
         anuncios=anuncios,
-        anuncios_home=anuncios_home,
-        total_anuncios_home=len(anuncios),
-        novidades_home=novidades_home,
-        lojas_destaque=lojas_destaque_home,
-        total_lojas_home=len(lojas_destaque),
-        metricas_cidade=metricas_cidade,
-        home_cidade_viva_enabled=home_cidade_viva_enabled,
+        lojas_destaque=lojas_destaque,
         categorias=CATEGORIAS,
         busca=busca,
         cat_sel=categoria,
