@@ -5096,7 +5096,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 
 @media(max-width:960px){
   .home-city-balloon-ux007a .home-city-balloon-layout{
-    grid-template-columns:1fr;
+    grid-template-columns:minmax(0,1fr);
     width:min(var(--city-content-width),calc(100% - 2rem));
   }
   .home-city-balloon-ux007a .home-city-balloon-layout .home-city-movement,
