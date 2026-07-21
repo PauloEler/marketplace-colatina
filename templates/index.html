@@ -13,7 +13,7 @@
 <link rel="canonical" href="{{ site_url }}">
 <script src="{{ url_for('static', filename='partner-offers-carousel.js') }}" defer></script>
 {% endblock %}
-{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive home-compact-ux006a{% endif %}{% if home_2_enabled %} home-2-mission007{% endif %}{% endblock %}
+{% block body_class %}mds-home mx-home-premium home-official{% if home_cidade_viva_enabled %} home-city-alive home-compact-ux006a{% endif %}{% if home_2_enabled %} home-2-mission007{% endif %}{% if home_city_balloon_enabled %} home-city-balloon-ux007a{% endif %}{% endblock %}
 {% block header_brand %}<img class="logo-v09-image" src="{{ url_for('static', filename='mercado-colatina-logo-v0.9.svg') }}" alt="" width="180" height="50">{% endblock %}
 
 {% block content %}
@@ -164,7 +164,9 @@
 {% endif %}
 {% endif %}
 
-{% if home_cidade_viva_enabled and metricas_cidade %}
+{% if home_cidade_viva_enabled and (metricas_cidade or home_city_balloon_enabled) %}
+{% if home_city_balloon_enabled %}<div class="home-city-balloon-layout" data-city-balloon-layout>{% endif %}
+{% if metricas_cidade %}
 <section class="home-city-movement" aria-labelledby="home-city-movement-title" data-home-city-movement>
   <div class="section-head home-city-movement-heading">
     <div>
@@ -186,6 +188,49 @@
     <a href="{{ url_for('index', todos=1) }}#hoje-em-colatina">Ver todos</a>
   </div>
 </section>
+{% elif home_city_balloon_enabled %}
+<section class="home-city-movement home-city-movement-empty" aria-labelledby="home-city-movement-title" data-home-city-movement>
+  <div class="home-city-empty-copy">
+    <div class="section-kicker">Sua cidade em um só lugar</div>
+    <h2 id="home-city-movement-title"><span aria-hidden="true">🌇</span> Cidade Viva</h2>
+    <p>Encontre caminhos úteis de Colatina sem números estimados ou informações não confirmadas.</p>
+  </div>
+  <div class="home-city-empty-actions" aria-label="Caminhos da Cidade Viva">
+    <a href="#home-stores-title">Empresas locais</a>
+    <a href="#ofertas">Produtos da cidade</a>
+    <a href="{{ url_for('encontre_quem_resolve') }}">Quem resolve</a>
+  </div>
+</section>
+{% endif %}
+{% if home_city_balloon_enabled %}
+<aside class="home-city-balloon" aria-labelledby="home-city-balloon-title" data-city-balloon>
+  <div class="home-city-balloon-heading">
+    <span class="home-city-balloon-symbol" aria-hidden="true">💬</span>
+    <div>
+      <span>Balão da Cidade</span>
+      <h2 id="home-city-balloon-title">O que você precisa hoje?</h2>
+    </div>
+  </div>
+  <nav aria-label="Atalhos úteis da cidade">
+    <a href="#home-stores-title">Encontrar uma empresa</a>
+    <a href="#ofertas">Comprar um produto</a>
+    <a href="{{ url_for('encontre_quem_resolve') }}">Publicar uma necessidade</a>
+    <a href="#ofertas-parceiros">Ver ofertas locais</a>
+  </nav>
+  {% if metricas_cidade %}
+  <div class="home-city-balloon-proof" aria-label="Dados reais da plataforma">
+    {% for metrica in metricas_cidade[:2] %}
+    <span><strong>{{ metrica.valor }}</strong> {{ metrica.rotulo }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="home-city-balloon-actions">
+    <a class="home-city-balloon-primary" href="{{ url_for('encontre_quem_resolve') }}">Encontre Quem Resolve</a>
+    <a class="home-city-balloon-secondary" href="#home-city-movement-title">Ver Cidade Viva</a>
+  </div>
+</aside>
+</div>
+{% endif %}
 {% endif %}
 
 <section class="home-visit-proof" aria-label="Visitas ao Mercado Colatina">

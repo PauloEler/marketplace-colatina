@@ -18,6 +18,7 @@ os.environ["SECRET_KEY"] = "test-secret-key"
 os.environ.pop("STORE_MANAGER_ASSIGNMENTS", None)
 os.environ.pop("HOME_CIDADE_VIVA_ENABLED", None)
 os.environ.pop("HOME_2_ENABLED", None)
+os.environ.pop("HOME_CITY_BALLOON_ENABLED", None)
 os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
 for indice_oferta in range(1, 7):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
@@ -3142,6 +3143,66 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertNotIn("home-2-mission007", html)
         self.assertIn("ux005c-first-fold", html)
+
+    def test_patch_ux_007a_fica_desligado_por_padrao_e_preserva_home_2(self):
+        self.assertFalse(app_module.HOME_CITY_BALLOON_ENABLED)
+
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-2-mission007", html)
+        self.assertNotIn("home-city-balloon-ux007a", html)
+        self.assertNotIn("data-city-balloon", html)
+
+    def test_patch_ux_007a_exibe_painel_integrado_com_rotas_reais(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", True),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-city-balloon-ux007a", html)
+        self.assertIn("data-city-balloon-layout", html)
+        self.assertIn("data-city-balloon", html)
+        self.assertIn("O que você precisa hoje?", html)
+        self.assertIn('href="#home-stores-title"', html)
+        self.assertIn('href="#ofertas"', html)
+        self.assertIn('href="/encontre-quem-resolve"', html)
+        self.assertIn('href="#ofertas-parceiros"', html)
+        self.assertLess(
+            html.index("data-home-city-movement"),
+            html.index('<aside class="home-city-balloon"'),
+        )
+
+    def test_patch_ux_007a_depende_da_home_2_e_nao_altera_a_home_anterior(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_2_ENABLED", False),
+            patch.object(app_module, "HOME_CITY_BALLOON_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("home-compact-ux006a", html)
+        self.assertNotIn("home-city-balloon-ux007a", html)
+        self.assertNotIn("data-city-balloon", html)
+
+    def test_patch_ux_007a_css_isola_cards_rodape_e_breakpoints(self):
+        caminho_css = os.path.join(app.static_folder, "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            css = arquivo.read()
+
+        self.assertIn("/* PATCH UX-007A", css)
+        self.assertIn(".home-city-balloon-ux007a .home-city-balloon-layout", css)
+        self.assertIn("position:relative", css)
+        self.assertNotIn(".home-city-balloon{position:fixed", css)
+        self.assertIn("--city-content-width:80rem", css)
+        self.assertIn(".home-city-balloon-ux007a .home-premium-footer", css)
+        self.assertIn("@media(max-width:960px)", css)
+        self.assertIn("@media(max-width:640px)", css)
 
     def test_compartilhamento_direciona_para_whatsapp_business(self):
         caminho_js = os.path.join(app.static_folder, "store-share.js")

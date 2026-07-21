@@ -118,6 +118,9 @@ HOME_2_ENABLED = os.environ.get("HOME_2_ENABLED", "false").strip().lower() in {
     "on",
     "sim",
 }
+HOME_CITY_BALLOON_ENABLED = os.environ.get(
+    "HOME_CITY_BALLOON_ENABLED", "false"
+).strip().lower() in {"1", "true", "on", "sim"}
 try:
     HOME_CIDADE_VIVA_PRODUCT_LIMIT = int(
         os.environ.get("HOME_CIDADE_VIVA_PRODUCT_LIMIT", "4")
@@ -1267,6 +1270,7 @@ def index():
         HOME_CIDADE_VIVA_ENABLED and not busca and not categoria and not mostrar_todos
     )
     home_2_enabled = HOME_2_ENABLED and home_cidade_viva_enabled
+    home_city_balloon_enabled = HOME_CITY_BALLOON_ENABLED and home_2_enabled
     anuncios_home = anuncios
     lojas_destaque_home = lojas_destaque
     novidades_home = []
@@ -1334,6 +1338,7 @@ def index():
         metricas_cidade=metricas_cidade,
         home_cidade_viva_enabled=home_cidade_viva_enabled,
         home_2_enabled=home_2_enabled,
+        home_city_balloon_enabled=home_city_balloon_enabled,
         categorias=CATEGORIAS,
         busca=busca,
         cat_sel=categoria,
