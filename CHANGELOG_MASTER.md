@@ -1,5 +1,29 @@
 # CHANGELOG MASTER
 
+## 2026-07-22 - Missão 009 Compre Perto de Você
+
+### Publicado
+
+- PR #99 integrada na `master` por squash merge.
+- Hash do merge: `16cf0f99047e1bf50487a14023f4916c5cce1462`.
+- CI da `master` aprovado no workflow `29932395154`.
+- Deploy automático do código confirmado como `live` no Render às 12h16, horário de Brasília.
+- Feature flag `HOME_COMPRE_PERTO_ENABLED=true` ativada em produção; deploy da configuração confirmado como `live` às 12h19.
+
+### Entregue
+
+- Vitrine temática **Compre Perto de Você** posicionada depois de Cidade Viva e antes de Produtos em destaque.
+- Quatro temas neutros: Mercadinhos, Bares, Conveniências e Padarias.
+- Todos os cards direcionam para buscas distintas dentro do Marketplace, sem favorecer empresa, loja ou anúncio individual.
+- Implementação preservada como reversível pela feature flag.
+
+### Validado em produção
+
+- Destinos `/?q=mercadinho`, `/?q=bar`, `/?q=conveni%C3%AAncia` e `/?q=padaria` abriram corretamente os resultados do Marketplace.
+- Desktop 1440 px, tablet 768 px e mobile 390/320 px sem overflow horizontal.
+- Hero, Busca, Encontre Quem Resolve, Cidade Viva, Categorias, Produtos, Ofertas de Parceiros, Lojas e Empresas Parceiras preservados.
+- Console da aplicação sem erros.
+
 ## 2026-07-21 - PATCH UX-007C Alinhamento final
 
 ### Publicado

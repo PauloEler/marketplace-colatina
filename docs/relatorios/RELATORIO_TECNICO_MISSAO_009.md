@@ -90,8 +90,29 @@ revert do único commit funcional.
 
 ## Situação de publicação
 
-- PR: Draft;
-- merge: não realizado;
-- deploy: não realizado;
-- flag: desligada por padrão;
-- próxima etapa: auditoria visual da Diretoria.
+- PR #99 aprovada, retirada de Draft e integrada na `master` por squash merge;
+- hash do merge: `16cf0f99047e1bf50487a14023f4916c5cce1462`;
+- CI da `master`: aprovado no workflow `29932395154`;
+- deploy automático do código: `live` no Render às 12h16 de 22/07/2026;
+- `HOME_COMPRE_PERTO_ENABLED=true` ativada no ambiente de produção;
+- deploy da configuração: `live` no Render às 12h19 de 22/07/2026;
+- produção: `https://mercadocolatina.com.br/`.
+
+## Validação final em produção
+
+| Item | Resultado |
+| --- | --- |
+| Compre Perto de Você | visível na Home, depois de Cidade Viva e antes de Produtos |
+| Mercadinhos | `/?q=mercadinho`, resultados do Marketplace confirmados |
+| Bares | `/?q=bar`, resultados do Marketplace confirmados |
+| Conveniências | `/?q=conveni%C3%AAncia`, resultados do Marketplace confirmados |
+| Padarias | `/?q=padaria`, resultados do Marketplace confirmados |
+| Desktop 1440 px | 4 cards, sem overflow |
+| Tablet 768 px | grade 2 × 2, sem overflow |
+| Mobile 390 px | 1 card por linha, sem overflow |
+| Mobile 320 px | 1 card por linha, sem overflow |
+| Console | sem erros |
+| Regressões | nenhuma observada nas seções anteriores |
+
+As quatro URLs são únicas e permanecem dentro da Home/listagem do Marketplace.
+Nenhum destino aponta diretamente para empresa, loja ou anúncio individual.
