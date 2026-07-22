@@ -42,5 +42,23 @@ remove integralmente a nova seção e restaura a Home anterior.
 
 ## Parecer para auditoria
 
-A implementação está pronta para auditoria visual, mas não para publicação sem
-nova autorização. Não houve merge nem deploy.
+A implementação foi aprovada e publicada. A composição visual permaneceu
+estável em desktop, tablet e mobile, sem overflow horizontal ou erros de
+console. As seções anteriores foram preservadas.
+
+## Evidências finais de produção
+
+- `docs/prototipos/missao009/PRODUCAO_DESKTOP_1440.png`;
+- `docs/prototipos/missao009/PRODUCAO_TABLET_768.png`;
+- `docs/prototipos/missao009/PRODUCAO_MOBILE_390.png`;
+- `docs/prototipos/missao009/PRODUCAO_MOBILE_320.png`.
+
+### Resultado visual final
+
+- 1440 px: quatro cards em uma linha;
+- 768 px: dois cards por linha;
+- 390 px e 320 px: um card por linha;
+- CTA, títulos e descrições permaneceram legíveis;
+- a ordem Cidade Viva → Compre Perto de Você → Produtos foi confirmada;
+- nenhum elemento cobriu ou deslocou conteúdo existente;
+- console limpo e ausência de regressão visual observável.
