@@ -21,6 +21,7 @@ os.environ.pop("HOME_2_ENABLED", None)
 os.environ.pop("HOME_CITY_BALLOON_ENABLED", None)
 os.environ.pop("HOME_FINISH_007B_ENABLED", None)
 os.environ.pop("HOME_FINISH_007C_ENABLED", None)
+os.environ.pop("HOME_COMPRE_PERTO_ENABLED", None)
 os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
 for indice_oferta in range(1, 7):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
@@ -3327,6 +3328,73 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("[data-city-metric]:nth-child(2):last-child", css)
         self.assertIn(".home-finish-ux007c .home-compact-more", css)
         self.assertIn(".home-finish-ux007c .home-premium-footer", css)
+
+    def test_missao_009_fica_desligada_por_padrao_e_preserva_a_home(self):
+        self.assertFalse(app_module.HOME_COMPRE_PERTO_ENABLED)
+
+        html = self.client.get("/").data.decode("utf-8")
+
+        self.assertNotIn("data-home-nearby", html)
+        self.assertIn('id="ofertas"', html)
+
+    def test_missao_009_exibe_quatro_temas_neutros_com_destino_no_marketplace(self):
+        with patch.object(app_module, "HOME_COMPRE_PERTO_ENABLED", True):
+            html = self.client.get("/").data.decode("utf-8")
+
+        self.assertIn("data-home-nearby", html)
+        self.assertIn("Compre Perto de Você", html)
+        self.assertIn("Tudo o que você precisa no comércio da sua cidade.", html)
+        self.assertEqual(html.count("data-nearby-theme="), 4)
+        for identificador, termo in (
+            ("mercadinhos", "mercadinho"),
+            ("bares", "bar"),
+            ("conveniencias", "conveni%C3%AAncia"),
+            ("padarias", "padaria"),
+        ):
+            self.assertIn(f'data-nearby-theme="{identificador}"', html)
+            self.assertIn(f'href="/?q={termo}"', html)
+
+        self.assertNotIn("empresa_id", html[html.index("data-home-nearby") :])
+        self.assertNotIn("loja_id", html[html.index("data-home-nearby") :])
+
+    def test_missao_009_posicao_filtros_e_reversao_sao_preservados(self):
+        with (
+            patch.object(app_module, "HOME_CIDADE_VIVA_ENABLED", True),
+            patch.object(app_module, "HOME_COMPRE_PERTO_ENABLED", True),
+        ):
+            html = self.client.get("/").data.decode("utf-8")
+            html_filtrado = self.client.get("/?q=padaria").data.decode("utf-8")
+            html_todos = self.client.get("/?todos=1").data.decode("utf-8")
+
+        self.assertLess(
+            html.index("data-home-city-movement"), html.index("data-home-nearby")
+        )
+        self.assertLess(html.index("data-home-nearby"), html.index('id="ofertas"'))
+        self.assertNotIn("data-home-nearby", html_filtrado)
+        self.assertNotIn("data-home-nearby", html_todos)
+
+    def test_missao_009_configuracao_e_css_sao_responsivos_e_reversiveis(self):
+        from home_nearby import HOME_NEARBY_THEMES
+
+        self.assertEqual(len(HOME_NEARBY_THEMES), 4)
+        self.assertEqual(len({tema["id"] for tema in HOME_NEARBY_THEMES}), 4)
+        self.assertEqual(len({tema["termo_busca"] for tema in HOME_NEARBY_THEMES}), 4)
+        for tema in HOME_NEARBY_THEMES:
+            self.assertNotIn("empresa_id", tema)
+            self.assertNotIn("loja_id", tema)
+            self.assertTrue(tema["termo_busca"])
+
+        caminho_css = os.path.join(app.static_folder, "styles.css")
+        with open(caminho_css, encoding="utf-8") as arquivo:
+            css = arquivo.read()
+
+        self.assertIn("/* Missão 009 - Compre Perto de Você.", css)
+        self.assertIn(".home-nearby-grid{display:grid", css)
+        self.assertIn(".home-city-alive .home-nearby-showcase{order:27}", css)
+        self.assertIn("grid-template-columns:repeat(4,minmax(0,1fr))", css)
+        self.assertIn("@media(max-width:960px)", css)
+        self.assertIn("@media(max-width:560px)", css)
+        self.assertIn("outline:3px solid var(--ho-river", css)
 
     def test_compartilhamento_direciona_para_whatsapp_business(self):
         caminho_js = os.path.join(app.static_folder, "store-share.js")

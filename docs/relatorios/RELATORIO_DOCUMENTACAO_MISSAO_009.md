@@ -39,3 +39,10 @@ Nenhum arquivo de aplicação foi alterado. Não houve mudança em backend, banc
 - merge: não realizado;
 - deploy: não realizado;
 - decisão pendente: aprovação estratégica e visual da Diretoria.
+
+## Atualização de 22/07/2026
+
+A Diretoria aprovou formalmente a documentação e autorizou a implementação
+reversível da Fase 1 com quatro temas: Mercadinhos, Bares, Conveniências e
+Padarias. O código permanece em PR Draft, sem merge e sem deploy, aguardando
+auditoria visual.

@@ -36,6 +36,7 @@ from affiliate_analytics import (  # noqa: E402
 from partner_offers import build_partner_offers  # noqa: E402
 from local_partners import LOCAL_PARTNERS_HOME, PARTNER_LEVELS  # noqa: E402
 from daily_city import DAILY_CITY_CARDS  # noqa: E402
+from home_nearby import HOME_NEARBY_THEMES  # noqa: E402
 from community_suggestions import (  # noqa: E402
     SUGGESTION_CATEGORIES,
     SUGGESTION_STATUSES,
@@ -126,6 +127,9 @@ HOME_FINISH_007B_ENABLED = os.environ.get(
 ).strip().lower() in {"1", "true", "on", "sim"}
 HOME_FINISH_007C_ENABLED = os.environ.get(
     "HOME_FINISH_007C_ENABLED", "false"
+).strip().lower() in {"1", "true", "on", "sim"}
+HOME_COMPRE_PERTO_ENABLED = os.environ.get(
+    "HOME_COMPRE_PERTO_ENABLED", "false"
 ).strip().lower() in {"1", "true", "on", "sim"}
 try:
     HOME_CIDADE_VIVA_PRODUCT_LIMIT = int(
@@ -1279,6 +1283,9 @@ def index():
     home_city_balloon_enabled = HOME_CITY_BALLOON_ENABLED and home_2_enabled
     home_finish_007b_enabled = HOME_FINISH_007B_ENABLED and home_city_balloon_enabled
     home_finish_007c_enabled = HOME_FINISH_007C_ENABLED and home_finish_007b_enabled
+    home_compre_perto_enabled = (
+        HOME_COMPRE_PERTO_ENABLED and not busca and not categoria and not mostrar_todos
+    )
     anuncios_home = anuncios
     lojas_destaque_home = lojas_destaque
     novidades_home = []
@@ -1349,6 +1356,8 @@ def index():
         home_city_balloon_enabled=home_city_balloon_enabled,
         home_finish_007b_enabled=home_finish_007b_enabled,
         home_finish_007c_enabled=home_finish_007c_enabled,
+        home_compre_perto_enabled=home_compre_perto_enabled,
+        temas_compre_perto=HOME_NEARBY_THEMES,
         categorias=CATEGORIAS,
         busca=busca,
         cat_sel=categoria,

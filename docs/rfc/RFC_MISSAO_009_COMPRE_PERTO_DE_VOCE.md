@@ -1,7 +1,7 @@
 # RFC — Missão 009: Compre Perto de Você
 
-**Status:** proposta
-**Decisão solicitada:** aprovar ou rejeitar a especificação antes de implementação
+**Status:** aprovada para implementação da Fase 1
+**Decisão:** aprovada pela Diretoria em 22/07/2026
 
 ## Problema
 
@@ -18,7 +18,7 @@ Se a Home apresentar necessidades cotidianas em linguagem natural e cada card ab
 ## Proposta
 
 - nova seção após Cidade Viva e antes de Produtos em destaque;
-- cinco temas iniciais;
+- quatro temas iniciais: Mercadinhos, Bares, Conveniências e Padarias;
 - todos os cards terminam em listagens do Marketplace;
 - temas configurados por termos e categorias, nunca por empresa;
 - rotação editorial por período;
@@ -43,9 +43,9 @@ Mantida como experiência atual, mas insuficiente para testar linguagem de neces
 
 Recomendada. Preserva o Marketplace, amplia descoberta e pode ser revertida integralmente.
 
-## Escopo de uma futura Sprint
+## Escopo autorizado da Fase 1
 
-Caso o documento seja aprovado, a Sprint técnica poderá incluir somente:
+A implementação autorizada inclui somente:
 
 - componente da seção;
 - configuração central de temas;
@@ -78,6 +78,7 @@ Banco novo, alteração da ordenação, checkout, páginas de empresa ou mudanç
 - protótipos não executáveis disponíveis;
 - nenhuma alteração de código ou sistema.
 
-## Pergunta de aprovação
+## Decisão registrada
 
-> A Diretoria aprova a vitrine temática, as regras de neutralidade, o piloto e a preparação de uma Sprint técnica separada?
+> A Diretoria aprovou a vitrine temática, as regras de neutralidade, os quatro
+> temas da Fase 1 e a implementação reversível em commit separado.

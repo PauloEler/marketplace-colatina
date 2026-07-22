@@ -28,3 +28,16 @@ Estas imagens são conceitos visuais não executáveis. Não representam código
 ## Observação sobre as imagens
 
 As capturas conceituais foram geradas como mockups para discussão. Ícones, proporções e detalhes tipográficos são ilustrativos. Nenhum número, texto periférico ou conteúdo de seção vizinha presente na simulação deve ser interpretado como alteração autorizada.
+
+## Evidências da implementação autorizada
+
+Após a aprovação documental, foram adicionadas capturas reais do ambiente local
+com `HOME_COMPRE_PERTO_ENABLED=true`:
+
+- `IMPLEMENTACAO_DESKTOP_1440.png`;
+- `IMPLEMENTACAO_TABLET_768.png`;
+- `IMPLEMENTACAO_MOBILE_390.png`;
+- `IMPLEMENTACAO_MOBILE_320.png`.
+
+Essas imagens são evidências para auditoria. A funcionalidade ainda não foi
+mesclada nem publicada.

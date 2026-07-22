@@ -243,6 +243,31 @@
 {% endif %}
 {% endif %}
 
+{% if home_compre_perto_enabled %}
+<section class="home-nearby-showcase" aria-labelledby="home-nearby-title" data-home-nearby>
+  <div class="home-nearby-heading">
+    <div>
+      <div class="section-kicker">Vitrine temática do Marketplace</div>
+      <h2 id="home-nearby-title"><span aria-hidden="true">🛒</span> Compre Perto de Você</h2>
+      <p>Tudo o que você precisa no comércio da sua cidade.</p>
+    </div>
+    <span class="home-nearby-neutrality">Temas locais, sem destaque para empresa individual.</span>
+  </div>
+  <div class="home-nearby-grid" aria-label="Temas para explorar no Marketplace">
+    {% for tema in temas_compre_perto %}
+    <a class="home-nearby-card" href="{{ url_for('index', q=tema.termo_busca) }}" data-nearby-theme="{{ tema.id }}">
+      <span class="home-nearby-icon" aria-hidden="true">{{ tema.icone }}</span>
+      <span class="home-nearby-copy">
+        <strong>{{ tema.titulo }}</strong>
+        <small>{{ tema.resumo }}</small>
+      </span>
+      <span class="home-nearby-cta">Explorar no Marketplace <span aria-hidden="true">→</span></span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="home-visit-proof" aria-label="Visitas ao Mercado Colatina">
   <span class="home-visit-icon" aria-hidden="true">
     <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>

@@ -1,9 +1,9 @@
 # Missão 009 — Compre Perto de Você
 
 **Tipo:** documento estratégico
-**Status:** proposta para aprovação
-**Fase autorizada:** documentação e protótipo não executável
-**Implementação:** não autorizada
+**Status:** documentação aprovada
+**Fase autorizada:** implementação reversível da Fase 1
+**Implementação:** autorizada em 22/07/2026
 
 ## 1. Problema real da cidade
 
@@ -78,17 +78,17 @@ Anúncios compatíveis de todas as empresas
 Página do produto ou da empresa escolhida pelo usuário
 ```
 
-## 6. Temas do piloto
+## 6. Temas aprovados para a Fase 1
 
-| Identificador conceitual | Título | Intenção | Destino obrigatório |
+| Identificador | Título | Intenção | Destino obrigatório |
 | --- | --- | --- | --- |
-| `churrasco` | 🍺 Vai fazer um churrasco? | itens relacionados a churrasco | listagem do Marketplace |
-| `pao` | 🥖 Precisa de pão? | padarias e produtos compatíveis | listagem do Marketplace |
-| `remedio` | 💊 Precisa de remédio? | farmácias e itens permitidos | listagem do Marketplace |
-| `compras-dia` | 🛒 Compras do dia? | produtos cotidianos | listagem do Marketplace |
-| `jardinagem` | 🌿 Jardinagem | produtos e serviços relacionados | listagem do Marketplace |
+| `mercadinhos` | Mercadinhos | itens essenciais e compras do dia a dia | `/?q=mercadinho` |
+| `bares` | Bares | bebidas, petiscos e opções locais | `/?q=bar` |
+| `conveniencias` | Conveniências | compras rápidas e itens de conveniência | `/?q=conveni%C3%AAncia` |
+| `padarias` | Padarias | pães, lanches e produtos compatíveis | `/?q=padaria` |
 
-O tema “remédio” exige revisão específica antes da implementação para evitar publicidade ou oferta de produtos sujeitos a restrições legais. Até essa revisão, o tema poderá direcionar apenas a empresas/categorias autorizadas ou permanecer desativado.
+Jardinagem, Pet, Construção, Churrasco, datas sazonais e outros temas ficam
+para fases futuras, condicionados a inventário real, auditoria e nova autorização.
 
 ## 7. Neutralidade comercial
 
@@ -225,16 +225,15 @@ Especificação obrigatória para futura implementação:
 - automação de temas por IA;
 - merge ou deploy.
 
-## 14. Condições para aprovação técnica posterior
+## 14. Registro da aprovação técnica
 
-Antes de escrever código, a Diretoria deve aprovar:
+A Diretoria aprovou em 22/07/2026:
 
 1. nome, subtítulo e posição;
 2. regras de neutralidade;
-3. temas habilitados no piloto;
-4. tratamento do tema “remédio”;
-5. diversidade mínima por tema;
+3. quatro temas habilitados na Fase 1;
+4. demais temas somente em fases futuras;
+5. diversidade e neutralidade por tema;
 6. mecanismo de destino no Marketplace;
-7. fonte de métricas e consentimento;
-8. feature flag e teste de reversão;
-9. protótipos desktop e mobile.
+7. feature flag e teste de reversão;
+8. protótipos desktop e mobile.

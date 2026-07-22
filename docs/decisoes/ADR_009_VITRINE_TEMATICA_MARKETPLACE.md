@@ -1,6 +1,6 @@
 # ADR 009 — Vitrine temática com destino obrigatório no Marketplace
 
-**Status:** proposta, ainda não aprovada
+**Status:** aceita
 **Data:** 22/07/2026
 
 ## Contexto
@@ -49,4 +49,6 @@ Adotar uma vitrine temática na Home, orientada por necessidades cotidianas, com
 
 ## Validação da decisão
 
-A ADR somente muda para “aceita” após aprovação formal do documento estratégico. Até lá, não autoriza código, merge, deploy, criação de eventos ou alteração de dados.
+A Diretoria aprovou formalmente o documento estratégico em 22/07/2026 e
+autorizou a implementação reversível da Fase 1. Merge e deploy permanecem
+dependentes de nova autorização após a auditoria visual.

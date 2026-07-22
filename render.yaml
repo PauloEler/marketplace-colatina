@@ -16,6 +16,8 @@ services:
         value: production
       - key: HOME_2_ENABLED
         value: "false"
+      - key: HOME_COMPRE_PERTO_ENABLED
+        value: "false"
       - key: ADMIN_USERNAME
         value: admin
       - key: ADMIN_PASSWORD
