@@ -2982,6 +2982,11 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn(b'class="home-visit-proof"', pagina.data)
         self.assertIn(b"data-home-visits=", pagina.data)
         self.assertIn(b"ao site</span>", pagina.data)
+        html = pagina.data.decode("utf-8")
+        self.assertLess(
+            html.index('class="home-visit-proof"'),
+            html.index("data-ux005c-categories"),
+        )
 
         self.autenticar_sessao(self.comprador_id)
         pagina_autenticada = self.client.get("/")
