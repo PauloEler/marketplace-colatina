@@ -36,7 +36,7 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -r requirements.txt ruff
+        run: pip install -r requirements.txt ruff==0.15.22
 
       - name: Verificar codigo
         run: |
