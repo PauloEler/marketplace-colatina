@@ -3459,20 +3459,20 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   display:grid;
   grid-template-columns:auto auto minmax(18rem,1fr);
   align-items:center;
-  gap:1.1rem;
-  margin-top:1.5rem;
-  padding:1.15rem 1.4rem;
-  border-radius:.85rem;
+  gap:1.5rem;
+  margin-top:1rem;
+  padding:1.55rem 1.8rem;
+  border-radius:1.1rem;
   background:var(--ho-forest);
   color:#fff;
-  box-shadow:0 14px 32px rgba(18,63,45,.14);
+  box-shadow:0 18px 42px rgba(18,63,45,.2);
 }
-.home-official .home-visit-icon{display:grid;place-items:center;width:3.1rem;height:3.1rem;border-radius:50%;background:rgba(255,255,255,.12);color:#fff}
-.home-official .home-visit-icon .home-icon{width:1.4rem;height:1.4rem}
-.home-official .home-visit-count{display:flex;align-items:baseline;gap:.55rem;white-space:nowrap}
-.home-official .home-visit-count strong{font-family:Georgia,"Times New Roman",serif;font-size:2.35rem;font-weight:400;letter-spacing:-.04em;line-height:1}
-.home-official .home-visit-count span{color:rgba(255,255,255,.84);font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
-.home-official .home-visit-proof p{justify-self:end;max-width:32rem;color:rgba(255,255,255,.78);font-size:.88rem;line-height:1.55;text-align:right}
+.home-official .home-visit-icon{display:grid;place-items:center;width:4.75rem;height:4.75rem;border-radius:50%;background:rgba(255,255,255,.14);color:#fff}
+.home-official .home-visit-icon .home-icon{width:2.15rem;height:2.15rem}
+.home-official .home-visit-count{display:grid;gap:.15rem;white-space:nowrap}
+.home-official .home-visit-count strong{font-family:Georgia,"Times New Roman",serif;font-size:clamp(4rem,7vw,6.25rem);font-weight:400;letter-spacing:-.055em;line-height:.84}
+.home-official .home-visit-count span{color:rgba(255,255,255,.9);font-size:.92rem;font-weight:850;text-transform:uppercase;letter-spacing:.09em}
+.home-official .home-visit-proof p{justify-self:end;max-width:29rem;color:rgba(255,255,255,.82);font-size:1rem;line-height:1.6;text-align:right}
 .home-official .home-category-section{margin-top:clamp(3.5rem,5.5vw,5.5rem)}
 .home-official .home-visit-proof+.home-category-section{margin-top:2.5rem}
 .home-official .home-section-heading,
@@ -3895,11 +3895,13 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-official-search select,
   .home-official .home-official-search button{height:3.15rem}
   .home-official .home-official-search button{min-width:0}
-  .home-official .home-visit-proof{grid-template-columns:auto 1fr;gap:.8rem;margin-top:1rem;padding:1rem 1.1rem}
+  .home-official .home-visit-proof{grid-template-columns:auto 1fr;gap:1rem;margin-top:1rem;padding:1.25rem}
   .home-official .home-visit-count{display:grid;gap:.15rem}
-  .home-official .home-visit-count strong{font-size:2rem}
-  .home-official .home-visit-count span{font-size:.66rem}
-  .home-official .home-visit-proof p{grid-column:1/-1;justify-self:start;max-width:none;font-size:.8rem;text-align:left}
+  .home-official .home-visit-count strong{font-size:clamp(3.2rem,16vw,4.5rem)}
+  .home-official .home-visit-count span{font-size:.72rem}
+  .home-official .home-visit-icon{width:3.8rem;height:3.8rem}
+  .home-official .home-visit-icon .home-icon{width:1.75rem;height:1.75rem}
+  .home-official .home-visit-proof p{grid-column:1/-1;justify-self:start;max-width:none;font-size:.84rem;text-align:left}
   .home-official .home-category-section,
   .home-official .home-product-showcase,
   .home-official .home-partner-offers,
@@ -4275,6 +4277,12 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 }
 .home-city-alive .home-premium-hero{order:10}
 .home-city-alive .home-solver-strip{order:20}
+.home-city-alive .home-visit-proof{
+  display:grid;
+  order:25;
+  width:min(1180px,calc(100% - 2rem));
+  align-self:center;
+}
 .home-city-alive .home-category-section{order:30}
 .home-city-alive .plan-notice{order:35}
 .home-city-alive .home-product-showcase{order:40}
@@ -4283,7 +4291,6 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
 .home-city-alive .home-city-recent{order:70}
 .home-city-alive .home-partner-offers{order:80}
 .home-city-alive .home-local-partners{order:90}
-.home-city-alive .home-visit-proof,
 .home-city-alive .home-seller-callout,
 .home-city-alive .home-trust-institutional,
 .home-city-alive .home-daily-city,

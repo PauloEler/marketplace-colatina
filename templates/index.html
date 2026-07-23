@@ -165,6 +165,17 @@
 {% endif %}
 {% endif %}
 
+<section class="home-visit-proof" aria-label="Visitas ao Mercado Colatina">
+  <span class="home-visit-icon" aria-hidden="true">
+    <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+  </span>
+  <div class="home-visit-count">
+    <strong data-home-visits="{{ total_acessos }}">{{ total_acessos_formatado }}</strong>
+    <span>visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
+  </div>
+  <p>O Mercado Colatina já está sendo descoberto por quem compra, vende e movimenta a nossa cidade.</p>
+</section>
+
 {% if home_cidade_viva_enabled and (metricas_cidade or home_city_balloon_enabled) %}
 {% if home_city_balloon_enabled %}<div class="home-city-balloon-layout" data-city-balloon-layout>{% endif %}
 {% if metricas_cidade %}
@@ -267,17 +278,6 @@
   </div>
 </section>
 {% endif %}
-
-<section class="home-visit-proof" aria-label="Visitas ao Mercado Colatina">
-  <span class="home-visit-icon" aria-hidden="true">
-    <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-  </span>
-  <div class="home-visit-count">
-    <strong data-home-visits="{{ total_acessos }}">{{ total_acessos_formatado }}</strong>
-    <span>visita{{ '' if total_acessos == 1 else 's' }} ao site</span>
-  </div>
-  <p>O Mercado Colatina já está sendo descoberto por quem compra, vende e movimenta a nossa cidade.</p>
-</section>
 
 <section class="home-category-section" data-ux005c-categories aria-labelledby="categories-title">
   <div class="home-section-heading">
