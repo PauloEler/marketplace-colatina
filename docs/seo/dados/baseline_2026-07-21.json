@@ -1,0 +1,1001 @@
+{
+  "base_url": "https://mercadocolatina.com.br",
+  "robots": {
+    "status": 200,
+    "content_type": "text/plain; charset=utf-8",
+    "declares_sitemap": true
+  },
+  "sitemap": {
+    "status": 200,
+    "content_type": "application/xml; charset=utf-8",
+    "url_count": 17,
+    "urls": [
+      "https://mercadocolatina.com.br/",
+      "https://mercadocolatina.com.br/cadastro",
+      "https://mercadocolatina.com.br/login",
+      "https://mercadocolatina.com.br/seguranca",
+      "https://mercadocolatina.com.br/quem-somos",
+      "https://mercadocolatina.com.br/seja-parceiro",
+      "https://mercadocolatina.com.br/ajuda",
+      "https://mercadocolatina.com.br/sugerir",
+      "https://mercadocolatina.com.br/encontre-quem-resolve",
+      "https://mercadocolatina.com.br/privacidade",
+      "https://mercadocolatina.com.br/termos",
+      "https://mercadocolatina.com.br/loja/1-loja-oficial-do-mercado-colatina",
+      "https://mercadocolatina.com.br/loja/10-carlos-alberto-da-costa",
+      "https://mercadocolatina.com.br/loja/5-joao-silva",
+      "https://mercadocolatina.com.br/loja/8-topa-tudo-colatinense",
+      "https://mercadocolatina.com.br/loja/16-gilmar-meireles",
+      "https://mercadocolatina.com.br/loja/6-roberto-dias-ribeiro"
+    ]
+  },
+  "summary": {
+    "pages_crawled": 35,
+    "broken_internal_links": [],
+    "external_redirects": [
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/16/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/14/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/13/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/12/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/11/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/8/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/7/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/2/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      },
+      {
+        "url": "https://mercadocolatina.com.br/anuncio/6/contato",
+        "status": 302,
+        "destination_host": "api.whatsapp.com"
+      }
+    ],
+    "missing_canonical": [
+      "https://mercadocolatina.com.br/login",
+      "https://mercadocolatina.com.br/cadastro",
+      "https://mercadocolatina.com.br/encontre-quem-resolve",
+      "https://mercadocolatina.com.br/ajuda",
+      "https://mercadocolatina.com.br/seja-parceiro",
+      "https://mercadocolatina.com.br/sugerir",
+      "https://mercadocolatina.com.br/quem-somos",
+      "https://mercadocolatina.com.br/seguranca",
+      "https://mercadocolatina.com.br/privacidade",
+      "https://mercadocolatina.com.br/termos",
+      "https://mercadocolatina.com.br/recuperar-acesso",
+      "https://mercadocolatina.com.br/quem-resolve",
+      "https://mercadocolatina.com.br/comprar/16",
+      "https://mercadocolatina.com.br/comprar/14",
+      "https://mercadocolatina.com.br/comprar/13",
+      "https://mercadocolatina.com.br/comprar/12",
+      "https://mercadocolatina.com.br/comprar/11",
+      "https://mercadocolatina.com.br/comprar/8",
+      "https://mercadocolatina.com.br/comprar/7",
+      "https://mercadocolatina.com.br/comprar/2",
+      "https://mercadocolatina.com.br/comprar/6"
+    ],
+    "missing_description": [],
+    "missing_json_ld": [
+      "https://mercadocolatina.com.br/",
+      "https://mercadocolatina.com.br/login",
+      "https://mercadocolatina.com.br/cadastro",
+      "https://mercadocolatina.com.br/encontre-quem-resolve",
+      "https://mercadocolatina.com.br/anuncio/16",
+      "https://mercadocolatina.com.br/loja/10-carlos-alberto-da-costa",
+      "https://mercadocolatina.com.br/anuncio/14",
+      "https://mercadocolatina.com.br/loja/16-gilmar-meireles",
+      "https://mercadocolatina.com.br/anuncio/13",
+      "https://mercadocolatina.com.br/anuncio/12",
+      "https://mercadocolatina.com.br/ajuda",
+      "https://mercadocolatina.com.br/loja/1-loja-oficial-do-mercado-colatina",
+      "https://mercadocolatina.com.br/loja/8-topa-tudo-colatinense",
+      "https://mercadocolatina.com.br/anuncio/11",
+      "https://mercadocolatina.com.br/anuncio/8",
+      "https://mercadocolatina.com.br/anuncio/7",
+      "https://mercadocolatina.com.br/seja-parceiro",
+      "https://mercadocolatina.com.br/sugerir",
+      "https://mercadocolatina.com.br/quem-somos",
+      "https://mercadocolatina.com.br/seguranca",
+      "https://mercadocolatina.com.br/privacidade",
+      "https://mercadocolatina.com.br/termos",
+      "https://mercadocolatina.com.br/recuperar-acesso",
+      "https://mercadocolatina.com.br/quem-resolve",
+      "https://mercadocolatina.com.br/comprar/16",
+      "https://mercadocolatina.com.br/comprar/14",
+      "https://mercadocolatina.com.br/comprar/13",
+      "https://mercadocolatina.com.br/comprar/12",
+      "https://mercadocolatina.com.br/anuncio/2",
+      "https://mercadocolatina.com.br/anuncio/6",
+      "https://mercadocolatina.com.br/comprar/11",
+      "https://mercadocolatina.com.br/comprar/8",
+      "https://mercadocolatina.com.br/comprar/7",
+      "https://mercadocolatina.com.br/comprar/2",
+      "https://mercadocolatina.com.br/comprar/6"
+    ],
+    "images_without_alt": {},
+    "duplicate_titles": {
+      "Login | Mercado Colatina": [
+        "https://mercadocolatina.com.br/login",
+        "https://mercadocolatina.com.br/comprar/16",
+        "https://mercadocolatina.com.br/comprar/14",
+        "https://mercadocolatina.com.br/comprar/13",
+        "https://mercadocolatina.com.br/comprar/12",
+        "https://mercadocolatina.com.br/comprar/11",
+        "https://mercadocolatina.com.br/comprar/8",
+        "https://mercadocolatina.com.br/comprar/7",
+        "https://mercadocolatina.com.br/comprar/2",
+        "https://mercadocolatina.com.br/comprar/6"
+      ],
+      "Tênis redley azul | Mercado Colatina": [
+        "https://mercadocolatina.com.br/anuncio/14",
+        "https://mercadocolatina.com.br/anuncio/13"
+      ]
+    },
+    "crawlable_not_in_sitemap": [
+      "https://mercadocolatina.com.br/anuncio/16",
+      "https://mercadocolatina.com.br/anuncio/14",
+      "https://mercadocolatina.com.br/anuncio/13",
+      "https://mercadocolatina.com.br/anuncio/12",
+      "https://mercadocolatina.com.br/anuncio/11",
+      "https://mercadocolatina.com.br/anuncio/8",
+      "https://mercadocolatina.com.br/anuncio/7",
+      "https://mercadocolatina.com.br/recuperar-acesso",
+      "https://mercadocolatina.com.br/quem-resolve",
+      "https://mercadocolatina.com.br/comprar/16",
+      "https://mercadocolatina.com.br/comprar/14",
+      "https://mercadocolatina.com.br/comprar/13",
+      "https://mercadocolatina.com.br/comprar/12",
+      "https://mercadocolatina.com.br/anuncio/2",
+      "https://mercadocolatina.com.br/anuncio/6",
+      "https://mercadocolatina.com.br/comprar/11",
+      "https://mercadocolatina.com.br/comprar/8",
+      "https://mercadocolatina.com.br/comprar/7",
+      "https://mercadocolatina.com.br/comprar/2",
+      "https://mercadocolatina.com.br/comprar/6"
+    ],
+    "sitemap_orphans": [
+      "https://mercadocolatina.com.br/loja/5-joao-silva",
+      "https://mercadocolatina.com.br/loja/6-roberto-dias-ribeiro"
+    ]
+  },
+  "pages": [
+    {
+      "url": "https://mercadocolatina.com.br/",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/",
+      "title": "Mercado Colatina | A praça digital da cidade",
+      "description": "Encontre produtos, lojas e oportunidades perto de você. Compre e venda na praça digital de Colatina.",
+      "canonical": "https://mercadocolatina.com.br/",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:image"
+      ],
+      "json_ld_count": 0,
+      "image_count": 14,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/login",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/cadastro",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/cadastro",
+      "title": "Cadastro | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/encontre-quem-resolve",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/encontre-quem-resolve",
+      "title": "Encontre quem resolve | Mercado Colatina",
+      "description": "Conte o que você precisa e permita que empresas de Colatina entrem em contato para ajudar.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/16",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/16",
+      "title": "Cama de Casal Box Completa | Mercado Colatina",
+      "description": "Cama de casal Box Completa",
+      "canonical": "https://mercadocolatina.com.br/anuncio/16",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/loja/10-carlos-alberto-da-costa",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/loja/10-carlos-alberto-da-costa",
+      "title": "Carlos Alberto da Costa | Loja no Mercado Colatina",
+      "description": "Conheça a loja Carlos Alberto da Costa e seus anúncios no Mercado Colatina.",
+      "canonical": "https://mercadocolatina.com.br/loja/10-carlos-alberto-da-costa",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 3,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/14",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/14",
+      "title": "Tênis redley azul | Mercado Colatina",
+      "description": "O Tênis Redley Originals Azul é o modelo clássico, minimalista e casual da marca, conhecido pelo seu estilo praiano e urbano. Cabedal (Material Externo): …",
+      "canonical": "https://mercadocolatina.com.br/anuncio/14",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 2,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/loja/16-gilmar-meireles",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/loja/16-gilmar-meireles",
+      "title": "Gilmar Meireles | Loja no Mercado Colatina",
+      "description": "Conheça a loja Gilmar Meireles e seus anúncios no Mercado Colatina.",
+      "canonical": "https://mercadocolatina.com.br/loja/16-gilmar-meireles",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 2,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/13",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/13",
+      "title": "Tênis redley azul | Mercado Colatina",
+      "description": "O Tênis Redley Originals Azul é o modelo clássico, minimalista e casual da marca, conhecido pelo seu estilo praiano e urbano. Cabedal (Material Externo): …",
+      "canonical": "https://mercadocolatina.com.br/anuncio/13",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 2,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/12",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/12",
+      "title": "Fogão Capri 04 Bocas | Mercado Colatina",
+      "description": "Fogão Capri 04 Bocas",
+      "canonical": "https://mercadocolatina.com.br/anuncio/12",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/ajuda",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/ajuda",
+      "title": "Ajuda | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/loja/1-loja-oficial-do-mercado-colatina",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/loja/1-loja-oficial-do-mercado-colatina",
+      "title": "Loja Oficial do Mercado Colatina | Loja no Mercado Colatina",
+      "description": "Bem-vindo à loja Mercado Colatina. Aqui você encontra produtos selecionados, ofertas especiais e atendimento de confiança. Nosso compromisso é oferecer qua",
+      "canonical": "https://mercadocolatina.com.br/loja/1-loja-oficial-do-mercado-colatina",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/loja/8-topa-tudo-colatinense",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/loja/8-topa-tudo-colatinense",
+      "title": "Topa Tudo Colatinense | Loja no Mercado Colatina",
+      "description": "Loja tradicional de Colatina especializada na compra e venda de móveis, eletrodomésticos, celulares e outros produtos usados. Mantém mercadorias próprias n",
+      "canonical": "https://mercadocolatina.com.br/loja/8-topa-tudo-colatinense",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 3,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/11",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/11",
+      "title": "Fogão 4 bocas Continental | Mercado Colatina",
+      "description": "Fogão Continental 04 Bocas",
+      "canonical": "https://mercadocolatina.com.br/anuncio/11",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/8",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/8",
+      "title": "Mesa MDF bom Estado | Mercado Colatina",
+      "description": "Mesa em MDF em bom estado de conservação",
+      "canonical": "https://mercadocolatina.com.br/anuncio/8",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/7",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/7",
+      "title": "Estande de Ferro e Vidro | Mercado Colatina",
+      "description": "Estande de Ferro e Vidro, Ótimo Estado",
+      "canonical": "https://mercadocolatina.com.br/anuncio/7",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/seja-parceiro",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/seja-parceiro",
+      "title": "Seja parceiro | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/sugerir",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/sugerir",
+      "title": "Sugira uma melhoria | Mercado Colatina",
+      "description": "Conte o que está faltando em Colatina e ajude a orientar a evolução do Mercado Colatina.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/quem-somos",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/quem-somos",
+      "title": "Quem somos | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/seguranca",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/seguranca",
+      "title": "Segurança nas negociações | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/privacidade",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/privacidade",
+      "title": "Privacidade | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/termos",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/termos",
+      "title": "Termos de uso | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/recuperar-acesso",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/recuperar-acesso",
+      "title": "Recuperar acesso | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/quem-resolve",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/quem-resolve",
+      "title": "Pedidos locais | Mercado Colatina",
+      "description": "Necessidades publicadas por moradores de Colatina para empresas locais.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/16",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/14",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/13",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/12",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/2",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/2",
+      "title": "Trena Laser 40m Milessey S6 Alta Precisão Medidor Distância | Mercado Colatina",
+      "description": "Trena Digital Laser Mileseey X5 40m Precisão 2mm Calcula Área e Volume.",
+      "canonical": "https://mercadocolatina.com.br/anuncio/2",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/anuncio/6",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/anuncio/6",
+      "title": "Painel de Tv com Led | Mercado Colatina",
+      "description": "Painel de Tv com Led MDF, bom Estado Led",
+      "canonical": "https://mercadocolatina.com.br/anuncio/6",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:image",
+        "og:image:alt",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type",
+        "og:url"
+      ],
+      "twitter_cards": [
+        "twitter:card",
+        "twitter:description",
+        "twitter:image",
+        "twitter:title"
+      ],
+      "json_ld_count": 0,
+      "image_count": 1,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/11",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/8",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/7",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/2",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    },
+    {
+      "url": "https://mercadocolatina.com.br/comprar/6",
+      "status": 200,
+      "final_url": "https://mercadocolatina.com.br/login",
+      "title": "Login | Mercado Colatina",
+      "description": "Compre e venda produtos e serviços em Colatina e região. Anúncios locais com contato direto pelo WhatsApp.",
+      "canonical": "",
+      "robots": "",
+      "open_graph": [
+        "og:description",
+        "og:locale",
+        "og:site_name",
+        "og:title",
+        "og:type"
+      ],
+      "twitter_cards": [],
+      "json_ld_count": 0,
+      "image_count": 0,
+      "images_without_alt": []
+    }
+  ]
+}
