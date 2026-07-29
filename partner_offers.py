@@ -8,7 +8,7 @@ PARTNER_OFFERS_CONFIG = (
     {
         "parceiro": "mercado_livre",
         "titulo": "Tripé para celular Ulanzi MA09",
-        "preco": "Produto ainda não testado por nós",
+        "preco": "Veja preço e condições no site parceiro",
         "imagem": "oferta-parceiro-07-ulanzi-ma09-premium.webp",
         "alt": (
             "Imagem ilustrativa de tripé para celular com controle remoto "
@@ -26,7 +26,7 @@ PARTNER_OFFERS_CONFIG = (
     {
         "parceiro": "mercado_livre",
         "titulo": "Fone JBL Tune 520BT",
-        "preco": "Produto ainda não testado por nós",
+        "preco": "Veja preço e condições no site parceiro",
         "imagem": "oferta-parceiro-08-jbl-tune-520bt-premium.webp",
         "alt": "Imagem ilustrativa de fone sem fio azul em oferta parceira",
         "identificador_destino": "fone-jbl-tune-520bt",

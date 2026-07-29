@@ -2723,13 +2723,16 @@ class ModeracaoTestCase(unittest.TestCase):
                 "p/MLB36175790"
             ),
         )
-        self.assertEqual(oferta["preco"], "Produto ainda não testado por nós")
+        self.assertEqual(
+            oferta["preco"],
+            "Veja preço e condições no site parceiro",
+        )
         self.assertTrue(oferta["link_oficial_configurado"])
 
         html = self.client.get("/").data.decode("utf-8")
         self.assertIn('data-affiliate-offer="tripe-ulanzi-ma09"', html)
         self.assertIn('href="https://meli.la/2gSYwQb"', html)
-        self.assertIn("Produto ainda não testado por nós", html)
+        self.assertIn("Veja preço e condições no site parceiro", html)
         self.assertIn(
             'src="/static/oferta-parceiro-07-ulanzi-ma09-premium.webp"',
             html,
@@ -2756,13 +2759,16 @@ class ModeracaoTestCase(unittest.TestCase):
                 "p/MLB52695692"
             ),
         )
-        self.assertEqual(oferta["preco"], "Produto ainda não testado por nós")
+        self.assertEqual(
+            oferta["preco"],
+            "Veja preço e condições no site parceiro",
+        )
         self.assertTrue(oferta["link_oficial_configurado"])
 
         html = self.client.get("/").data.decode("utf-8")
         self.assertIn('data-affiliate-offer="fone-jbl-tune-520bt"', html)
         self.assertIn('href="https://meli.la/2uTaby6"', html)
-        self.assertIn("Produto ainda não testado por nós", html)
+        self.assertIn("Veja preço e condições no site parceiro", html)
         self.assertIn(
             'src="/static/oferta-parceiro-08-jbl-tune-520bt-premium.webp"',
             html,
