@@ -1,5 +1,13 @@
 # CHANGELOG MASTER
 
+## 2026-07-29 - Refinamento da mensagem das ofertas específicas
+
+### Preparado para publicação
+
+- A mensagem “Produto ainda não testado por nós” foi retirada dos cards Ulanzi e JBL.
+- Os cards agora orientam: “Veja preço e condições no site parceiro”.
+- A transparência comercial da seção e a abertura no parceiro foram preservadas.
+
 ## 2026-07-29 - Segunda oferta específica de afiliado
 
 ### Preparado para publicação
