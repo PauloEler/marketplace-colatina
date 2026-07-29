@@ -25,6 +25,21 @@ PARTNER_OFFERS_CONFIG = (
     },
     {
         "parceiro": "mercado_livre",
+        "titulo": "Fone JBL Tune 520BT",
+        "preco": "Produto ainda não testado por nós",
+        "imagem": "oferta-parceiro-08-jbl-tune-520bt-premium.webp",
+        "alt": "Imagem ilustrativa de fone sem fio azul em oferta parceira",
+        "identificador_destino": "fone-jbl-tune-520bt",
+        "env_key": "OFERTA_PARCEIRO_08_URL",
+        "official_url": "https://meli.la/2uTaby6",
+        "fallback_url": (
+            "https://www.mercadolivre.com.br/"
+            "fone-de-ouvido-jbl-tune-520bt-bluetooth-53-preto-cor-azul/"
+            "p/MLB52695692"
+        ),
+    },
+    {
+        "parceiro": "mercado_livre",
         "titulo": "Celulares e acessórios",
         "preco": "A partir de R$ 49,90",
         "imagem": "oferta-parceiro-01-premium.webp",

@@ -1,5 +1,17 @@
 # CHANGELOG MASTER
 
+## 2026-07-29 - Segunda oferta específica de afiliado
+
+### Preparado para publicação
+
+- Fone JBL Tune 520BT adicionado como segundo card da seção Ofertas de Parceiros.
+- Link oficial do Programa de Afiliados: `https://meli.la/2uTaby6`.
+- Etiqueta exclusiva de acompanhamento: `oferta02jbl520bt`.
+- Comissão exibida pelo portal na geração do link: 5%, sujeita às regras do programa.
+- Imagem ilustrativa original, sem copiar fotografia comercial ou exibir logotipo.
+- Aviso visível de que o produto ainda não foi testado pelo Mercado Colatina.
+- Preço não fixado no card, pois pode mudar no site do parceiro.
+
 ## 2026-07-29 - Piloto de afiliado Ulanzi MA09
 
 ### Preparado para publicação
