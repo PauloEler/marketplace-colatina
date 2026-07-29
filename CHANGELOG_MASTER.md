@@ -1,5 +1,16 @@
 # CHANGELOG MASTER
 
+## 2026-07-29 - Terceira oferta específica de afiliado
+
+### Preparado para publicação
+
+- Air Fryer Oven WAP WAOD2 adicionada como terceiro card da seção Ofertas de Parceiros.
+- Link oficial do Programa de Afiliados: `https://meli.la/1K1uUf6`.
+- Etiqueta exclusiva de acompanhamento: `oferta03airfryerwap`.
+- Comissão exibida no catálogo de afiliados: 5%, sujeita às regras do programa.
+- Imagem ilustrativa original, sem copiar fotografia comercial ou exibir logotipo.
+- Preço não fixado no card; o visitante confere preço e condições no parceiro.
+
 ## 2026-07-29 - Refinamento da mensagem das ofertas específicas
 
 ### Preparado para publicação

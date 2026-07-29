@@ -40,6 +40,21 @@ PARTNER_OFFERS_CONFIG = (
     },
     {
         "parceiro": "mercado_livre",
+        "titulo": "Air Fryer Oven WAP WAOD2",
+        "preco": "Veja preço e condições no site parceiro",
+        "imagem": "oferta-parceiro-09-airfryer-wap-premium.webp",
+        "alt": "Imagem ilustrativa de air fryer oven preta em oferta parceira",
+        "identificador_destino": "airfryer-wap-waod2",
+        "env_key": "OFERTA_PARCEIRO_09_URL",
+        "official_url": "https://meli.la/1K1uUf6",
+        "fallback_url": (
+            "https://www.mercadolivre.com.br/"
+            "fritadeira-eletrica-air-fryer-oven-black-inox-wap-waod2/"
+            "p/MLB43435820"
+        ),
+    },
+    {
+        "parceiro": "mercado_livre",
         "titulo": "Celulares e acessórios",
         "preco": "A partir de R$ 49,90",
         "imagem": "oferta-parceiro-01-premium.webp",
