@@ -55,6 +55,21 @@ PARTNER_OFFERS_CONFIG = (
     },
     {
         "parceiro": "mercado_livre",
+        "titulo": "Parafusadeira WAP 12K3.2 com maleta",
+        "preco": "Veja preço e condições no site parceiro",
+        "imagem": "oferta-parceiro-10-parafusadeira-wap-premium.webp",
+        "alt": "Imagem ilustrativa de parafusadeira sem fio com maleta",
+        "identificador_destino": "parafusadeira-wap-12k32",
+        "env_key": "OFERTA_PARCEIRO_10_URL",
+        "official_url": "https://meli.la/2oKG2qM",
+        "fallback_url": (
+            "https://www.mercadolivre.com.br/"
+            "parafusadeira-e-furadeira-a-bateria-wap-bpf-12k32-com-maleta/"
+            "p/MLB47815092"
+        ),
+    },
+    {
+        "parceiro": "mercado_livre",
         "titulo": "Celulares e acessórios",
         "preco": "A partir de R$ 49,90",
         "imagem": "oferta-parceiro-01-premium.webp",

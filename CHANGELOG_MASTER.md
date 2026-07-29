@@ -1,5 +1,15 @@
 # CHANGELOG MASTER
 
+## 2026-07-29 - Quarta oferta específica de afiliado
+
+### Preparado para publicação
+
+- Parafusadeira WAP 12K3.2 com maleta adicionada como quarto card da seção Ofertas de Parceiros.
+- Link oficial do Programa de Afiliados: `https://meli.la/2oKG2qM`.
+- Etiqueta exclusiva de acompanhamento: `oferta04parafusadeirawap`.
+- Imagem ilustrativa original, sem copiar fotografia comercial ou exibir logotipo.
+- Preço não fixado no card; o visitante confere preço e condições no parceiro.
+
 ## 2026-07-29 - Terceira oferta específica de afiliado
 
 ### Preparado para publicação
