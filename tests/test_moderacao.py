@@ -23,7 +23,7 @@ os.environ.pop("HOME_FINISH_007B_ENABLED", None)
 os.environ.pop("HOME_FINISH_007C_ENABLED", None)
 os.environ.pop("HOME_COMPRE_PERTO_ENABLED", None)
 os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
-for indice_oferta in range(1, 11):
+for indice_oferta in range(1, 12):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
 
 import app as app_module  # noqa: E402
@@ -2637,9 +2637,9 @@ class ModeracaoTestCase(unittest.TestCase):
             pagina.data,
         )
         html = pagina.data.decode("utf-8")
-        self.assertEqual(html.count('class="partner-offer-card"'), 10)
-        self.assertEqual(html.count('data-link-source="official"'), 10)
-        self.assertEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 10)
+        self.assertEqual(html.count('class="partner-offer-card"'), 11)
+        self.assertEqual(html.count('data-link-source="official"'), 11)
+        self.assertEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 11)
         self.assertLess(
             html.index('id="ofertas"'), html.index('id="ofertas-parceiros"')
         )
@@ -2671,7 +2671,7 @@ class ModeracaoTestCase(unittest.TestCase):
         ofertas = app_module.OFERTAS_PARCEIROS_HOME
         urls = [oferta["url"] for oferta in ofertas]
 
-        self.assertEqual(len(ofertas), 10)
+        self.assertEqual(len(ofertas), 11)
         self.assertTrue(all(urls))
         self.assertEqual(len(set(urls)), len(urls))
 
@@ -2691,15 +2691,15 @@ class ModeracaoTestCase(unittest.TestCase):
         fallbacks = [config["fallback_url"] for config in PARTNER_OFFERS_CONFIG]
         imagens = [oferta["imagem"] for oferta in ofertas]
 
-        self.assertEqual(len(ofertas), 10)
-        self.assertEqual(len(set(env_keys)), 10)
-        self.assertEqual(len(set(oficiais)), 10)
-        self.assertEqual(len(set(fallbacks)), 10)
+        self.assertEqual(len(ofertas), 11)
+        self.assertEqual(len(set(env_keys)), 11)
+        self.assertEqual(len(set(oficiais)), 11)
+        self.assertEqual(len(set(fallbacks)), 11)
         self.assertTrue(all(oferta["url"] for oferta in ofertas))
         self.assertTrue(all(url.startswith("https://meli.la/") for url in oficiais))
         self.assertTrue(all(oferta["link_oficial_configurado"] for oferta in ofertas))
         self.assertEqual([oferta["url"] for oferta in ofertas], oficiais)
-        self.assertEqual(len(set(imagens)), 10)
+        self.assertEqual(len(set(imagens)), 11)
         self.assertTrue(all(imagem.endswith("-premium.webp") for imagem in imagens))
 
     def test_oferta_piloto_ulanzi_usa_link_oficial_e_aviso_de_transparencia(self):
@@ -2844,6 +2844,43 @@ class ModeracaoTestCase(unittest.TestCase):
             html,
         )
 
+    def test_oferta_potes_vidro_usa_link_oficial_etiqueta_propria(self):
+        ofertas = build_partner_offers({})
+        oferta = next(
+            item
+            for item in ofertas
+            if item["identificador_destino"] == "kit-potes-vidro-hermeticos"
+        )
+
+        self.assertEqual(
+            ofertas[4]["identificador_destino"],
+            "kit-potes-vidro-hermeticos",
+        )
+        self.assertEqual(oferta["url"], "https://meli.la/1VhuyQ1")
+        self.assertEqual(
+            PARTNER_OFFERS_CONFIG[4]["fallback_url"],
+            (
+                "https://www.mercadolivre.com.br/"
+                "kit-10-potes-hermeticos-vidro-640ml-starhouse-marmita-forno-"
+                "micro-ondas-airfryer-com-4-travas-de-super-vedacao/"
+                "p/MLB53222689"
+            ),
+        )
+        self.assertEqual(
+            oferta["preco"],
+            "Veja preço e condições no site parceiro",
+        )
+        self.assertTrue(oferta["link_oficial_configurado"])
+
+        html = self.client.get("/").data.decode("utf-8")
+        self.assertIn('data-affiliate-offer="kit-potes-vidro-hermeticos"', html)
+        self.assertIn('href="https://meli.la/1VhuyQ1"', html)
+        self.assertIn("Veja preço e condições no site parceiro", html)
+        self.assertIn(
+            'src="/static/oferta-parceiro-11-potes-vidro-premium.webp"',
+            html,
+        )
+
     def test_configuracao_centralizada_aceita_link_oficial_sem_alterar_valor(self):
         env_key = PARTNER_OFFERS_CONFIG[0]["env_key"]
         url_fornecida = "https://example.invalid/link-oficial-fornecido"
@@ -2871,7 +2908,7 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.data.decode("utf-8")
         blocos = html.split('class="partner-offer-card"')[1:]
 
-        self.assertEqual(len(blocos), 10)
+        self.assertEqual(len(blocos), 11)
 
         for oferta, bloco in zip(
             app_module.OFERTAS_PARCEIROS_HOME, blocos, strict=True
@@ -3802,7 +3839,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertNotIn("home-compact-ux006a", html)
         self.assertEqual(html.count('class="home-category-card'), 10)
         self.assertEqual(html.count("data-partner-card"), 6)
-        self.assertEqual(html.count("data-affiliate-offer"), 10)
+        self.assertEqual(html.count("data-affiliate-offer"), 11)
 
     def test_patch_ux_006a_css_compacta_somente_com_feature_flag(self):
         caminho_css = os.path.join(app.static_folder, "styles.css")
