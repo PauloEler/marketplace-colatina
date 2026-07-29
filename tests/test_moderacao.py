@@ -2710,9 +2710,13 @@ class ModeracaoTestCase(unittest.TestCase):
             if item["identificador_destino"] == "tripe-ulanzi-ma09"
         )
 
+        self.assertEqual(
+            ofertas[0]["identificador_destino"],
+            "tripe-ulanzi-ma09",
+        )
         self.assertEqual(oferta["url"], "https://meli.la/2gSYwQb")
         self.assertEqual(
-            PARTNER_OFFERS_CONFIG[-1]["fallback_url"],
+            PARTNER_OFFERS_CONFIG[0]["fallback_url"],
             (
                 "https://www.mercadolivre.com.br/"
                 "tripe-basto-para-celular-ulanzi-ma09-com-controle-remoto/"
