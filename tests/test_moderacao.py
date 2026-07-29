@@ -2637,9 +2637,9 @@ class ModeracaoTestCase(unittest.TestCase):
             pagina.data,
         )
         html = pagina.data.decode("utf-8")
-        self.assertEqual(html.count('class="partner-offer-card"'), 6)
-        self.assertEqual(html.count('data-link-source="official"'), 6)
-        self.assertEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 6)
+        self.assertEqual(html.count('class="partner-offer-card"'), 7)
+        self.assertEqual(html.count('data-link-source="official"'), 7)
+        self.assertEqual(len(app_module.OFERTAS_PARCEIROS_HOME), 7)
         self.assertLess(
             html.index('id="ofertas"'), html.index('id="ofertas-parceiros"')
         )
@@ -2671,7 +2671,7 @@ class ModeracaoTestCase(unittest.TestCase):
         ofertas = app_module.OFERTAS_PARCEIROS_HOME
         urls = [oferta["url"] for oferta in ofertas]
 
-        self.assertEqual(len(ofertas), 6)
+        self.assertEqual(len(ofertas), 7)
         self.assertTrue(all(urls))
         self.assertEqual(len(set(urls)), len(urls))
 
@@ -2684,23 +2684,52 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIn(oferta["titulo"], html)
             self.assertIn(oferta["preco"], html)
 
-    def test_configuracao_centralizada_usa_seis_links_oficiais_unicos(self):
+    def test_configuracao_centralizada_usa_links_oficiais_unicos(self):
         ofertas = build_partner_offers({})
         env_keys = [config["env_key"] for config in PARTNER_OFFERS_CONFIG]
         oficiais = [config["official_url"] for config in PARTNER_OFFERS_CONFIG]
         fallbacks = [config["fallback_url"] for config in PARTNER_OFFERS_CONFIG]
         imagens = [oferta["imagem"] for oferta in ofertas]
 
-        self.assertEqual(len(ofertas), 6)
-        self.assertEqual(len(set(env_keys)), 6)
-        self.assertEqual(len(set(oficiais)), 6)
-        self.assertEqual(len(set(fallbacks)), 6)
+        self.assertEqual(len(ofertas), 7)
+        self.assertEqual(len(set(env_keys)), 7)
+        self.assertEqual(len(set(oficiais)), 7)
+        self.assertEqual(len(set(fallbacks)), 7)
         self.assertTrue(all(oferta["url"] for oferta in ofertas))
         self.assertTrue(all(url.startswith("https://meli.la/") for url in oficiais))
         self.assertTrue(all(oferta["link_oficial_configurado"] for oferta in ofertas))
         self.assertEqual([oferta["url"] for oferta in ofertas], oficiais)
-        self.assertEqual(len(set(imagens)), 6)
+        self.assertEqual(len(set(imagens)), 7)
         self.assertTrue(all(imagem.endswith("-premium.webp") for imagem in imagens))
+
+    def test_oferta_piloto_ulanzi_usa_link_oficial_e_aviso_de_transparencia(self):
+        ofertas = build_partner_offers({})
+        oferta = next(
+            item
+            for item in ofertas
+            if item["identificador_destino"] == "tripe-ulanzi-ma09"
+        )
+
+        self.assertEqual(oferta["url"], "https://meli.la/2gSYwQb")
+        self.assertEqual(
+            PARTNER_OFFERS_CONFIG[-1]["fallback_url"],
+            (
+                "https://www.mercadolivre.com.br/"
+                "tripe-basto-para-celular-ulanzi-ma09-com-controle-remoto/"
+                "p/MLB36175790"
+            ),
+        )
+        self.assertEqual(oferta["preco"], "Produto ainda não testado por nós")
+        self.assertTrue(oferta["link_oficial_configurado"])
+
+        html = self.client.get("/").data.decode("utf-8")
+        self.assertIn('data-affiliate-offer="tripe-ulanzi-ma09"', html)
+        self.assertIn('href="https://meli.la/2gSYwQb"', html)
+        self.assertIn("Produto ainda não testado por nós", html)
+        self.assertIn(
+            'src="/static/oferta-parceiro-07-ulanzi-ma09-premium.webp"',
+            html,
+        )
 
     def test_configuracao_centralizada_aceita_link_oficial_sem_alterar_valor(self):
         env_key = PARTNER_OFFERS_CONFIG[0]["env_key"]
@@ -2729,7 +2758,7 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.data.decode("utf-8")
         blocos = html.split('class="partner-offer-card"')[1:]
 
-        self.assertEqual(len(blocos), 6)
+        self.assertEqual(len(blocos), 7)
 
         for oferta, bloco in zip(
             app_module.OFERTAS_PARCEIROS_HOME, blocos, strict=True
@@ -3660,7 +3689,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertNotIn("home-compact-ux006a", html)
         self.assertEqual(html.count('class="home-category-card'), 10)
         self.assertEqual(html.count("data-partner-card"), 6)
-        self.assertEqual(html.count("data-affiliate-offer"), 6)
+        self.assertEqual(html.count("data-affiliate-offer"), 7)
 
     def test_patch_ux_006a_css_compacta_somente_com_feature_flag(self):
         caminho_css = os.path.join(app.static_folder, "styles.css")

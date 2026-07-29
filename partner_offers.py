@@ -71,6 +71,24 @@ PARTNER_OFFERS_CONFIG = (
         "official_url": "https://meli.la/2BrRKKT",
         "fallback_url": "https://lista.mercadolivre.com.br/eletroportateis",
     },
+    {
+        "parceiro": "mercado_livre",
+        "titulo": "Tripé para celular Ulanzi MA09",
+        "preco": "Produto ainda não testado por nós",
+        "imagem": "oferta-parceiro-07-ulanzi-ma09-premium.webp",
+        "alt": (
+            "Imagem ilustrativa de tripé para celular com controle remoto "
+            "em oferta parceira"
+        ),
+        "identificador_destino": "tripe-ulanzi-ma09",
+        "env_key": "OFERTA_PARCEIRO_07_URL",
+        "official_url": "https://meli.la/2gSYwQb",
+        "fallback_url": (
+            "https://www.mercadolivre.com.br/"
+            "tripe-basto-para-celular-ulanzi-ma09-com-controle-remoto/"
+            "p/MLB36175790"
+        ),
+    },
 )
 
 

@@ -1,5 +1,16 @@
 # CHANGELOG MASTER
 
+## 2026-07-29 - Piloto de afiliado Ulanzi MA09
+
+### Preparado para publicação
+
+- Sétima oferta parceira cadastrada na configuração centralizada da Home.
+- Link oficial do Programa de Afiliados: `https://meli.la/2gSYwQb`.
+- Etiqueta de acompanhamento: `neo01mercadocolatina`.
+- Imagem ilustrativa original, sem logotipo ou material comercial de terceiros.
+- Aviso visível de que o produto ainda não foi testado pelo Mercado Colatina.
+- Link direto do produto preservado como contingência técnica.
+
 ## 2026-07-22 - Missão 009 Compre Perto de Você
 
 ### Publicado
