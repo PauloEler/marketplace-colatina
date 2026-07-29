@@ -1,5 +1,16 @@
 # CHANGELOG MASTER
 
+## 2026-07-29 - Quinta oferta específica de afiliado
+
+### Preparado para publicação
+
+- Kit com 10 potes herméticos de vidro adicionado como quinto card da seção Ofertas de Parceiros.
+- Link oficial do Programa de Afiliados: `https://meli.la/1VhuyQ1`.
+- Etiqueta exclusiva de acompanhamento: `oferta05potesvidro`.
+- Comissão exibida no catálogo de afiliados: 12%, sujeita às regras do programa.
+- Imagem ilustrativa original, sem copiar fotografia comercial ou exibir logotipo.
+- Preço não fixado no card; o visitante confere preço e condições no parceiro.
+
 ## 2026-07-29 - Quarta oferta específica de afiliado
 
 ### Preparado para publicação

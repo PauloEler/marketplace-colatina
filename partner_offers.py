@@ -70,6 +70,22 @@ PARTNER_OFFERS_CONFIG = (
     },
     {
         "parceiro": "mercado_livre",
+        "titulo": "Kit 10 Potes Herméticos de Vidro",
+        "preco": "Veja preço e condições no site parceiro",
+        "imagem": "oferta-parceiro-11-potes-vidro-premium.webp",
+        "alt": "Imagem ilustrativa de potes herméticos de vidro para alimentos",
+        "identificador_destino": "kit-potes-vidro-hermeticos",
+        "env_key": "OFERTA_PARCEIRO_11_URL",
+        "official_url": "https://meli.la/1VhuyQ1",
+        "fallback_url": (
+            "https://www.mercadolivre.com.br/"
+            "kit-10-potes-hermeticos-vidro-640ml-starhouse-marmita-forno-"
+            "micro-ondas-airfryer-com-4-travas-de-super-vedacao/"
+            "p/MLB53222689"
+        ),
+    },
+    {
+        "parceiro": "mercado_livre",
         "titulo": "Celulares e acessórios",
         "preco": "A partir de R$ 49,90",
         "imagem": "oferta-parceiro-01-premium.webp",
