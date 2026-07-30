@@ -709,6 +709,12 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("files: [file]", script)
         self.assertIn("downloadBanner", script)
 
+        self.autenticar_sessao(self.admin_id, admin=True)
+        painel = self.client.get("/admin")
+        self.assertIn('href="/divulgue"'.encode(), painel.data)
+        self.assertIn("Divulgar o site".encode(), painel.data)
+        self.assertIn("compartilhe esse crescimento".encode(), painel.data)
+
     def test_dono_visualiza_cta_de_compra_desabilitado_com_motivo(self):
         self.autenticar_sessao(self.vendedor_id)
         pagina = self.client.get(f"/anuncio/{self.anuncio_id}")
