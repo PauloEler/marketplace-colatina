@@ -1281,6 +1281,32 @@ class ModeracaoTestCase(unittest.TestCase):
         busca = self.client.get("/?q=Centro")
         self.assertIn("Mesa de madeira".encode(), busca.data)
 
+    def test_busca_ignora_acentos_caixa_pontuacao_e_ordem_das_palavras(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE anuncios SET titulo=?, descricao=? WHERE id=?",
+                (
+                    "Rádio portátil clássico",
+                    "Aparelho de som em ótimo estado.",
+                    self.anuncio_id,
+                ),
+            )
+            db.commit()
+
+        for consulta in ("radio", "RADIO", "portatil-radio", "classico radio"):
+            with self.subTest(consulta=consulta):
+                resposta = self.client.get("/", query_string={"q": consulta})
+                self.assertEqual(resposta.status_code, 200)
+                self.assertIn(
+                    "Rádio portátil clássico", resposta.get_data(as_text=True)
+                )
+
+        sem_correspondencia = self.client.get("/", query_string={"q": "televisao"})
+        self.assertNotIn(
+            "Rádio portátil clássico", sem_correspondencia.get_data(as_text=True)
+        )
+
     def test_contato_do_anuncio_e_registrado(self):
         self.autenticar_sessao(self.comprador_id)
         resposta = self.client.get(f"/anuncio/{self.anuncio_id}/contato")

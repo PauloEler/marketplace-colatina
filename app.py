@@ -392,7 +392,13 @@ def slug_loja(nome):
 def normalizar_busca_loja(texto):
     texto = unicodedata.normalize("NFKD", texto or "")
     texto = texto.encode("ascii", "ignore").decode("ascii").lower()
-    return re.sub(r"\s+", " ", texto).strip()
+    return re.sub(r"[^a-z0-9]+", " ", texto).strip()
+
+
+def corresponde_busca(texto, busca):
+    conteudo = normalizar_busca_loja(texto)
+    termos = normalizar_busca_loja(busca).split()
+    return bool(termos) and all(termo in conteudo for termo in termos)
 
 
 def url_publica(endpoint, **valores):
@@ -1249,20 +1255,31 @@ def index():
         "WHERE a.ativo = 1 AND a.estoque > 0"
     )
     params = []
-    if busca:
-        query += (
-            " AND (LOWER(COALESCE(a.titulo, '')) LIKE LOWER(?) "
-            "OR LOWER(COALESCE(a.descricao, '')) LIKE LOWER(?) "
-            "OR LOWER(COALESCE(a.bairro, '')) LIKE LOWER(?))"
-        )
-        params += [f"%{busca}%", f"%{busca}%", f"%{busca}%"]
     if categoria:
         aliases = CATEGORIA_ALIASES[categoria]
         marcadores = ",".join("?" for _ in aliases)
         query += f" AND a.categoria IN ({marcadores})"
         params.extend(aliases)
     query += " ORDER BY a.criado_em DESC"
-    anuncios = db.execute(query, params).fetchall()
+    anuncios = list(db.execute(query, params).fetchall())
+    if busca:
+        anuncios = [
+            anuncio
+            for anuncio in anuncios
+            if corresponde_busca(
+                " ".join(
+                    (
+                        anuncio["titulo"] or "",
+                        anuncio["descricao"] or "",
+                        anuncio["bairro"] or "",
+                        categoria_label(anuncio["categoria"]),
+                        anuncio["vendedor_nome"] or "",
+                        anuncio["loja_nome"] or "",
+                    )
+                ),
+                busca,
+            )
+        ]
 
     lojas_linhas = db.execute(
         "WITH catalogo AS ("
@@ -1580,15 +1597,15 @@ def loja_publica(loja_id, slug):
     preco_maximo = (
         preco_decimal(preco_maximo_normalizado) if preco_maximo_normalizado else None
     )
-    termo_busca = normalizar_busca_loja(busca)
-
     anuncios = list(anuncios_ativos)
-    if termo_busca:
+    if busca:
         anuncios = [
             anuncio
             for anuncio in anuncios
-            if termo_busca
-            in normalizar_busca_loja(f"{anuncio['titulo']} {anuncio['descricao']}")
+            if corresponde_busca(
+                f"{anuncio['titulo']} {anuncio['descricao']} {anuncio['bairro']}",
+                busca,
+            )
         ]
     if categoria:
         anuncios = [
