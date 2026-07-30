@@ -1738,6 +1738,19 @@ def anuncio(anuncio_id):
     produto_imagem_tipo = tipo_imagem_social(produto_imagem)
     produto_imagem_largura = 1200 if "res.cloudinary.com" in produto_imagem else None
     produto_imagem_altura = 630 if produto_imagem_largura else None
+    total_curtidas = db.execute(
+        "SELECT COUNT(*) FROM favoritos WHERE anuncio_id=?",
+        (anuncio_id,),
+    ).fetchone()[0]
+    curtido_pelo_usuario = False
+    if logado():
+        curtido_pelo_usuario = (
+            db.execute(
+                "SELECT 1 FROM favoritos WHERE usuario_id=? AND anuncio_id=?",
+                (session["usuario_id"], anuncio_id),
+            ).fetchone()
+            is not None
+        )
     return render_template(
         "anuncio.html",
         a=anuncio_item,
@@ -1750,7 +1763,66 @@ def anuncio(anuncio_id):
         produto_imagem_tipo=produto_imagem_tipo,
         produto_imagem_largura=produto_imagem_largura,
         produto_imagem_altura=produto_imagem_altura,
+        total_curtidas=total_curtidas,
+        curtido_pelo_usuario=curtido_pelo_usuario,
     )
+
+
+@app.route("/anuncio/<int:anuncio_id>/curtir", methods=["POST"])
+def alternar_curtida(anuncio_id):
+    if not logado():
+        flash("Entre na sua conta para curtir produtos.", "erro")
+        return redirect(url_for("login"))
+
+    db = get_db()
+    anuncio_item = db.execute(
+        "SELECT id FROM anuncios WHERE id=? AND ativo=1 AND estoque>0",
+        (anuncio_id,),
+    ).fetchone()
+    if not anuncio_item:
+        abort(404)
+
+    favorito = db.execute(
+        "SELECT 1 FROM favoritos WHERE usuario_id=? AND anuncio_id=?",
+        (session["usuario_id"], anuncio_id),
+    ).fetchone()
+    if favorito:
+        db.execute(
+            "DELETE FROM favoritos WHERE usuario_id=? AND anuncio_id=?",
+            (session["usuario_id"], anuncio_id),
+        )
+        flash("Produto removido dos seus curtidos.", "sucesso")
+    else:
+        db.execute(
+            "INSERT INTO favoritos (usuario_id, anuncio_id) VALUES (?,?)",
+            (session["usuario_id"], anuncio_id),
+        )
+        flash("Produto adicionado aos seus curtidos.", "sucesso")
+    db.commit()
+    return redirect(url_for("anuncio", anuncio_id=anuncio_id))
+
+
+@app.route("/curtidos")
+def curtidos():
+    if not logado():
+        flash("Entre na sua conta para ver seus produtos curtidos.", "erro")
+        return redirect(url_for("login"))
+
+    anuncios_curtidos = (
+        get_db()
+        .execute(
+            "SELECT a.*, u.nome AS vendedor_nome, u.loja_nome, "
+            "f.criado_em AS curtido_em "
+            "FROM favoritos f "
+            "JOIN anuncios a ON a.id=f.anuncio_id "
+            "JOIN usuarios u ON u.id=a.usuario_id "
+            "WHERE f.usuario_id=? AND a.ativo=1 AND a.estoque>0 AND u.ativo=1 "
+            "ORDER BY f.criado_em DESC, a.id DESC",
+            (session["usuario_id"],),
+        )
+        .fetchall()
+    )
+    return render_template("curtidos.html", anuncios=anuncios_curtidos)
 
 
 @app.route("/anuncio/<int:anuncio_id>/contato")

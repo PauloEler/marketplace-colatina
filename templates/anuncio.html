@@ -55,6 +55,23 @@
         <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.1 12a10.8 10.8 0 0 1 19.8 0 10.8 10.8 0 0 1-19.8 0Z"/><circle cx="12" cy="12" r="3"/></svg>
         <span>{{ a.visualizacoes }} {{ 'visualização' if a.visualizacoes == 1 else 'visualizações' }}</span>
       </li>
+      <li class="product-like-fact">
+        {% if session.get('usuario_id') %}
+        <form method="POST" action="{{ url_for('alternar_curtida', anuncio_id=a.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="product-like-button{% if curtido_pelo_usuario %} is-liked{% endif %}" type="submit" aria-pressed="{{ 'true' if curtido_pelo_usuario else 'false' }}">
+            <svg class="mc-icon" viewBox="0 0 24 24" fill="{{ 'currentColor' if curtido_pelo_usuario else 'none' }}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
+            {{ 'Curtido' if curtido_pelo_usuario else 'Curtir' }}
+          </button>
+        </form>
+        {% else %}
+        <a class="product-like-button" href="{{ url_for('login') }}">
+          <svg class="mc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>
+          Curtir
+        </a>
+        {% endif %}
+        <span class="product-like-count">{{ total_curtidas }} {{ 'curtida' if total_curtidas == 1 else 'curtidas' }}</span>
+      </li>
     </ul>
   </header>
 

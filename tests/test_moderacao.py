@@ -90,6 +90,7 @@ class ModeracaoTestCase(unittest.TestCase):
                 "comunicados",
                 "tentativas_login",
                 "anuncio_fotos",
+                "favoritos",
                 "denuncias",
                 "pedido_eventos",
                 "pedidos",
@@ -4926,6 +4927,77 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("@media(max-width:800px)", styles)
         self.assertIn("@media(max-width:500px)", styles)
         self.assertIn("@media(max-width:359px)", styles)
+
+    def test_comprador_pode_curtir_e_remover_curtida_do_produto(self):
+        self.autenticar_sessao(self.comprador_id)
+
+        curtir = self.client.post(
+            f"/anuncio/{self.anuncio_id}/curtir",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(curtir.status_code, 302)
+        with app.app_context():
+            db = get_db()
+            favorito = db.execute(
+                "SELECT usuario_id, anuncio_id FROM favoritos "
+                "WHERE usuario_id=? AND anuncio_id=?",
+                (self.comprador_id, self.anuncio_id),
+            ).fetchone()
+        self.assertIsNotNone(favorito)
+
+        detalhe = self.client.get(f"/anuncio/{self.anuncio_id}")
+        self.assertIn("Curtido", detalhe.get_data(as_text=True))
+        self.assertIn("1 curtida", detalhe.get_data(as_text=True))
+
+        remover = self.client.post(
+            f"/anuncio/{self.anuncio_id}/curtir",
+            data={"csrf_token": "token-teste"},
+        )
+        self.assertEqual(remover.status_code, 302)
+        with app.app_context():
+            total = (
+                get_db()
+                .execute(
+                    "SELECT COUNT(*) FROM favoritos "
+                    "WHERE usuario_id=? AND anuncio_id=?",
+                    (self.comprador_id, self.anuncio_id),
+                )
+                .fetchone()[0]
+            )
+        self.assertEqual(total, 0)
+
+    def test_pagina_curtidos_isola_produtos_por_usuario(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "INSERT INTO favoritos (usuario_id, anuncio_id) VALUES (?,?)",
+                (self.comprador_id, self.anuncio_id),
+            )
+            db.commit()
+
+        self.autenticar_sessao(self.comprador_id)
+        pagina_comprador = self.client.get("/curtidos")
+        self.assertEqual(pagina_comprador.status_code, 200)
+        self.assertIn("Bicicleta aro 29", pagina_comprador.get_data(as_text=True))
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        pagina_admin = self.client.get("/curtidos")
+        self.assertEqual(pagina_admin.status_code, 200)
+        self.assertNotIn("Bicicleta aro 29", pagina_admin.get_data(as_text=True))
+
+    def test_curtida_exige_login_e_csrf(self):
+        sem_login = self.client.post(
+            f"/anuncio/{self.anuncio_id}/curtir",
+            data={"csrf_token": "qualquer"},
+        )
+        self.assertEqual(sem_login.status_code, 302)
+
+        self.autenticar_sessao(self.comprador_id)
+        sem_csrf = self.client.post(f"/anuncio/{self.anuncio_id}/curtir")
+        self.assertEqual(sem_csrf.status_code, 302)
+        with app.app_context():
+            total = get_db().execute("SELECT COUNT(*) FROM favoritos").fetchone()[0]
+        self.assertEqual(total, 0)
 
     def test_formulario_sem_csrf_nao_altera_dados(self):
         self.autenticar_sessao(self.comprador_id)
