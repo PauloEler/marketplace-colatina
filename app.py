@@ -1428,18 +1428,17 @@ def pagina_divulgue():
     imagem_banner = url_publica(
         "static", filename="campaigns/banner-site-whatsapp-v1.png"
     )
-    mensagem = (
+    mensagem_compartilhamento = (
         "Colatina em um só lugar!\n"
         "Compre, venda e encontre empresas e serviços locais "
         "no Mercado Colatina.\n"
-        "Conheça e compartilhe:"
+        f"Conheça e compartilhe:\n{pagina_url}"
     )
-    whatsapp_url = f"https://wa.me/?text={quote(f'{mensagem}\n{pagina_url}')}"
     return render_template(
         "divulgue.html",
         pagina_url=pagina_url,
         imagem_banner=imagem_banner,
-        whatsapp_url=whatsapp_url,
+        mensagem_compartilhamento=mensagem_compartilhamento,
     )
 
 

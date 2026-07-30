@@ -679,11 +679,22 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("campaigns/banner-site-whatsapp-v1.png", html)
         self.assertIn('property="og:image:width" content="1254"', html)
         self.assertIn('property="og:image:height" content="1254"', html)
-        self.assertIn("https://wa.me/?text=", html)
-        self.assertIn("Compartilhar no WhatsApp", html)
+        self.assertIn("share-site-banner.js", html)
+        self.assertIn("data-share-site-banner", html)
+        self.assertIn("Compartilhar imagem + link", html)
         self.assertIn("Baixar o banner", html)
         self.assertIn("Entrar no Mercado Colatina", html)
         self.assertIn("pagina_divulgue", app.view_functions)
+
+        with open(
+            os.path.join(app.root_path, "static", "share-site-banner.js"),
+            encoding="utf-8",
+        ) as arquivo_script:
+            script = arquivo_script.read()
+        self.assertIn("navigator.canShare({ files: [file] })", script)
+        self.assertIn("navigator.share(shareData)", script)
+        self.assertIn("files: [file]", script)
+        self.assertIn("downloadBanner", script)
 
     def test_dono_visualiza_cta_de_compra_desabilitado_com_motivo(self):
         self.autenticar_sessao(self.vendedor_id)
