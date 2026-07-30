@@ -5571,6 +5571,26 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   font-size:clamp(1rem,1.5vw,1.2rem);
   line-height:1.6;
 }
+.campaign-growth-proof{
+  display:inline-flex;
+  align-items:baseline;
+  gap:10px;
+  margin-top:20px;
+  padding:12px 18px;
+  border:1px solid #b9dac8;
+  border-radius:999px;
+  background:#fff;
+  color:#274a38;
+  box-shadow:0 8px 22px rgba(21,95,59,.1);
+}
+.campaign-growth-proof strong{
+  color:#155f3b;
+  font-size:clamp(1.5rem,3vw,2.25rem);
+  line-height:1;
+}
+.campaign-growth-proof span{
+  font-weight:700;
+}
 .campaign-cellphones-actions{
   display:flex;
   flex-wrap:wrap;
@@ -5658,5 +5678,10 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .campaign-cellphones-products .btn{
     width:100%;
     justify-content:center;
+  }
+  .campaign-growth-proof{
+    width:100%;
+    justify-content:center;
+    border-radius:18px;
   }
 }
