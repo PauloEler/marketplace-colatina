@@ -6,6 +6,14 @@
 {% block content %}
 <h2 style="margin-bottom:22px">Painel admin</h2>
 
+<section class="admin-email-tools" aria-label="Divulgação do Mercado Colatina">
+  <div>
+    <strong>Divulgar o Mercado Colatina</strong>
+    <span>{{ total_acessos_formatado }} visita{{ '' if total_acessos == 1 else 's' }} ao site — compartilhe esse crescimento</span>
+  </div>
+  <a class="btn btn-verde" href="{{ url_for('pagina_divulgue') }}">Divulgar o site</a>
+</section>
+
 <section class="admin-email-tools" aria-label="Ferramentas de e-mail">
   <div>
     <strong>Alertas por e-mail</strong>
