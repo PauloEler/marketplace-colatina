@@ -671,6 +671,16 @@ class ModeracaoTestCase(unittest.TestCase):
             self.assertIn(estado, css)
 
     def test_pagina_divulgue_site_tem_banner_download_e_whatsapp(self):
+        with app.app_context():
+            db = get_db()
+            db.execute(
+                "UPDATE estatisticas SET valor=? WHERE chave=?",
+                (1234, "acessos_site"),
+            )
+            db.commit()
+        with self.client.session_transaction() as sessao:
+            sessao["_visita_registrada"] = True
+
         pagina = self.client.get("/divulgue")
         html = pagina.data.decode("utf-8")
 
@@ -684,6 +694,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Compartilhar imagem + link", html)
         self.assertIn("Baixar o banner", html)
         self.assertIn("Entrar no Mercado Colatina", html)
+        self.assertIn("1.234", html)
+        self.assertIn("visitas ao site", html)
+        self.assertIn("continuamos crescendo", html)
         self.assertIn("pagina_divulgue", app.view_functions)
 
         with open(

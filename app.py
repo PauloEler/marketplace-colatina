@@ -1105,8 +1105,7 @@ def registrar_acesso_publico():
     session["_visita_registrada"] = True
 
 
-@app.context_processor
-def fornecer_total_acessos():
+def consultar_total_acessos():
     try:
         linha = (
             get_db()
@@ -1120,10 +1119,15 @@ def fornecer_total_acessos():
     except Exception:
         app.logger.exception("Falha ao consultar o contador de acessos")
         total = 0
+    return total, f"{total:,}".replace(",", ".")
 
+
+@app.context_processor
+def fornecer_total_acessos():
+    total, total_formatado = consultar_total_acessos()
     return {
         "total_acessos": total,
-        "total_acessos_formatado": f"{total:,}".replace(",", "."),
+        "total_acessos_formatado": total_formatado,
     }
 
 
@@ -1428,10 +1432,14 @@ def pagina_divulgue():
     imagem_banner = url_publica(
         "static", filename="campaigns/banner-site-whatsapp-v1.png"
     )
+    total_acessos, total_acessos_formatado = consultar_total_acessos()
+    visitas = "visita" if total_acessos == 1 else "visitas"
     mensagem_compartilhamento = (
         "Colatina em um só lugar!\n"
         "Compre, venda e encontre empresas e serviços locais "
         "no Mercado Colatina.\n"
+        f"Já são {total_acessos_formatado} {visitas} ao site — "
+        "e continuamos crescendo!\n"
         f"Conheça e compartilhe:\n{pagina_url}"
     )
     return render_template(
