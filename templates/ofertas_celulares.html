@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Celulares novos em Colatina | Mercado Colatina{% endblock %}
+{% block meta_description %}Moto G04 e Moto E13 novos disponíveis em Colatina. Veja fotos, preços e detalhes no Mercado Colatina.{% endblock %}
+{% block og_title %}Dois celulares novos em Colatina | Mercado Colatina{% endblock %}
+{% block og_description %}Moto G04 por R$ 799 e Moto E13 por R$ 1.199. Só uma unidade de cada. Confira as ofertas locais.{% endblock %}
+{% block social_meta %}
+<meta property="og:url" content="{{ pagina_url }}">
+<meta property="og:image" content="{{ imagem_social }}">
+<meta property="og:image:secure_url" content="{{ imagem_social }}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1254">
+<meta property="og:image:height" content="1254">
+<meta property="og:image:alt" content="Moto G04 e Moto E13 disponíveis no Mercado Colatina">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dois celulares novos em Colatina">
+<meta name="twitter:description" content="Moto G04 por R$ 799 e Moto E13 por R$ 1.199. Só uma unidade de cada.">
+<meta name="twitter:image" content="{{ imagem_social }}">
+{% endblock %}
+{% block head_extra %}<link rel="canonical" href="{{ pagina_url }}">{% endblock %}
+{% block body_class %}campaign-cellphones{% endblock %}
+
+{% block content %}
+<div class="campaign-cellphones-main">
+  <section class="campaign-cellphones-hero" aria-labelledby="campaign-cellphones-title">
+    <div class="campaign-cellphones-copy">
+      <span class="campaign-cellphones-kicker">Oferta local · Topa Tudo Colatinense</span>
+      <h1 id="campaign-cellphones-title">Dois celulares novos em Colatina</h1>
+      <p>Veja as fotos reais, escolha o aparelho e fale diretamente com a loja. Há somente uma unidade de cada.</p>
+      <div class="campaign-cellphones-actions">
+        <a class="btn product-primary-action" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+        <a class="btn btn-cinza" href="{{ url_for('static', filename='campaigns/ofertas-celulares-status.png') }}" download>Baixar banner para Status</a>
+        <a class="btn btn-cinza" href="/">Ver o Mercado Colatina</a>
+      </div>
+    </div>
+    <img
+      class="campaign-cellphones-banner"
+      src="{{ imagem_social }}"
+      alt="Moto G04 por R$ 799 e Moto E13 por R$ 1.199"
+      width="1254"
+      height="1254"
+      decoding="async"
+    >
+  </section>
+
+  <section class="campaign-cellphones-products" aria-label="Celulares disponíveis">
+    <article>
+      <span>Novo · 1 unidade</span>
+      <h2>Moto G04</h2>
+      <p>128 GB · 4 GB RAM · Grafite</p>
+      <strong>R$ 799</strong>
+      <a class="btn product-primary-action" href="/anuncio/21">Ver fotos e detalhes</a>
+    </article>
+    <article>
+      <span>Novo · 1 unidade</span>
+      <h2>Moto E13</h2>
+      <p>128 GB · 8 GB RAM · Cosmic Black</p>
+      <strong>R$ 1.199</strong>
+      <a class="btn product-primary-action" href="/anuncio/22">Ver fotos e detalhes</a>
+    </article>
+  </section>
+</div>
+{% endblock %}

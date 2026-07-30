@@ -618,6 +618,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn('data-share-action="whatsapp-business"', html)
         self.assertIn('data-share-action="native"', html)
         self.assertIn('data-share-action="copy"', html)
+        self.assertIn('property="og:image:secure_url"', html)
+        self.assertIn('property="og:image:type"', html)
+        self.assertIn("Veja as fotos e os detalhes:", html)
         self.assertIn(
             f'<link rel="canonical" href="http://localhost/anuncio/{self.anuncio_id}">',
             html,
@@ -631,6 +634,29 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         posicoes = [html.index(marcador) for marcador in marcadores]
         self.assertEqual(posicoes, sorted(posicoes))
+
+    def test_imagem_cloudinary_para_whatsapp_usa_jpeg_1200_por_630(self):
+        imagem = app_module.foto_compartilhamento_url(
+            "https://res.cloudinary.com/demo/image/upload/v1/produto.png"
+        )
+
+        self.assertIn("/upload/f_jpg,q_auto:good,c_pad,w_1200,h_630,b_white/", imagem)
+        self.assertEqual(app_module.tipo_imagem_social(imagem), "image/jpeg")
+
+    def test_pagina_divulgacao_celulares_tem_banner_links_e_whatsapp(self):
+        pagina = self.client.get("/ofertas/celulares-colatina")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Dois celulares novos em Colatina", html)
+        self.assertIn("campaigns/ofertas-celulares-social.png", html)
+        self.assertIn('property="og:image:width" content="1254"', html)
+        self.assertIn('property="og:image:height" content="1254"', html)
+        self.assertIn("https://wa.me/?text=", html)
+        self.assertIn("campaigns/ofertas-celulares-status.png", html)
+        self.assertIn("Baixar banner para Status", html)
+        self.assertIn('href="/anuncio/21"', html)
+        self.assertIn('href="/anuncio/22"', html)
 
         with open(
             os.path.join(app.root_path, "static", "styles.css"), encoding="utf-8"
