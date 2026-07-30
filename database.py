@@ -148,6 +148,16 @@ def _init_sqlite():
             criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
         );
+        CREATE TABLE IF NOT EXISTS favoritos (
+            usuario_id INTEGER NOT NULL,
+            anuncio_id INTEGER NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (usuario_id, anuncio_id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_favoritos_anuncio
+            ON favoritos(anuncio_id, criado_em);
         CREATE TABLE IF NOT EXISTS pagamentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INTEGER NOT NULL,
@@ -557,6 +567,22 @@ def _init_pg():
         "ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS estoque INTEGER NOT NULL DEFAULT 1"
     )
     db.execute("ALTER TABLE anuncios ADD COLUMN IF NOT EXISTS excluido_em TIMESTAMP")
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS favoritos (
+            usuario_id INTEGER NOT NULL,
+            anuncio_id INTEGER NOT NULL,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (usuario_id, anuncio_id),
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+            FOREIGN KEY (anuncio_id) REFERENCES anuncios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_favoritos_anuncio "
+        "ON favoritos(anuncio_id, criado_em)"
+    )
     db.execute(
         """
         CREATE TABLE IF NOT EXISTS pagamentos (

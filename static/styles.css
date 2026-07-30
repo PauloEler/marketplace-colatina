@@ -1613,6 +1613,59 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   color:var(--mc-success);
   font-weight:var(--mc-font-weight-semibold);
 }
+.mds-product .product-facts .product-like-fact{
+  align-items:center;
+  flex-wrap:wrap;
+}
+.mds-product .product-like-fact form{margin:0}
+.mds-product .product-like-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.45rem;
+  min-height:2.35rem;
+  padding:.45rem .85rem;
+  border:1px solid #e3b2bc;
+  border-radius:999px;
+  background:#fff7f8;
+  color:#9f2440;
+  font:inherit;
+  font-weight:800;
+  text-decoration:none;
+  cursor:pointer;
+}
+.mds-product .product-like-button:hover,
+.mds-product .product-like-button:focus-visible{
+  border-color:#bd3653;
+  background:#fff0f3;
+  outline:none;
+  box-shadow:0 0 0 3px rgba(189,54,83,.14);
+}
+.mds-product .product-like-button.is-liked{
+  border-color:#bd3653;
+  background:#bd3653;
+  color:#fff;
+}
+.mds-product .product-like-button .mc-icon{
+  width:1.15rem;
+  height:1.15rem;
+  color:inherit;
+}
+.mds-product .product-like-count{
+  color:var(--mc-text-secondary);
+  font-size:var(--mc-font-size-caption);
+  font-weight:700;
+}
+.favorites-page{display:grid;gap:1.5rem}
+.favorites-header{display:flex;align-items:end;justify-content:space-between;gap:1rem}
+.favorites-header h1{margin:0;color:var(--verde-escuro)}
+.favorites-header p{margin:.35rem 0 0;color:var(--muted)}
+.favorites-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.favorite-card{display:flex;flex-direction:column}
+.favorite-card .card-main-link{display:flex;flex:1;flex-direction:column}
+.favorite-card .card-body{display:flex;flex:1;flex-direction:column}
+.favorite-card .card-titulo{flex:1}
+.favorite-card .favorite-card-status{margin-top:.7rem;color:#9f2440;font-size:.73rem;font-weight:800}
 .mds-product .product-gallery{
   grid-area:gallery;
   display:grid;

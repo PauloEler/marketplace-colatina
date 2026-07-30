@@ -34,6 +34,7 @@
         {% if lojas_administradas|length > 1 %}<a href="/minhas-lojas">Minhas lojas</a>{% endif %}
         <a href="/painel-vendedor">Minha loja</a>
         <a href="/meus-anuncios">Meus anúncios</a>
+        <a href="/curtidos">Curtidos</a>
         <a href="/pedidos#pedidos-recebidos">Pedidos</a>
         <a href="/minha-conta">Conta</a>
         {% if session.get('is_admin') %}
@@ -65,6 +66,7 @@
           {% if lojas_administradas|length > 1 %}<a href="/minhas-lojas">Minhas lojas</a>{% endif %}
           <a href="/painel-vendedor">Minha loja</a>
           <a href="/meus-anuncios">Meus anúncios</a>
+          <a href="/curtidos">Curtidos</a>
           <a href="/pedidos#pedidos-recebidos">Pedidos</a>
           <a href="/minha-conta">Minha conta</a>
           {% if session.get('is_admin') %}
