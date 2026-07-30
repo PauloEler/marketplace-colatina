@@ -352,6 +352,33 @@ def foto_url(foto, largura=1200):
     return url_for("uploaded_file", filename=foto)
 
 
+def foto_compartilhamento_url(foto):
+    """Entrega uma imagem previsível para os robôs do WhatsApp e da Meta."""
+    if not foto:
+        return url_publica("static", filename="mercado-colatina-social.svg")
+    if foto.startswith(("http://", "https://")):
+        if "res.cloudinary.com" in foto and "/upload/" in foto:
+            transformacao = "f_jpg,q_auto:good,c_pad,w_1200,h_630,b_white"
+            return foto.replace("/upload/", f"/upload/{transformacao}/", 1)
+        return foto
+    return url_publica("uploaded_file", filename=foto)
+
+
+def tipo_imagem_social(url):
+    caminho = (url or "").split("?", 1)[0].lower()
+    if "res.cloudinary.com" in caminho and "/f_jpg," in caminho:
+        return "image/jpeg"
+    if caminho.endswith((".jpg", ".jpeg")):
+        return "image/jpeg"
+    if caminho.endswith(".webp"):
+        return "image/webp"
+    if caminho.endswith(".png"):
+        return "image/png"
+    if caminho.endswith(".svg"):
+        return "image/svg+xml"
+    return ""
+
+
 def nome_loja_publica(usuario):
     return (usuario["loja_nome"] or usuario["nome"]).strip()
 
@@ -1374,6 +1401,27 @@ def index():
     )
 
 
+@app.route("/ofertas/celulares-colatina")
+def ofertas_celulares_colatina():
+    pagina_url = url_publica("ofertas_celulares_colatina")
+    imagem_social = url_publica(
+        "static", filename="campaigns/ofertas-celulares-social.png"
+    )
+    mensagem = (
+        "📱 Dois celulares novos disponíveis em Colatina!\n"
+        "Moto G04 128 GB / 4 GB RAM por R$ 799 e "
+        "Moto E13 128 GB / 8 GB RAM por R$ 1.199.\n"
+        "Só 1 unidade de cada. Veja as fotos e os detalhes:"
+    )
+    whatsapp_url = f"https://wa.me/?text={quote(f'{mensagem}\n{pagina_url}')}"
+    return render_template(
+        "ofertas_celulares.html",
+        pagina_url=pagina_url,
+        imagem_social=imagem_social,
+        whatsapp_url=whatsapp_url,
+    )
+
+
 @app.route("/analytics/afiliados/evento", methods=["POST"])
 def registrar_evento_afiliado():
     payload = request.get_json(silent=True) or {}
@@ -1657,13 +1705,10 @@ def anuncio(anuncio_id):
         }
     )
     produto_url = url_publica("anuncio", anuncio_id=anuncio_id)
-    if anuncio_item["foto"]:
-        if anuncio_item["foto"].startswith(("http://", "https://")):
-            produto_imagem = foto_url(anuncio_item["foto"], 1200)
-        else:
-            produto_imagem = url_publica("uploaded_file", filename=anuncio_item["foto"])
-    else:
-        produto_imagem = url_publica("static", filename="mercado-colatina-social.svg")
+    produto_imagem = foto_compartilhamento_url(anuncio_item["foto"])
+    produto_imagem_tipo = tipo_imagem_social(produto_imagem)
+    produto_imagem_largura = 1200 if "res.cloudinary.com" in produto_imagem else None
+    produto_imagem_altura = 630 if produto_imagem_largura else None
     return render_template(
         "anuncio.html",
         a=anuncio_item,
@@ -1673,6 +1718,9 @@ def anuncio(anuncio_id):
         denuncia_motivos=DENUNCIA_MOTIVOS,
         produto_url=produto_url,
         produto_imagem=produto_imagem,
+        produto_imagem_tipo=produto_imagem_tipo,
+        produto_imagem_largura=produto_imagem_largura,
+        produto_imagem_altura=produto_imagem_altura,
     )
 
 
