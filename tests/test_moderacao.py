@@ -670,6 +670,21 @@ class ModeracaoTestCase(unittest.TestCase):
         ):
             self.assertIn(estado, css)
 
+    def test_pagina_divulgue_site_tem_banner_download_e_whatsapp(self):
+        pagina = self.client.get("/divulgue")
+        html = pagina.data.decode("utf-8")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Ajude o Mercado Colatina a chegar mais longe", html)
+        self.assertIn("campaigns/banner-site-whatsapp-v1.png", html)
+        self.assertIn('property="og:image:width" content="1254"', html)
+        self.assertIn('property="og:image:height" content="1254"', html)
+        self.assertIn("https://wa.me/?text=", html)
+        self.assertIn("Compartilhar no WhatsApp", html)
+        self.assertIn("Baixar o banner", html)
+        self.assertIn("Entrar no Mercado Colatina", html)
+        self.assertIn("pagina_divulgue", app.view_functions)
+
     def test_dono_visualiza_cta_de_compra_desabilitado_com_motivo(self):
         self.autenticar_sessao(self.vendedor_id)
         pagina = self.client.get(f"/anuncio/{self.anuncio_id}")

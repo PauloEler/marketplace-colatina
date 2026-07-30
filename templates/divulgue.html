@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Divulgue o Mercado Colatina{% endblock %}
+{% block meta_description %}Ajude a fortalecer o comércio local. Compartilhe o Mercado Colatina com amigos, clientes e empresas da cidade.{% endblock %}
+{% block og_title %}Colatina em um só lugar | Mercado Colatina{% endblock %}
+{% block og_description %}Compre, venda e encontre empresas e serviços locais. Conheça e compartilhe o Mercado Colatina.{% endblock %}
+{% block social_meta %}
+<meta property="og:url" content="{{ pagina_url }}">
+<meta property="og:image" content="{{ imagem_banner }}">
+<meta property="og:image:secure_url" content="{{ imagem_banner }}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1254">
+<meta property="og:image:height" content="1254">
+<meta property="og:image:alt" content="Colatina em um só lugar — Mercado Colatina">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Colatina em um só lugar">
+<meta name="twitter:description" content="Compre, venda e encontre empresas e serviços locais no Mercado Colatina.">
+<meta name="twitter:image" content="{{ imagem_banner }}">
+{% endblock %}
+{% block head_extra %}<link rel="canonical" href="{{ pagina_url }}">{% endblock %}
+{% block body_class %}campaign-share-site{% endblock %}
+
+{% block content %}
+<div class="campaign-cellphones-main">
+  <section class="campaign-cellphones-hero" aria-labelledby="share-site-title">
+    <div class="campaign-cellphones-copy">
+      <span class="campaign-cellphones-kicker">Divulgação oficial</span>
+      <h1 id="share-site-title">Ajude o Mercado Colatina a chegar mais longe</h1>
+      <p>Compartilhe com amigos, clientes e empresas. Cada novo acesso fortalece o comércio e os serviços da nossa cidade.</p>
+      <div class="campaign-cellphones-actions">
+        <a class="btn product-primary-action" href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+        <a class="btn btn-cinza" href="{{ url_for('static', filename='campaigns/banner-site-whatsapp-v1.png') }}" download>Baixar o banner</a>
+        <a class="btn btn-cinza" href="{{ url_for('index') }}">Entrar no Mercado Colatina</a>
+      </div>
+    </div>
+    <img
+      class="campaign-cellphones-banner"
+      src="{{ imagem_banner }}"
+      alt="Banner Colatina em um só lugar — Mercado Colatina"
+      width="1254"
+      height="1254"
+      decoding="async"
+    >
+  </section>
+</div>
+{% endblock %}

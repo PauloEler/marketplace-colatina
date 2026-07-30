@@ -1422,6 +1422,27 @@ def ofertas_celulares_colatina():
     )
 
 
+@app.route("/divulgue")
+def pagina_divulgue():
+    pagina_url = url_publica("pagina_divulgue")
+    imagem_banner = url_publica(
+        "static", filename="campaigns/banner-site-whatsapp-v1.png"
+    )
+    mensagem = (
+        "Colatina em um só lugar!\n"
+        "Compre, venda e encontre empresas e serviços locais "
+        "no Mercado Colatina.\n"
+        "Conheça e compartilhe:"
+    )
+    whatsapp_url = f"https://wa.me/?text={quote(f'{mensagem}\n{pagina_url}')}"
+    return render_template(
+        "divulgue.html",
+        pagina_url=pagina_url,
+        imagem_banner=imagem_banner,
+        whatsapp_url=whatsapp_url,
+    )
+
+
 @app.route("/analytics/afiliados/evento", methods=["POST"])
 def registrar_evento_afiliado():
     payload = request.get_json(silent=True) or {}
@@ -1470,6 +1491,7 @@ def sitemap():
         "encontre_quem_resolve",
         "pagina_privacidade",
         "pagina_termos",
+        "pagina_divulgue",
     ]
     urls = "".join(
         f"<url><loc>{url_for(endpoint, _external=True)}</loc></url>"
