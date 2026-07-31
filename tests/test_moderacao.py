@@ -2710,6 +2710,22 @@ class ModeracaoTestCase(unittest.TestCase):
         self.autenticar_sessao(self.admin_id, admin=True)
         self.assertEqual(self.client.get("/admin").status_code, 200)
 
+    def test_cadastro_de_anuncio_comeca_com_camera_e_galeria(self):
+        self.autenticar_sessao(self.comprador_id)
+
+        pagina = self.client.get("/criar")
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Comece pelas fotos".encode(), pagina.data)
+        self.assertIn("Tirar foto".encode(), pagina.data)
+        self.assertIn("Escolher da galeria".encode(), pagina.data)
+        self.assertIn(b'id="form-anuncio"', pagina.data)
+        self.assertIn(b'id="anuncio-camera"', pagina.data)
+        self.assertIn(b'capture="environment"', pagina.data)
+        self.assertIn(b'id="anuncio-galeria"', pagina.data)
+        self.assertEqual(pagina.data.count(b'name="fotos"'), 2)
+        self.assertEqual(pagina.data.count(b'form="form-anuncio"'), 2)
+
     def test_home_exibe_ofertas_de_parceiros_com_monetizacao_transparente(self):
         pagina = self.client.get("/")
 

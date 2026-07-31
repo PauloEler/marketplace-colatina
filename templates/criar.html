@@ -12,6 +12,27 @@
   {% if aviso %}
   <div style="background:#eef4f7;border:1px solid #b8ced9;border-radius:12px;padding:12px 14px;margin-bottom:16px">{{ aviso }}</div>
   {% endif %}
+  <section class="photo-start-card" aria-labelledby="photo-start-title">
+    <div class="photo-start-heading">
+      <span class="photo-start-icon" aria-hidden="true">📷</span>
+      <div>
+        <div class="section-kicker">Primeiro passo</div>
+        <h3 id="photo-start-title">Comece pelas fotos</h3>
+      </div>
+    </div>
+    <p>Tire uma foto agora ou escolha imagens que já estão no celular.</p>
+    <div class="photo-start-actions">
+      <label class="photo-action photo-action-camera" for="anuncio-camera">
+        <span aria-hidden="true">📷</span> Tirar foto
+      </label>
+      <label class="photo-action photo-action-gallery" for="anuncio-galeria">
+        <span aria-hidden="true">🖼️</span> Escolher da galeria
+      </label>
+    </div>
+    <input class="photo-file-input" id="anuncio-camera" type="file" name="fotos" accept="image/*" capture="environment" form="form-anuncio">
+    <input class="photo-file-input" id="anuncio-galeria" type="file" name="fotos" accept=".jpg,.jpeg,.png,.webp" multiple form="form-anuncio">
+    <small id="photo-selection-status" class="photo-selection-status" aria-live="polite">Até 5 fotos. A primeira será a capa do anúncio.</small>
+  </section>
   {% if neo_configurado() %}
   <section class="neo-card" aria-labelledby="neo-title">
     <div class="neo-brand"><span>N</span><div><div class="section-kicker">Assistente de IA</div><h3 id="neo-title">Crie o rascunho com o Neo</h3></div></div>
@@ -26,7 +47,7 @@
   </section>
   {% endif %}
   <div class="form-box">
-    <form method="POST" enctype="multipart/form-data">
+    <form id="form-anuncio" method="POST" enctype="multipart/form-data">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="form-grupo">
         <label for="anuncio-titulo">Título do produto</label>
@@ -61,13 +82,35 @@
         <label for="anuncio-bairro">Bairro em Colatina</label>
         <input id="anuncio-bairro" type="text" name="bairro" required minlength="2" maxlength="60" placeholder="Ex.: Centro">
       </div>
-      <div class="form-grupo">
-        <label for="anuncio-fotos">Fotos (até 5, máx. 5 MB no total)</label>
-        <input id="anuncio-fotos" type="file" name="fotos" accept=".jpg,.jpeg,.png,.webp" multiple>
-        <small>A primeira foto será usada como capa do anúncio.</small>
-      </div>
       <button class="btn btn-verde" type="submit" style="width:100%">Publicar anúncio</button>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const camera = document.getElementById('anuncio-camera');
+  const gallery = document.getElementById('anuncio-galeria');
+  const status = document.getElementById('photo-selection-status');
+  if (!camera || !gallery || !status) return;
+
+  const updateStatus = () => {
+    const total = camera.files.length + gallery.files.length;
+    if (!total) {
+      status.textContent = 'Até 5 fotos. A primeira será a capa do anúncio.';
+      status.classList.remove('photo-selection-warning');
+      return;
+    }
+    status.textContent = total > 5
+      ? `${total} fotos selecionadas. Escolha no máximo 5.`
+      : `${total} foto${total === 1 ? '' : 's'} selecionada${total === 1 ? '' : 's'}.`;
+    status.classList.toggle('photo-selection-warning', total > 5);
+  };
+
+  camera.addEventListener('change', updateStatus);
+  gallery.addEventListener('change', updateStatus);
+})();
+</script>
 {% endblock %}
