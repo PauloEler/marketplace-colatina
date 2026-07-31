@@ -3297,9 +3297,14 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn('placeholder="Ex.: celular, sofá ou eletricista"', html)
         self.assertIn("Encontrar agora", html)
         self.assertIn('class="home-solver-strip"', html)
-        self.assertIn('id="home-solver-title">Encontre Quem Resolve</h2>', html)
+        self.assertIn(
+            'id="home-solver-title">Encontre quem resolve — ou ofereça seu serviço</h2>',
+            html,
+        )
         self.assertIn('href="/encontre-quem-resolve"', html)
-        self.assertIn("Descrever minha necessidade", html)
+        self.assertIn("Preciso de um serviço", html)
+        self.assertIn("Quero oferecer um serviço", html)
+        self.assertIn('href="/quem-resolve"', html)
         self.assertIn("data-ux005c-categories", html)
         self.assertLess(
             html.index("data-ux005c-search"), html.index("home-solver-strip")
@@ -3469,11 +3474,13 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("home-city-balloon-ux007a", html)
         self.assertIn("data-city-balloon-layout", html)
         self.assertIn("data-city-balloon", html)
-        self.assertIn("O que você precisa hoje?", html)
-        self.assertIn('href="#home-stores-title"', html)
-        self.assertIn('href="#ofertas"', html)
+        self.assertIn("O que você precisa ou oferece hoje?", html)
+        self.assertIn("Serviços da Cidade", html)
+        self.assertIn("Preciso de um serviço", html)
+        self.assertIn("Ofereço um serviço", html)
         self.assertIn('href="/encontre-quem-resolve"', html)
-        self.assertIn('href="#ofertas-parceiros"', html)
+        self.assertIn('href="/quem-resolve"', html)
+        self.assertNotIn("Ver Cidade Viva", html)
         self.assertLess(
             html.index("data-home-city-movement"),
             html.index('<aside class="home-city-balloon"'),
@@ -3522,7 +3529,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("home-city-balloon-ux007a", html)
         self.assertNotIn("home-finish-ux007b", html)
         self.assertNotIn("data-city-balloon-phrases", html)
-        self.assertIn("O que voc\u00ea precisa hoje?", html)
+        self.assertIn("O que voc\u00ea precisa ou oferece hoje?", html)
 
     def test_patch_ux_007b_aplica_acabamento_e_frases_reais(self):
         with (
@@ -3537,11 +3544,11 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("home-finish-007b.js", html)
         self.assertIn("data-city-balloon-message", html)
         self.assertIn("data-city-balloon-phrases", html)
-        self.assertIn("O que voc\u00ea procura hoje?", html)
+        self.assertIn("O que voc\u00ea precisa ou oferece hoje?", html)
         self.assertIn("Precisa de um eletricista?", html)
-        self.assertIn("Descubra empresas locais.", html)
-        self.assertIn("Veja as ofertas do dia.", html)
-        self.assertIn("Publique sua necessidade.", html)
+        self.assertIn("Quer oferecer seu servi\u00e7o?", html)
+        self.assertIn("Encontre profissionais locais.", html)
+        self.assertIn("Veja pedidos da cidade.", html)
         self.assertIn("home-footer-suggestion", html)
 
     def test_patch_ux_007b_depende_do_balao_007a(self):
@@ -4198,11 +4205,13 @@ class ModeracaoTestCase(unittest.TestCase):
         pagina = self.client.get("/encontre-quem-resolve")
         self.assertEqual(pagina.status_code, 200)
         html = pagina.get_data(as_text=True)
-        self.assertIn("O que você precisa resolver?", html)
+        self.assertIn("O que você precisa — ou o que você oferece?", html)
         self.assertEqual(html.count("data-service-step="), 4)
         self.assertIn('maxlength="500"', html)
         self.assertNotIn('name="categoria"', html)
-        self.assertIn("Sou empresa e quero ajudar", html)
+        self.assertIn("Preciso de um serviço", html)
+        self.assertIn("Quero oferecer um serviço", html)
+        self.assertIn('id="pedido-servico"', html)
 
         sitemap = self.client.get("/sitemap.xml").get_data(as_text=True)
         self.assertIn("/encontre-quem-resolve", sitemap)

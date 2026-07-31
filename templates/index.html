@@ -153,14 +153,17 @@
     <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5-5L7.6 3.4l3 3 2.1-2.1a4 4 0 0 0 2 2Z"></path><path d="m5 8-3 3 10 10 3-3"></path><path d="m14 14 6-6"></path><path d="m17 5 2 2"></path></svg>
   </span>
   <div class="home-solver-copy">
-    <span>Precisa de um serviço?</span>
-    <h2 id="home-solver-title">Encontre Quem Resolve</h2>
-    <p>Descreva o problema e aproxime-se de empresas locais.</p>
+    <span>Serviços em Colatina</span>
+    <h2 id="home-solver-title">Encontre quem resolve — ou ofereça seu serviço</h2>
+    <p>Diga do que precisa ou encontre pedidos de moradores e empresas da cidade.</p>
   </div>
-  <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">
-    Descrever minha necessidade
-    <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
-  </a>
+  <div class="home-solver-actions" aria-label="Escolha como usar os serviços locais">
+    <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">
+      Preciso de um serviço
+      <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+    </a>
+    <a class="btn home-solver-button home-solver-button-secondary" href="{{ url_for('painel_quem_resolve') }}">Quero oferecer um serviço</a>
+  </div>
 </section>
 {% endif %}
 {% endif %}
@@ -219,25 +222,29 @@
   <div class="home-city-balloon-heading">
     <span class="home-city-balloon-symbol" aria-hidden="true">💬</span>
     <div>
-      <span>Balão da Cidade</span>
-      <h2 id="home-city-balloon-title"{% if home_finish_007b_enabled %} data-city-balloon-message{% endif %}>{% if home_finish_007b_enabled %}O que você procura hoje?{% else %}O que você precisa hoje?{% endif %}</h2>
+      <span>Serviços da Cidade</span>
+      <h2 id="home-city-balloon-title"{% if home_finish_007b_enabled %} data-city-balloon-message{% endif %}>O que você precisa ou oferece hoje?</h2>
     </div>
   </div>
   {% if home_finish_007b_enabled %}
   <ul class="home-city-balloon-phrases" data-city-balloon-phrases hidden>
-    <li>O que você procura hoje?</li>
+    <li>O que você precisa ou oferece hoje?</li>
     <li>Precisa de um eletricista?</li>
-    <li>Descubra empresas locais.</li>
-    <li>Veja as ofertas do dia.</li>
-    <li>Publique sua necessidade.</li>
+    <li>Quer oferecer seu serviço?</li>
+    <li>Encontre profissionais locais.</li>
+    <li>Veja pedidos da cidade.</li>
   </ul>
   {% endif %}
-  <nav aria-label="Atalhos úteis da cidade">
-    <a href="#home-stores-title">Encontrar uma empresa</a>
-    <a href="#ofertas">Comprar um produto</a>
-    <a href="{{ url_for('encontre_quem_resolve') }}">Publicar uma necessidade</a>
-    <a href="#ofertas-parceiros">Ver ofertas locais</a>
-  </nav>
+  <div class="home-city-balloon-service-choices" aria-label="Serviços em Colatina">
+    <a href="{{ url_for('encontre_quem_resolve') }}">
+      <strong>Preciso de um serviço</strong>
+      <span>Conte o que precisa resolver</span>
+    </a>
+    <a href="{{ url_for('painel_quem_resolve') }}">
+      <strong>Ofereço um serviço</strong>
+      <span>Veja pedidos e oportunidades</span>
+    </a>
+  </div>
   {% if metricas_cidade %}
   <div class="home-city-balloon-proof" aria-label="Dados reais da plataforma">
     {% for metrica in metricas_cidade[:2] %}
@@ -245,10 +252,6 @@
     {% endfor %}
   </div>
   {% endif %}
-  <div class="home-city-balloon-actions">
-    <a class="home-city-balloon-primary" href="{{ url_for('encontre_quem_resolve') }}">Encontre Quem Resolve</a>
-    <a class="home-city-balloon-secondary" href="#home-city-movement-title">Ver Cidade Viva</a>
-  </div>
 </aside>
 </div>
 {% endif %}

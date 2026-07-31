@@ -5744,3 +5744,83 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
     border-radius:18px;
   }
 }
+
+/* Servicos locais: dois caminhos claros para quem precisa e para quem oferece. */
+.home-official .home-solver-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.55rem;
+  min-width:min(30rem,44vw);
+}
+.home-official .home-solver-actions .home-solver-button{
+  min-width:0;
+  padding:.7rem 1rem;
+  white-space:normal;
+  text-align:center;
+}
+.home-official .home-solver-button-secondary{
+  border:1px solid var(--ho-forest);
+  background:#fff;
+  color:var(--ho-forest-deep);
+}
+.home-official .home-solver-button-secondary:hover{
+  background:#e7f1ea;
+  color:var(--ho-forest-deep);
+}
+.home-city-balloon-ux007a .home-city-balloon-service-choices{
+  display:grid;
+  gap:.5rem;
+  position:relative;
+  z-index:1;
+}
+.home-city-balloon-ux007a .home-city-balloon-service-choices a{
+  display:grid;
+  gap:.15rem;
+  min-height:58px;
+  padding:.65rem .75rem;
+  border:1px solid rgba(21,95,59,.22);
+  border-radius:.8rem;
+  background:rgba(255,255,255,.76);
+  color:var(--ho-forest-deep,#0e4c2e);
+  text-decoration:none;
+}
+.home-city-balloon-ux007a .home-city-balloon-service-choices a:hover{
+  border-color:var(--ho-forest,#155f3b);
+  background:#fff;
+}
+.home-city-balloon-ux007a .home-city-balloon-service-choices strong{font-size:.76rem}
+.home-city-balloon-ux007a .home-city-balloon-service-choices span{
+  color:#52685f;
+  font-size:.66rem;
+  line-height:1.35;
+}
+.service-request-hero-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:16px;
+}
+.service-request-hero-actions .btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:48px;
+  margin:0;
+  text-align:center;
+}
+.service-provider-button{
+  border:1px solid var(--verde);
+  background:#fff;
+  color:var(--verde-escuro);
+}
+.service-provider-button:hover{background:var(--verde-suave);color:var(--verde-profundo)}
+#pedido-servico{scroll-margin-top:16px}
+
+@media(max-width:960px){
+  .home-official .home-solver-actions{width:100%;min-width:0}
+  .home-official .home-solver-actions .home-solver-button{width:100%;max-width:none}
+}
+@media(max-width:640px){
+  .home-official .home-solver-actions,
+  .service-request-hero-actions{grid-template-columns:1fr}
+}
