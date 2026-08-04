@@ -304,6 +304,7 @@ def _init_sqlite():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INTEGER NOT NULL,
             titulo TEXT NOT NULL,
+            detalhes TEXT NOT NULL DEFAULT '',
             bairro TEXT NOT NULL,
             whatsapp TEXT NOT NULL,
             ativo INTEGER NOT NULL DEFAULT 1,
@@ -425,6 +426,15 @@ def _init_sqlite():
     }
     if "foto_id" not in colunas:
         db.execute("ALTER TABLE anuncios ADD COLUMN foto_id TEXT")
+    colunas_servicos = {
+        linha[1]
+        for linha in db.execute("PRAGMA table_info(servicos_profissionais)").fetchall()
+    }
+    if "detalhes" not in colunas_servicos:
+        db.execute(
+            "ALTER TABLE servicos_profissionais "
+            "ADD COLUMN detalhes TEXT NOT NULL DEFAULT ''"
+        )
     if "bairro" not in colunas:
         db.execute("ALTER TABLE anuncios ADD COLUMN bairro TEXT NOT NULL DEFAULT ''")
     if "contatos_whatsapp" not in colunas:
@@ -810,6 +820,7 @@ def _init_pg():
             id SERIAL PRIMARY KEY,
             usuario_id INTEGER NOT NULL,
             titulo TEXT NOT NULL,
+            detalhes TEXT NOT NULL DEFAULT '',
             bairro TEXT NOT NULL,
             whatsapp TEXT NOT NULL,
             ativo INTEGER NOT NULL DEFAULT 1,
@@ -822,6 +833,10 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_servicos_profissionais_ativos "
         "ON servicos_profissionais(ativo, atualizado_em)"
+    )
+    db.execute(
+        "ALTER TABLE servicos_profissionais "
+        "ADD COLUMN IF NOT EXISTS detalhes TEXT NOT NULL DEFAULT ''"
     )
     db.execute(
         """

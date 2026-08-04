@@ -17,6 +17,7 @@
       <span>{{ servico.bairro }}</span>
       <h2>{{ servico.titulo }}</h2>
       <p>{{ servico.profissional }}</p>
+      {% if servico.detalhes %}<p class="professional-service-details">{{ servico.detalhes }}</p>{% endif %}
       <a class="btn btn-verde" href="https://wa.me/55{{ servico.whatsapp }}?text={{ ('Olá! Vi seu serviço no Mercado Colatina e gostaria de saber mais.')|urlencode }}" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>
     </article>
     {% else %}
