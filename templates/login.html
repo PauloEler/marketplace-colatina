@@ -9,6 +9,7 @@
   <div class="form-box">
     <form method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {% if proximo %}<input type="hidden" name="next" value="{{ proximo }}">{% endif %}
       <div class="form-grupo">
         <label for="login-username">Usuário</label>
         <input id="login-username" type="text" name="username" required autofocus maxlength="24" autocomplete="username">

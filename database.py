@@ -300,6 +300,19 @@ def _init_sqlite():
             ON pedidos_servico(status, criado_em);
         CREATE INDEX IF NOT EXISTS idx_pedidos_servico_bairro
             ON pedidos_servico(bairro, status);
+        CREATE TABLE IF NOT EXISTS servicos_profissionais (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario_id INTEGER NOT NULL,
+            titulo TEXT NOT NULL,
+            bairro TEXT NOT NULL,
+            whatsapp TEXT NOT NULL,
+            ativo INTEGER NOT NULL DEFAULT 1,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        );
+        CREATE INDEX IF NOT EXISTS idx_servicos_profissionais_ativos
+            ON servicos_profissionais(ativo, atualizado_em);
         CREATE TABLE IF NOT EXISTS growth_commercial_companies (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -790,6 +803,25 @@ def _init_pg():
     db.execute(
         "CREATE INDEX IF NOT EXISTS idx_pedidos_servico_bairro "
         "ON pedidos_servico(bairro, status)"
+    )
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS servicos_profissionais (
+            id SERIAL PRIMARY KEY,
+            usuario_id INTEGER NOT NULL,
+            titulo TEXT NOT NULL,
+            bairro TEXT NOT NULL,
+            whatsapp TEXT NOT NULL,
+            ativo INTEGER NOT NULL DEFAULT 1,
+            criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+        )
+        """
+    )
+    db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_servicos_profissionais_ativos "
+        "ON servicos_profissionais(ativo, atualizado_em)"
     )
     db.execute(
         """

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Profissionais em Colatina | Mercado Colatina{% endblock %}
+{% block meta_description %}Encontre profissionais e prestadores de serviços em Colatina.{% endblock %}
+{% block body_class %}professional-services-page{% endblock %}
+{% block voltar %}<a href="/" class="voltar">Voltar ao início</a>{% endblock %}
+
+{% block content %}
+<main class="professional-services-shell">
+  <header class="professional-services-header">
+    <div><span>Serviços em Colatina</span><h1>Encontre quem pode ajudar.</h1><p>Fale diretamente com profissionais da cidade.</p></div>
+    <a class="btn btn-verde" href="{{ url_for('divulgar_servico') }}">Divulgar meu serviço</a>
+  </header>
+  {% if request.args.get('publicado') %}<p class="professional-service-success" role="status">Seu serviço foi publicado com sucesso.</p>{% endif %}
+  <section class="professional-services-grid" aria-label="Profissionais disponíveis">
+    {% for servico in servicos %}
+    <article class="professional-service-card">
+      <span>{{ servico.bairro }}</span>
+      <h2>{{ servico.titulo }}</h2>
+      <p>{{ servico.profissional }}</p>
+      <a class="btn btn-verde" href="https://wa.me/55{{ servico.whatsapp }}?text={{ ('Olá! Vi seu serviço no Mercado Colatina e gostaria de saber mais.')|urlencode }}" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>
+    </article>
+    {% else %}
+    <div class="professional-services-empty"><h2>Seja o primeiro a divulgar</h2><p>Leva cerca de 30 segundos.</p><a class="btn btn-verde" href="{{ url_for('divulgar_servico') }}">Divulgar meu serviço</a></div>
+    {% endfor %}
+  </section>
+  <aside class="professional-services-request"><strong>Não encontrou o profissional?</strong><span>Conte o que precisa e empresas locais poderão responder.</span><a href="{{ url_for('encontre_quem_resolve') }}">Publicar uma necessidade</a></aside>
+</main>
+{% endblock %}
