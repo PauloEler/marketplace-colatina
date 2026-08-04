@@ -4269,6 +4269,14 @@ class ModeracaoTestCase(unittest.TestCase):
         profissionais = self.client.get("/servicos").get_data(as_text=True)
         self.assertIn("Paulo Roberto (Beto)", profissionais)
         self.assertIn("Eletricista · Manutenção residencial", profissionais)
+        self.assertLess(
+            profissionais.index("Paulo Roberto (Beto)"),
+            profissionais.index("Eletricista · Manutenção residencial"),
+        )
+        self.assertIn(
+            "Ol%C3%A1%2C%20Paulo%20Roberto%20%28Beto%29%21%20Vi%20seu%20servi%C3%A7o",
+            profissionais,
+        )
         self.assertIn(
             "Atendimento residencial e orçamento sem compromisso.", profissionais
         )

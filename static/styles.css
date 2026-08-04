@@ -5965,3 +5965,7 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-service-choice{grid-template-columns:1fr;gap:.5rem}
   .home-official .home-services-highlight .home-solver-button{width:100%;max-width:none}
 }
+
+/* Nome do prestador abre cada card; os serviços aparecem como informação secundária. */
+.professional-service-card h2,.professional-service-card h3{overflow-wrap:anywhere}
+.professional-service-card h3{color:#30463a;font-size:.78rem;line-height:1.4}

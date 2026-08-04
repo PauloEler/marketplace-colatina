@@ -14,11 +14,11 @@
   <section class="professional-services-grid" aria-label="Profissionais disponíveis">
     {% for servico in servicos %}
     <article class="professional-service-card">
+      <h2>{{ servico.profissional }}</h2>
       <span>{{ servico.bairro }}</span>
-      <h2>{{ servico.titulo }}</h2>
-      <p>{{ servico.profissional }}</p>
+      <h3>{{ servico.titulo }}</h3>
       {% if servico.detalhes %}<p class="professional-service-details">{{ servico.detalhes }}</p>{% endif %}
-      <a class="btn btn-verde" href="https://wa.me/55{{ servico.whatsapp }}?text={{ ('Olá! Vi seu serviço no Mercado Colatina e gostaria de saber mais.')|urlencode }}" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>
+      <a class="btn btn-verde" href="https://wa.me/55{{ servico.whatsapp }}?text={{ ('Olá, ' ~ servico.profissional ~ '! Vi seu serviço no Mercado Colatina e gostaria de saber mais.')|urlencode }}" target="_blank" rel="noopener noreferrer">Chamar no WhatsApp</a>
     </article>
     {% else %}
     <div class="professional-services-empty"><h2>Seja o primeiro a divulgar</h2><p>Leva cerca de 30 segundos.</p><a class="btn btn-verde" href="{{ url_for('divulgar_servico') }}">Divulgar meu serviço</a></div>
