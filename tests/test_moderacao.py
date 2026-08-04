@@ -3298,11 +3298,14 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Encontrar agora", html)
         self.assertIn('class="home-solver-strip home-services-highlight"', html)
         self.assertIn(
-            'id="home-solver-title">Precisa de um profissional ou quer divulgar seu trabalho?</h2>',
+            'id="home-solver-title">Encontre ou ofereça serviços.</h2>',
             html,
         )
-        self.assertIn("Encontre quem faz ou mostre o que você sabe fazer.", html)
-        self.assertIn("pedreiro, pintor, diarista, eletricista, encanador, frete", html)
+        self.assertIn("Escolha seu caminho e comece.", html)
+        self.assertIn("Cliente", html)
+        self.assertIn("Prestador", html)
+        self.assertIn("Preciso de um profissional", html)
+        self.assertIn("Quero divulgar meu trabalho", html)
         self.assertIn('href="/encontre-quem-resolve"', html)
         self.assertIn("Encontrar profissional", html)
         self.assertIn("Divulgar meu serviço", html)
