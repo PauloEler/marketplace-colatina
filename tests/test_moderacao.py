@@ -3296,14 +3296,16 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("O que você procura?", html)
         self.assertIn('placeholder="Ex.: celular, sofá ou eletricista"', html)
         self.assertIn("Encontrar agora", html)
-        self.assertIn('class="home-solver-strip"', html)
+        self.assertIn('class="home-solver-strip home-services-highlight"', html)
         self.assertIn(
-            'id="home-solver-title">Encontre quem resolve — ou ofereça seu serviço</h2>',
+            'id="home-solver-title">Precisa de um profissional ou quer divulgar seu trabalho?</h2>',
             html,
         )
+        self.assertIn("Encontre quem faz ou mostre o que você sabe fazer.", html)
+        self.assertIn("pedreiro, pintor, diarista, eletricista, encanador, frete", html)
         self.assertIn('href="/encontre-quem-resolve"', html)
-        self.assertIn("Preciso de um serviço", html)
-        self.assertIn("Quero oferecer um serviço", html)
+        self.assertIn("Encontrar profissional", html)
+        self.assertIn("Divulgar meu serviço", html)
         self.assertIn('href="/quem-resolve"', html)
         self.assertIn("data-ux005c-categories", html)
         self.assertLess(
@@ -3317,7 +3319,9 @@ class ModeracaoTestCase(unittest.TestCase):
         )
 
         html_resultados = self.client.get("/?q=celular").data.decode("utf-8")
-        self.assertNotIn('class="home-solver-strip"', html_resultados)
+        self.assertNotIn(
+            'class="home-solver-strip home-services-highlight"', html_resultados
+        )
 
         self.autenticar_sessao(self.comprador_id)
         html_autenticado = self.client.get("/").data.decode("utf-8")
@@ -3384,7 +3388,9 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("home-2-mission007", html)
         self.assertIn('class="home-premium-hero home2-hero"', html)
         self.assertIn('class="home2-search-band"', html)
-        self.assertIn('class="home-solver-strip home2-solver"', html)
+        self.assertIn(
+            'class="home-solver-strip home2-solver home-services-highlight"', html
+        )
         self.assertIn("data-home-city-movement", html)
 
         hero = html[
@@ -3407,10 +3413,14 @@ class ModeracaoTestCase(unittest.TestCase):
         )
         self.assertLess(
             html.index('class="home2-search-band"'),
-            html.index('class="home-solver-strip home2-solver"'),
+            html.index(
+                'class="home-solver-strip home2-solver home-services-highlight"'
+            ),
         )
         self.assertLess(
-            html.index('class="home-solver-strip home2-solver"'),
+            html.index(
+                'class="home-solver-strip home2-solver home-services-highlight"'
+            ),
             html.index("data-home-city-movement"),
         )
 
@@ -3930,7 +3940,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("home-compact-ux006a", html)
         self.assertIn('<span aria-hidden="true">🌇</span> Cidade Viva', html)
         self.assertLess(
-            html.index('class="home-solver-strip"'),
+            html.index('class="home-solver-strip home-services-highlight"'),
             html.index("data-home-city-movement"),
         )
         self.assertLess(
