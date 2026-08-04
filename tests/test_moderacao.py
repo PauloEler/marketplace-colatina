@@ -4241,17 +4241,21 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.get_data(as_text=True)
         self.assertEqual(pagina.status_code, 200)
         self.assertIn("Seu serviço no ar em 30 segundos.", html)
-        self.assertIn('name="titulo"', html)
+        self.assertIn('name="servicos"', html)
+        self.assertIn("Pedreiro", html)
+        self.assertIn("Pintor", html)
+        self.assertIn("Reformas em geral", html)
+        self.assertIn('name="detalhes"', html)
         self.assertIn('name="bairro"', html)
         self.assertIn('name="whatsapp"', html)
-        self.assertNotIn('name="descricao"', html)
         self.assertNotIn('type="file"', html)
 
         publicada = self.client.post(
             "/divulgar-servico",
             data={
                 "csrf_token": "token-teste",
-                "titulo": "Eletricista residencial",
+                "servicos": ["Eletricista", "Manutenção residencial"],
+                "detalhes": "Atendimento residencial e orçamento sem compromisso.",
                 "bairro": "Centro",
                 "whatsapp": "(27) 99999-9991",
             },
@@ -4260,7 +4264,10 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertTrue(publicada.headers["Location"].endswith("/servicos?publicado=1"))
 
         profissionais = self.client.get("/servicos").get_data(as_text=True)
-        self.assertIn("Eletricista residencial", profissionais)
+        self.assertIn("Eletricista · Manutenção residencial", profissionais)
+        self.assertIn(
+            "Atendimento residencial e orçamento sem compromisso.", profissionais
+        )
         self.assertIn("Centro", profissionais)
         self.assertIn("wa.me/5527999999991", profissionais)
 
@@ -4268,7 +4275,9 @@ class ModeracaoTestCase(unittest.TestCase):
             "/divulgar-servico",
             data={
                 "csrf_token": "token-teste",
-                "titulo": "Instalações elétricas",
+                "servicos": ["Eletricista"],
+                "outro_servico": "Instalação de ventilador",
+                "detalhes": "",
                 "bairro": "São Silvano",
                 "whatsapp": "27999999991",
             },
@@ -4283,7 +4292,9 @@ class ModeracaoTestCase(unittest.TestCase):
                 .fetchall()
             )
             self.assertEqual(len(servicos), 1)
-            self.assertEqual(servicos[0]["titulo"], "Instalações elétricas")
+            self.assertEqual(
+                servicos[0]["titulo"], "Eletricista · Instalação de ventilador"
+            )
 
     def test_encontre_quem_resolve_valida_publica_e_protege_whatsapp(self):
         self.client.get("/encontre-quem-resolve")

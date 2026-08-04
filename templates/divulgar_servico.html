@@ -13,8 +13,20 @@
   </header>
   <form class="quick-service-form" method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label for="quick-service-title">Qual serviço você oferece?</label>
-    <input id="quick-service-title" name="titulo" required minlength="4" maxlength="100" autofocus value="{{ dados.titulo }}" placeholder="Ex.: Pedreiro, pintor ou eletricista">
+    <fieldset class="quick-service-options">
+      <legend>Marque os serviços que você oferece</legend>
+      <div>
+        {% for servico in servicos_comuns %}
+        <label><input type="checkbox" name="servicos" value="{{ servico }}"{{ ' checked' if servico in dados.servicos else '' }}><span>{{ servico }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <label for="quick-service-other">Outro serviço <small>(opcional)</small></label>
+    <input id="quick-service-other" name="outro_servico" maxlength="80" value="{{ dados.outro_servico }}" placeholder="Ex.: Aplicação de textura">
+
+    <label for="quick-service-details">Conte um pouco sobre seu trabalho <small>(opcional)</small></label>
+    <textarea id="quick-service-details" name="detalhes" maxlength="600" rows="4" placeholder="Ex.: Faço pinturas, pequenos reparos e reformas. Orçamento sem compromisso.">{{ dados.detalhes }}</textarea>
 
     <div class="quick-service-row">
       <div>

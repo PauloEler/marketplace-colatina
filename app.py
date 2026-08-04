@@ -107,6 +107,7 @@ from service_requests import (  # noqa: E402
     registrar_resposta as registrar_resposta_servico,
 )
 from service_professionals import (  # noqa: E402
+    COMMON_SERVICES,
     ProfessionalServiceValidationError,
     list_services as listar_servicos_profissionais,
     publish_service as publicar_servico_profissional,
@@ -3656,8 +3657,23 @@ def divulgar_servico():
         )
         .fetchone()
     )
+    existente = (
+        get_db()
+        .execute(
+            "SELECT titulo, detalhes FROM servicos_profissionais "
+            "WHERE usuario_id=? AND ativo=1 ORDER BY criado_em DESC LIMIT 1",
+            (usuario_id,),
+        )
+        .fetchone()
+    )
     dados = {
-        "titulo": "",
+        "servicos": [
+            item
+            for item in COMMON_SERVICES
+            if existente and item in existente["titulo"]
+        ],
+        "outro_servico": "",
+        "detalhes": existente["detalhes"] if existente else "",
         "bairro": usuario["loja_bairro"] if usuario else "",
         "whatsapp": (
             (usuario["loja_whatsapp"] or usuario["whatsapp"]) if usuario else ""
@@ -3665,7 +3681,9 @@ def divulgar_servico():
     }
     if request.method == "POST":
         dados = {
-            "titulo": request.form.get("titulo", ""),
+            "servicos": request.form.getlist("servicos"),
+            "outro_servico": request.form.get("outro_servico", ""),
+            "detalhes": request.form.get("detalhes", ""),
             "bairro": request.form.get("bairro", ""),
             "whatsapp": request.form.get("whatsapp", ""),
         }
@@ -3673,7 +3691,9 @@ def divulgar_servico():
             publicar_servico_profissional(
                 get_db(),
                 usuario_id,
-                dados["titulo"],
+                dados["servicos"],
+                dados["outro_servico"],
+                dados["detalhes"],
                 dados["bairro"],
                 dados["whatsapp"],
             )
@@ -3682,7 +3702,9 @@ def divulgar_servico():
         else:
             flash("Serviço divulgado! Clientes já podem encontrar você.", "ok")
             return redirect(url_for("servicos_profissionais", publicado=1))
-    return render_template("divulgar_servico.html", dados=dados)
+    return render_template(
+        "divulgar_servico.html", dados=dados, servicos_comuns=COMMON_SERVICES
+    )
 
 
 @app.route("/quem-resolve/<int:pedido_id>/responder", methods=["POST"])
