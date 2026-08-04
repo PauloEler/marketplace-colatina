@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Divulgar serviço | Mercado Colatina{% endblock %}
+{% block meta_description %}Divulgue seu serviço em Colatina de forma simples e rápida.{% endblock %}
+{% block body_class %}quick-service-page{% endblock %}
+{% block voltar %}<a href="{{ url_for('servicos_profissionais') }}" class="voltar">Ver profissionais</a>{% endblock %}
+
+{% block content %}
+<main class="quick-service-shell">
+  <header class="quick-service-header">
+    <span>Divulgação expressa</span>
+    <h1>Seu serviço no ar em 30 segundos.</h1>
+    <p>Três informações. Sem texto complicado. Depois é só publicar.</p>
+  </header>
+  <form class="quick-service-form" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="quick-service-title">Qual serviço você oferece?</label>
+    <input id="quick-service-title" name="titulo" required minlength="4" maxlength="100" autofocus value="{{ dados.titulo }}" placeholder="Ex.: Pedreiro, pintor ou eletricista">
+
+    <div class="quick-service-row">
+      <div>
+        <label for="quick-service-neighborhood">Seu bairro</label>
+        <input id="quick-service-neighborhood" name="bairro" required minlength="2" maxlength="60" value="{{ dados.bairro }}" placeholder="Ex.: Centro">
+      </div>
+      <div>
+        <label for="quick-service-whatsapp">WhatsApp com DDD</label>
+        <input id="quick-service-whatsapp" name="whatsapp" type="tel" required inputmode="tel" autocomplete="tel" value="{{ dados.whatsapp }}" placeholder="(27) 99999-9999">
+      </div>
+    </div>
+    <button class="btn btn-verde" type="submit">Publicar meu serviço agora</button>
+    <small>Seu WhatsApp ficará disponível para clientes interessados entrarem em contato.</small>
+  </form>
+</main>
+{% endblock %}

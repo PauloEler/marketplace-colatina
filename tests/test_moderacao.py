@@ -83,6 +83,7 @@ class ModeracaoTestCase(unittest.TestCase):
                 "traction_user_activity_daily",
                 "traction_access_source_daily",
                 "pedidos_servico",
+                "servicos_profissionais",
                 "sugestoes_comunidade",
                 "notifications",
                 "afiliado_eventos",
@@ -3306,10 +3307,10 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertIn("Prestador", html)
         self.assertIn("Preciso de um profissional", html)
         self.assertIn("Quero divulgar meu trabalho", html)
-        self.assertIn('href="/encontre-quem-resolve"', html)
+        self.assertIn('href="/servicos"', html)
         self.assertIn("Encontrar profissional", html)
-        self.assertIn("Divulgar meu serviço", html)
-        self.assertIn('href="/quem-resolve"', html)
+        self.assertIn("Divulgar em 30 segundos", html)
+        self.assertIn('href="/divulgar-servico"', html)
         self.assertIn("data-ux005c-categories", html)
         self.assertLess(
             html.index("data-ux005c-search"), html.index("home-solver-strip")
@@ -4224,10 +4225,65 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertNotIn('name="categoria"', html)
         self.assertIn("Preciso de um serviço", html)
         self.assertIn("Quero oferecer um serviço", html)
+        self.assertIn('href="/divulgar-servico"', html)
         self.assertIn('id="pedido-servico"', html)
 
         sitemap = self.client.get("/sitemap.xml").get_data(as_text=True)
         self.assertIn("/encontre-quem-resolve", sitemap)
+
+    def test_divulgacao_expressa_publica_servico_com_tres_informacoes(self):
+        visitante = self.client.get("/divulgar-servico")
+        self.assertEqual(visitante.status_code, 302)
+        self.assertIn("/login?next=/divulgar-servico", visitante.headers["Location"])
+
+        self.autenticar_sessao(self.vendedor_id)
+        pagina = self.client.get("/divulgar-servico")
+        html = pagina.get_data(as_text=True)
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Seu serviço no ar em 30 segundos.", html)
+        self.assertIn('name="titulo"', html)
+        self.assertIn('name="bairro"', html)
+        self.assertIn('name="whatsapp"', html)
+        self.assertNotIn('name="descricao"', html)
+        self.assertNotIn('type="file"', html)
+
+        publicada = self.client.post(
+            "/divulgar-servico",
+            data={
+                "csrf_token": "token-teste",
+                "titulo": "Eletricista residencial",
+                "bairro": "Centro",
+                "whatsapp": "(27) 99999-9991",
+            },
+        )
+        self.assertEqual(publicada.status_code, 302)
+        self.assertTrue(publicada.headers["Location"].endswith("/servicos?publicado=1"))
+
+        profissionais = self.client.get("/servicos").get_data(as_text=True)
+        self.assertIn("Eletricista residencial", profissionais)
+        self.assertIn("Centro", profissionais)
+        self.assertIn("wa.me/5527999999991", profissionais)
+
+        self.client.post(
+            "/divulgar-servico",
+            data={
+                "csrf_token": "token-teste",
+                "titulo": "Instalações elétricas",
+                "bairro": "São Silvano",
+                "whatsapp": "27999999991",
+            },
+        )
+        with app.app_context():
+            servicos = (
+                get_db()
+                .execute(
+                    "SELECT titulo, bairro FROM servicos_profissionais WHERE usuario_id=?",
+                    (self.vendedor_id,),
+                )
+                .fetchall()
+            )
+            self.assertEqual(len(servicos), 1)
+            self.assertEqual(servicos[0]["titulo"], "Instalações elétricas")
 
     def test_encontre_quem_resolve_valida_publica_e_protege_whatsapp(self):
         self.client.get("/encontre-quem-resolve")

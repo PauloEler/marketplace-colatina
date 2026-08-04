@@ -106,6 +106,11 @@ from service_requests import (  # noqa: E402
     listar_pedidos_abertos,
     registrar_resposta as registrar_resposta_servico,
 )
+from service_professionals import (  # noqa: E402
+    ProfessionalServiceValidationError,
+    list_services as listar_servicos_profissionais,
+    publish_service as publicar_servico_profissional,
+)
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -1968,6 +1973,9 @@ def cadastro():
 def login():
     if logado():
         return redirect(url_for("index"))
+    proximo = request.values.get("next", "")
+    if not proximo.startswith("/") or proximo.startswith("//"):
+        proximo = ""
     if request.method == "POST":
         username = request.form["username"].strip()
         senha = request.form["senha"].strip()
@@ -2003,12 +2011,14 @@ def login():
             session["is_admin"] = bool(usuario["is_admin"])
             session["loja_ativa_id"] = usuario["id"]
             flash(f"Bem-vindo, {usuario['nome']}!", "ok")
+            if proximo:
+                return redirect(proximo)
             if len(listar_lojas_administradas(usuario["id"])) > 1:
                 return redirect(url_for("minhas_lojas"))
             return redirect(url_for("index"))
         registrar_falha_login(db, chave_login)
         flash("Usuário ou senha incorretos.", "erro")
-    return render_template("login.html")
+    return render_template("login.html", proximo=proximo)
 
 
 @app.route("/logout", methods=["POST"])
@@ -3620,6 +3630,59 @@ def painel_quem_resolve():
         pedidos=listar_pedidos_abertos(get_db()),
         urgencias=URGENCY_OPTIONS,
     )
+
+
+@app.route("/servicos")
+def servicos_profissionais():
+    return render_template(
+        "servicos_profissionais.html",
+        servicos=listar_servicos_profissionais(get_db()),
+    )
+
+
+@app.route("/divulgar-servico", methods=["GET", "POST"])
+def divulgar_servico():
+    if not logado():
+        flash("Entre na sua conta para divulgar seu serviço.", "erro")
+        return redirect(url_for("login", next=url_for("divulgar_servico")))
+
+    usuario_id = loja_ativa_id()
+    usuario = (
+        get_db()
+        .execute(
+            "SELECT whatsapp, loja_whatsapp, loja_bairro FROM usuarios "
+            "WHERE id=? AND ativo=1",
+            (usuario_id,),
+        )
+        .fetchone()
+    )
+    dados = {
+        "titulo": "",
+        "bairro": usuario["loja_bairro"] if usuario else "",
+        "whatsapp": (
+            (usuario["loja_whatsapp"] or usuario["whatsapp"]) if usuario else ""
+        ),
+    }
+    if request.method == "POST":
+        dados = {
+            "titulo": request.form.get("titulo", ""),
+            "bairro": request.form.get("bairro", ""),
+            "whatsapp": request.form.get("whatsapp", ""),
+        }
+        try:
+            publicar_servico_profissional(
+                get_db(),
+                usuario_id,
+                dados["titulo"],
+                dados["bairro"],
+                dados["whatsapp"],
+            )
+        except ProfessionalServiceValidationError as erro:
+            flash(str(erro), "erro")
+        else:
+            flash("Serviço divulgado! Clientes já podem encontrar você.", "ok")
+            return redirect(url_for("servicos_profissionais", publicado=1))
+    return render_template("divulgar_servico.html", dados=dados)
 
 
 @app.route("/quem-resolve/<int:pedido_id>/responder", methods=["POST"])
