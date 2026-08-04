@@ -4241,6 +4241,8 @@ class ModeracaoTestCase(unittest.TestCase):
         html = pagina.get_data(as_text=True)
         self.assertEqual(pagina.status_code, 200)
         self.assertIn("Seu serviço no ar em 30 segundos.", html)
+        self.assertIn('name="nome_profissional"', html)
+        self.assertIn('value="Vendedor"', html)
         self.assertIn('name="servicos"', html)
         self.assertIn("Pedreiro", html)
         self.assertIn("Pintor", html)
@@ -4254,6 +4256,7 @@ class ModeracaoTestCase(unittest.TestCase):
             "/divulgar-servico",
             data={
                 "csrf_token": "token-teste",
+                "nome_profissional": "Paulo Roberto (Beto)",
                 "servicos": ["Eletricista", "Manutenção residencial"],
                 "detalhes": "Atendimento residencial e orçamento sem compromisso.",
                 "bairro": "Centro",
@@ -4264,6 +4267,7 @@ class ModeracaoTestCase(unittest.TestCase):
         self.assertTrue(publicada.headers["Location"].endswith("/servicos?publicado=1"))
 
         profissionais = self.client.get("/servicos").get_data(as_text=True)
+        self.assertIn("Paulo Roberto (Beto)", profissionais)
         self.assertIn("Eletricista · Manutenção residencial", profissionais)
         self.assertIn(
             "Atendimento residencial e orçamento sem compromisso.", profissionais
@@ -4275,6 +4279,7 @@ class ModeracaoTestCase(unittest.TestCase):
             "/divulgar-servico",
             data={
                 "csrf_token": "token-teste",
+                "nome_profissional": "Paulo Roberto (Beto)",
                 "servicos": ["Eletricista"],
                 "outro_servico": "Instalação de ventilador",
                 "detalhes": "",
