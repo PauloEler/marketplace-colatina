@@ -72,16 +72,35 @@
   </form>
 </section>
 
-<section class="home-solver-strip home2-solver" aria-labelledby="home-solver-title">
-  <div class="home-solver-copy">
-    <span>Encontre Quem Resolve</span>
-    <h2 id="home-solver-title">Precisa de um serviço local?</h2>
-    <p>Descreva o que você precisa e aproxime-se de empresas locais.</p>
+<section class="home-solver-strip home2-solver home-services-highlight" aria-labelledby="home-solver-title">
+  <div class="home-services-heading">
+    <div class="home-solver-copy">
+      <span>Serviços em Colatina</span>
+      <h2 id="home-solver-title">Precisa de um profissional ou quer divulgar seu trabalho?</h2>
+      <p>Encontre quem faz ou mostre o que você sabe fazer.</p>
+    </div>
+    <div class="home-services-illustration" aria-hidden="true">
+      <span>🧱</span><span>🎨</span><span>⚡</span><span>🧹</span><span>🚚</span>
+    </div>
   </div>
-  <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">
-    Descrever minha necessidade
-    <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
-  </a>
+  <div class="home-solver-actions home-services-choices" aria-label="Escolha como usar os serviços locais">
+    <article class="home-service-choice home-service-choice-search">
+      <span class="home-service-choice-icon" aria-hidden="true">🔎</span>
+      <div>
+        <h3>Precisa de um profissional?</h3>
+        <p>Encontre pedreiro, pintor, diarista, eletricista, encanador, frete e outros serviços perto de você.</p>
+      </div>
+      <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">Encontrar profissional</a>
+    </article>
+    <article class="home-service-choice home-service-choice-provider">
+      <span class="home-service-choice-icon" aria-hidden="true">🛠️</span>
+      <div>
+        <h3>Quer conseguir mais clientes?</h3>
+        <p>Conte o que você faz, informe seu WhatsApp e divulgue seu serviço gratuitamente para toda Colatina.</p>
+      </div>
+      <a class="btn home-solver-button home-solver-button-secondary" href="{{ url_for('painel_quem_resolve') }}">Divulgar meu serviço</a>
+    </article>
+  </div>
 </section>
 {% else %}
 <section class="home-premium-hero home-official-hero ux005c-first-fold {{ 'is-results' if busca or cat_sel else '' }}" aria-labelledby="hero-title">
@@ -148,21 +167,34 @@
 </section>
 
 {% if not busca and not cat_sel %}
-<section class="home-solver-strip" aria-labelledby="home-solver-title">
-  <span class="home-solver-icon" aria-hidden="true">
-    <svg class="home-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5-5L7.6 3.4l3 3 2.1-2.1a4 4 0 0 0 2 2Z"></path><path d="m5 8-3 3 10 10 3-3"></path><path d="m14 14 6-6"></path><path d="m17 5 2 2"></path></svg>
-  </span>
-  <div class="home-solver-copy">
-    <span>Serviços em Colatina</span>
-    <h2 id="home-solver-title">Encontre quem resolve — ou ofereça seu serviço</h2>
-    <p>Diga do que precisa ou encontre pedidos de moradores e empresas da cidade.</p>
+<section class="home-solver-strip home-services-highlight" aria-labelledby="home-solver-title">
+  <div class="home-services-heading">
+    <div class="home-solver-copy">
+      <span>Serviços em Colatina</span>
+      <h2 id="home-solver-title">Precisa de um profissional ou quer divulgar seu trabalho?</h2>
+      <p>Encontre quem faz ou mostre o que você sabe fazer.</p>
+    </div>
+    <div class="home-services-illustration" aria-hidden="true">
+      <span>🧱</span><span>🎨</span><span>⚡</span><span>🧹</span><span>🚚</span>
+    </div>
   </div>
-  <div class="home-solver-actions" aria-label="Escolha como usar os serviços locais">
-    <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">
-      Preciso de um serviço
-      <svg class="home-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
-    </a>
-    <a class="btn home-solver-button home-solver-button-secondary" href="{{ url_for('painel_quem_resolve') }}">Quero oferecer um serviço</a>
+  <div class="home-solver-actions home-services-choices" aria-label="Escolha como usar os serviços locais">
+    <article class="home-service-choice home-service-choice-search">
+      <span class="home-service-choice-icon" aria-hidden="true">🔎</span>
+      <div>
+        <h3>Precisa de um profissional?</h3>
+        <p>Encontre pedreiro, pintor, diarista, eletricista, encanador, frete e outros serviços perto de você.</p>
+      </div>
+      <a class="btn home-solver-button" href="{{ url_for('encontre_quem_resolve') }}">Encontrar profissional</a>
+    </article>
+    <article class="home-service-choice home-service-choice-provider">
+      <span class="home-service-choice-icon" aria-hidden="true">🛠️</span>
+      <div>
+        <h3>Quer conseguir mais clientes?</h3>
+        <p>Conte o que você faz, informe seu WhatsApp e divulgue seu serviço gratuitamente para toda Colatina.</p>
+      </div>
+      <a class="btn home-solver-button home-solver-button-secondary" href="{{ url_for('painel_quem_resolve') }}">Divulgar meu serviço</a>
+    </article>
   </div>
 </section>
 {% endif %}

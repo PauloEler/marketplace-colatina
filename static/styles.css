@@ -5824,3 +5824,158 @@ table{width:100%;border-collapse:collapse;background:var(--branco);border-radius
   .home-official .home-solver-actions,
   .service-request-hero-actions{grid-template-columns:1fr}
 }
+
+/* Serviços em destaque: entrada simples para quem procura e para quem oferece. */
+.home-official .home-solver-strip.home-services-highlight{
+  display:grid;
+  grid-template-columns:minmax(16rem,.8fr) minmax(0,1.35fr);
+  gap:clamp(.85rem,2vw,1.4rem);
+  width:min(82rem,calc(100% - 2rem));
+  max-width:none;
+  padding:clamp(1rem,2.2vw,1.5rem);
+  overflow:hidden;
+  border:1px solid rgba(14,76,46,.2);
+  border-radius:1.25rem;
+  background:
+    radial-gradient(circle at 8% 20%,rgba(255,211,79,.24),transparent 24%),
+    linear-gradient(135deg,#eef7f0 0%,#f8fbf4 48%,#e8f2ed 100%);
+  box-shadow:0 18px 42px rgba(14,76,46,.13);
+}
+.home-official .home-services-heading{
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:1rem;
+}
+.home-official .home-services-highlight .home-solver-copy>span{color:var(--ho-forest)}
+.home-official .home-services-highlight .home-solver-copy h2{
+  max-width:19ch;
+  margin-top:.28rem;
+  font-family:inherit;
+  font-size:clamp(1.45rem,2.2vw,2rem);
+  font-weight:850;
+  line-height:1.08;
+}
+.home-official .home-services-highlight .home-solver-copy p{
+  max-width:40ch;
+  margin-top:.55rem;
+  color:#496158;
+  font-size:.92rem;
+  line-height:1.45;
+}
+.home-official .home-services-illustration{
+  display:flex;
+  align-items:center;
+  gap:.42rem;
+  min-height:3.5rem;
+}
+.home-official .home-services-illustration span{
+  display:grid;
+  place-items:center;
+  width:2.65rem;
+  height:2.65rem;
+  border:1px solid rgba(14,76,46,.13);
+  border-radius:.8rem;
+  background:rgba(255,255,255,.82);
+  box-shadow:0 7px 16px rgba(14,76,46,.1);
+  font-size:1.25rem;
+  transform:rotate(-3deg);
+}
+.home-official .home-services-illustration span:nth-child(even){transform:translateY(.55rem) rotate(3deg)}
+.home-official .home-solver-actions.home-services-choices{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-items:stretch;
+  gap:.8rem;
+  width:100%;
+  min-width:0;
+}
+.home-official .home-service-choice{
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:.7rem;
+  min-width:0;
+  padding:1rem;
+  border:1px solid rgba(14,76,46,.14);
+  border-radius:1rem;
+  background:#fff;
+  box-shadow:0 10px 24px rgba(14,76,46,.09);
+}
+.home-official .home-service-choice-provider{
+  border-color:rgba(188,102,65,.24);
+  background:#fff9f4;
+}
+.home-official .home-service-choice-icon{
+  display:grid;
+  place-items:center;
+  width:2.7rem;
+  height:2.7rem;
+  border-radius:.8rem;
+  background:#e5f1e8;
+  font-size:1.3rem;
+}
+.home-official .home-service-choice-provider .home-service-choice-icon{background:#f7e7dc}
+.home-official .home-service-choice h3{
+  margin:0;
+  color:var(--ho-forest-deep);
+  font-size:1rem;
+  font-weight:850;
+  line-height:1.2;
+}
+.home-official .home-service-choice p{
+  margin:.38rem 0 0;
+  color:#52685f;
+  font-size:.77rem;
+  line-height:1.45;
+}
+.home-official .home-services-highlight .home-solver-button{
+  width:100%;
+  max-width:none;
+  min-height:3rem;
+  padding:.68rem .8rem;
+  border-radius:.75rem;
+  font-size:.74rem;
+  font-weight:850;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+  white-space:normal;
+}
+.home-official .home-services-highlight .home-solver-button-secondary{
+  border-color:var(--ho-terracotta);
+  background:var(--ho-terracotta);
+  color:#fff;
+}
+.home-official .home-services-highlight .home-solver-button-secondary:hover{
+  background:#934b31;
+  color:#fff;
+}
+
+@media(max-width:900px){
+  .home-official .home-solver-strip.home-services-highlight{grid-template-columns:1fr}
+  .home-official .home-services-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
+  .home-official .home-services-highlight .home-solver-copy h2{max-width:29ch}
+}
+@media(max-width:640px){
+  .home-official .home-solver-strip.home-services-highlight{
+    width:calc(100% - .5rem);
+    gap:.9rem;
+    margin-top:.65rem;
+    padding:1rem;
+    border-radius:1rem;
+  }
+  .home-official .home-services-heading{display:flex;align-items:stretch}
+  .home-official .home-services-highlight .home-solver-copy h2{max-width:none;font-size:1.45rem}
+  .home-official .home-services-highlight .home-solver-copy p{font-size:.84rem}
+  .home-official .home-services-illustration{gap:.3rem;overflow:hidden}
+  .home-official .home-services-illustration span{flex:0 0 2.4rem;width:2.4rem;height:2.4rem;font-size:1.1rem}
+  .home-official .home-solver-actions.home-services-choices{grid-template-columns:1fr}
+  .home-official .home-service-choice{grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;align-items:start;padding:.9rem}
+  .home-official .home-service-choice .home-solver-button{grid-column:1/-1}
+  .home-official .home-service-choice p{font-size:.75rem}
+}
+@media(max-width:359px){
+  .home-official .home-solver-strip.home-services-highlight{width:100%;padding:.85rem}
+  .home-official .home-services-highlight .home-solver-copy h2{font-size:1.3rem}
+  .home-official .home-services-illustration span{flex-basis:2.2rem;width:2.2rem;height:2.2rem}
+}
