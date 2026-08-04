@@ -3651,7 +3651,7 @@ def divulgar_servico():
     usuario = (
         get_db()
         .execute(
-            "SELECT whatsapp, loja_whatsapp, loja_bairro FROM usuarios "
+            "SELECT nome, whatsapp, loja_nome, loja_whatsapp, loja_bairro FROM usuarios "
             "WHERE id=? AND ativo=1",
             (usuario_id,),
         )
@@ -3660,13 +3660,18 @@ def divulgar_servico():
     existente = (
         get_db()
         .execute(
-            "SELECT titulo, detalhes FROM servicos_profissionais "
+            "SELECT nome_profissional, titulo, detalhes FROM servicos_profissionais "
             "WHERE usuario_id=? AND ativo=1 ORDER BY criado_em DESC LIMIT 1",
             (usuario_id,),
         )
         .fetchone()
     )
     dados = {
+        "nome_profissional": (
+            existente["nome_profissional"]
+            if existente and existente["nome_profissional"]
+            else ((usuario["loja_nome"] or usuario["nome"]) if usuario else "")
+        ),
         "servicos": [
             item
             for item in COMMON_SERVICES
@@ -3681,6 +3686,7 @@ def divulgar_servico():
     }
     if request.method == "POST":
         dados = {
+            "nome_profissional": request.form.get("nome_profissional", ""),
             "servicos": request.form.getlist("servicos"),
             "outro_servico": request.form.get("outro_servico", ""),
             "detalhes": request.form.get("detalhes", ""),
@@ -3691,6 +3697,7 @@ def divulgar_servico():
             publicar_servico_profissional(
                 get_db(),
                 usuario_id,
+                dados["nome_profissional"],
                 dados["servicos"],
                 dados["outro_servico"],
                 dados["detalhes"],

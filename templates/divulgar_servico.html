@@ -13,6 +13,9 @@
   </header>
   <form class="quick-service-form" method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="quick-service-name">Nome do profissional ou do negócio</label>
+    <input id="quick-service-name" name="nome_profissional" required minlength="3" maxlength="80" autofocus value="{{ dados.nome_profissional }}" placeholder="Ex.: Paulo Roberto (Beto)">
+
     <fieldset class="quick-service-options">
       <legend>Marque os serviços que você oferece</legend>
       <div>

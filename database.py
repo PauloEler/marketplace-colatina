@@ -303,6 +303,7 @@ def _init_sqlite():
         CREATE TABLE IF NOT EXISTS servicos_profissionais (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             usuario_id INTEGER NOT NULL,
+            nome_profissional TEXT NOT NULL DEFAULT '',
             titulo TEXT NOT NULL,
             detalhes TEXT NOT NULL DEFAULT '',
             bairro TEXT NOT NULL,
@@ -434,6 +435,11 @@ def _init_sqlite():
         db.execute(
             "ALTER TABLE servicos_profissionais "
             "ADD COLUMN detalhes TEXT NOT NULL DEFAULT ''"
+        )
+    if "nome_profissional" not in colunas_servicos:
+        db.execute(
+            "ALTER TABLE servicos_profissionais "
+            "ADD COLUMN nome_profissional TEXT NOT NULL DEFAULT ''"
         )
     if "bairro" not in colunas:
         db.execute("ALTER TABLE anuncios ADD COLUMN bairro TEXT NOT NULL DEFAULT ''")
@@ -819,6 +825,7 @@ def _init_pg():
         CREATE TABLE IF NOT EXISTS servicos_profissionais (
             id SERIAL PRIMARY KEY,
             usuario_id INTEGER NOT NULL,
+            nome_profissional TEXT NOT NULL DEFAULT '',
             titulo TEXT NOT NULL,
             detalhes TEXT NOT NULL DEFAULT '',
             bairro TEXT NOT NULL,
@@ -837,6 +844,10 @@ def _init_pg():
     db.execute(
         "ALTER TABLE servicos_profissionais "
         "ADD COLUMN IF NOT EXISTS detalhes TEXT NOT NULL DEFAULT ''"
+    )
+    db.execute(
+        "ALTER TABLE servicos_profissionais "
+        "ADD COLUMN IF NOT EXISTS nome_profissional TEXT NOT NULL DEFAULT ''"
     )
     db.execute(
         """
