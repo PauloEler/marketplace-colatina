@@ -112,6 +112,7 @@ from service_professionals import (  # noqa: E402
     list_services as listar_servicos_profissionais,
     publish_service as publicar_servico_profissional,
 )
+from campaign_dashboard import build_campaign_dashboard  # noqa: E402
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -4242,6 +4243,11 @@ def painel_admin():
         return render_template(
             "analytics_afiliados.html",
             analytics=build_affiliate_dashboard(db, OFERTAS_PARCEIROS_HOME),
+        )
+    if request.args.get("visao") == "campanhas":
+        return render_template(
+            "dashboard_campanhas.html",
+            campaigns=build_campaign_dashboard(),
         )
     if request.args.get("visao") == "cockpit":
         return render_template(
