@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Dashboard de Campanhas | Mercado Colatina{% endblock %}
+{% block body_class %}mds-dashboard campaign-dashboard-page{% endblock %}
+{% block content %}
+<div class="dashboard-shell campaign-dashboard" id="campaign-dashboard">
+  <header class="dashboard-hero">
+    <div>
+      <span class="dashboard-eyebrow">Divulgação · Colatina</span>
+      <h1>Dashboard de Campanhas</h1>
+      <p>Acompanhamento claro das campanhas do Mercado Colatina e do Topa Tudo Colatinense.</p>
+    </div>
+    <div class="dashboard-readonly" aria-label="Natureza e atualização dos dados">
+      <span aria-hidden="true">📊</span>
+      <div>
+        <strong>{{ campaigns.data_mode }}</strong>
+        <small>Última conferência: {{ campaigns.generated_at }}</small>
+      </div>
+    </div>
+  </header>
+
+  <aside class="campaign-data-notice" role="note">
+    <strong>Transparência dos dados</strong>
+    <p>{{ campaigns.measurement_note }}</p>
+  </aside>
+
+  <section class="dashboard-section" aria-labelledby="campaign-summary-title">
+    <div class="dashboard-section-heading">
+      <div><span>01</span><h2 id="campaign-summary-title">Visão geral</h2></div>
+      <p>Conta Google Ads {{ campaigns.account.account_id }} · foco exclusivo em Colatina.</p>
+    </div>
+    <div class="campaign-metric-grid">
+      <article data-campaign-metric="active" data-value="{{ campaigns.summary.active }}"><span>Campanhas ativas</span><strong>{{ campaigns.summary.active }}</strong><small>{{ campaigns.summary.tracked }} acompanhadas</small></article>
+      <article data-campaign-metric="impressions" data-value="{{ campaigns.summary.impressions }}"><span>Impressões</span><strong>{{ campaigns.summary.impressions }}</strong><small>Desde a última conferência</small></article>
+      <article data-campaign-metric="clicks" data-value="{{ campaigns.summary.clicks }}"><span>Cliques</span><strong>{{ campaigns.summary.clicks }}</strong><small>Tráfego registrado</small></article>
+      <article data-campaign-metric="cost" data-value="{{ campaigns.summary.cost }}"><span>Custo</span><strong>R$ {{ '%.2f'|format(campaigns.summary.cost)|replace('.', ',') }}</strong><small>Investimento consumido</small></article>
+      <article data-campaign-metric="balance" data-value="{{ campaigns.account.available_balance }}"><span>Saldo disponível</span><strong>R$ {{ '%.2f'|format(campaigns.account.available_balance)|replace('.', ',') }}</strong><small>{{ campaigns.account.balance_status }}</small></article>
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="campaign-list-title">
+    <div class="dashboard-section-heading">
+      <div><span>02</span><h2 id="campaign-list-title">Campanhas acompanhadas</h2></div>
+      <p>Resultado, configuração e próxima ação em um só lugar.</p>
+    </div>
+    <div class="campaign-card-grid">
+      {% for campaign in campaigns.campaigns %}
+      <article class="campaign-card" data-campaign="{{ campaign.key }}">
+        <header>
+          <div>
+            <span>{{ campaign.channel }}</span>
+            <h3>{{ campaign.brand }}</h3>
+            <p>{{ campaign.name }}</p>
+          </div>
+          <span class="campaign-status is-active">{{ campaign.status }}</span>
+        </header>
+        <p class="campaign-objective">{{ campaign.objective }}</p>
+        <dl class="campaign-facts">
+          <div><dt>Local</dt><dd>{{ campaign.location }} · {{ campaign.location_mode }}</dd></div>
+          <div><dt>Aprovação</dt><dd>{{ campaign.approval }} · Qualidade {{ campaign.quality|lower }}</dd></div>
+          <div><dt>Orçamento diário</dt><dd>{% if campaign.daily_budget is not none %}R$ {{ '%.2f'|format(campaign.daily_budget)|replace('.', ',') }}{% else %}Não conferido{% endif %}</dd></div>
+          <div><dt>Início</dt><dd>{{ campaign.started_at or 'Não conferido' }}</dd></div>
+        </dl>
+        <div class="campaign-result-grid" aria-label="Resultados da campanha">
+          <div><span>Impressões</span><strong>{{ campaign.metrics.impressions }}</strong></div>
+          <div><span>Cliques</span><strong>{{ campaign.metrics.clicks }}</strong></div>
+          <div><span>CTR</span><strong>{{ (campaign.metrics.ctr ~ '%') if campaign.metrics.ctr is not none else '—' }}</strong></div>
+          <div><span>Custo</span><strong>R$ {{ '%.2f'|format(campaign.metrics.cost)|replace('.', ',') }}</strong></div>
+        </div>
+        {% if campaign.keywords %}
+        <div class="campaign-keywords">
+          <strong>Palavras adicionadas</strong>
+          <ul>{% for keyword in campaign.keywords %}<li>{{ keyword }}</li>{% endfor %}</ul>
+          <small>{{ campaign.keyword_status }}</small>
+        </div>
+        {% endif %}
+        <footer>
+          <div><span>Próxima ação</span><strong>{{ campaign.next_action }}</strong></div>
+          <small>{{ campaign.source }} · {{ campaign.updated_at }}</small>
+        </footer>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="dashboard-section" aria-labelledby="campaign-roadmap-title">
+    <div class="dashboard-section-heading">
+      <div><span>03</span><h2 id="campaign-roadmap-title">Próxima evolução</h2></div>
+      <p>Sem misturar resultado confirmado com canais ainda não integrados.</p>
+    </div>
+    <div class="campaign-roadmap">
+      <div><strong>Integração futura</strong><p>Importar métricas oficiais do Google Ads quando houver credenciais e autorização técnica.</p></div>
+      <div><strong>Outros canais preparados</strong><p>{{ campaigns.future_channels|join(' · ') }}</p></div>
+      <div><strong>Regra de decisão</strong><p>Otimizar somente após volume suficiente de impressões, cliques e conversões.</p></div>
+    </div>
+  </section>
+</div>
+{% endblock %}

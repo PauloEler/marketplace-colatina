@@ -3222,6 +3222,28 @@ class ModeracaoTestCase(unittest.TestCase):
             'data-affiliate-category="celulares-acessorios" data-clicks="0"', html
         )
 
+    def test_dashboard_campanhas_e_exclusivo_do_admin_e_transparente(self):
+        visitante = self.client.get("/admin?visao=campanhas")
+        self.assertEqual(visitante.status_code, 302)
+
+        self.autenticar_sessao(self.comprador_id)
+        usuario = self.client.get("/admin?visao=campanhas")
+        self.assertEqual(usuario.status_code, 302)
+
+        self.autenticar_sessao(self.admin_id, admin=True)
+        pagina = self.client.get("/admin?visao=campanhas")
+        html = pagina.get_data(as_text=True)
+
+        self.assertEqual(pagina.status_code, 200)
+        self.assertIn("Dashboard de Campanhas", html)
+        self.assertIn("Atualização manual", html)
+        self.assertIn("333-169-5325", html)
+        self.assertIn('data-campaign="mercado-colatina-001"', html)
+        self.assertIn('data-campaign="topa-tudo-colatinense-001"', html)
+        self.assertIn('data-campaign-metric="impressions" data-value="0"', html)
+        self.assertIn("Não há integração automática", html)
+        self.assertNotIn("Conversões: 0", html)
+
     def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):
         with app.app_context():
             db = get_db()
