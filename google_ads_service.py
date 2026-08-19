@@ -97,8 +97,6 @@ def _query_campaigns(config, access_token):
           campaign.id,
           campaign.name,
           campaign.status,
-          campaign.start_date,
-          campaign.end_date,
           campaign_budget.amount_micros,
           metrics.impressions,
           metrics.clicks,
