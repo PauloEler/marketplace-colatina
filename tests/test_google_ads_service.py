@@ -81,6 +81,9 @@ class GoogleAdsServiceTestCase(unittest.TestCase):
         self.assertEqual(snapshot["campaigns"][0]["metrics"]["impressions"], 125)
         self.assertEqual(snapshot["campaigns"][0]["metrics"]["cost"], 4.25)
         self.assertIn("customers/3331695325", post.call_args_list[1].args[0])
+        query = post.call_args_list[1].kwargs["json"]["query"]
+        self.assertNotIn("campaign.start_date", query)
+        self.assertNotIn("campaign.end_date", query)
         self.assertNotIn(
             "client-secret-test", str(post.call_args_list[1].kwargs["headers"])
         )
