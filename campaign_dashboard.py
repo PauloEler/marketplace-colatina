@@ -12,7 +12,7 @@ CAMPAIGN_ACCOUNT = {
     "provider": "Google Ads",
     "account_id": "333-169-5325",
     "available_balance": 250.0,
-    "balance_status": "Saldo pré-pago conferido",
+    "balance_status": "Saldo conferido manualmente em 18/08/2026",
     "automatic_recharge": False,
 }
 
@@ -84,10 +84,59 @@ def _calculate_ctr(clicks, impressions):
     return round((clicks / impressions) * 100, 2)
 
 
-def build_campaign_dashboard():
+def _normalized_name(value):
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def _live_campaign_index(live_campaigns):
+    by_id = {}
+    by_name = {}
+    for campaign in live_campaigns:
+        campaign_id = str(campaign.get("campaign_id", ""))
+        if campaign_id:
+            by_id[campaign_id] = campaign
+        by_name[_normalized_name(campaign.get("name"))] = campaign
+    return by_id, by_name
+
+
+def _merge_live_campaigns(campaigns, integration):
+    if not integration.get("connected"):
+        return campaigns
+    by_id, by_name = _live_campaign_index(integration.get("campaigns", ()))
+    for campaign in campaigns:
+        live = by_id.get(str(campaign.get("campaign_id", "")))
+        if not live:
+            live = by_name.get(_normalized_name(campaign["name"]))
+        if not live:
+            campaign["sync_warning"] = "Campanha não localizada na resposta da API."
+            continue
+        campaign["campaign_id"] = live.get("campaign_id") or campaign.get("campaign_id")
+        campaign["status"] = {
+            "ENABLED": "Ativa",
+            "PAUSED": "Pausada",
+            "REMOVED": "Removida",
+        }.get(live.get("status"), "Estado não identificado")
+        campaign["daily_budget"] = live.get("daily_budget")
+        campaign["started_at"] = live.get("started_at") or campaign.get("started_at")
+        campaign["metrics"] = deepcopy(live["metrics"])
+        campaign["source"] = "Google Ads API"
+        campaign["updated_at"] = integration["synced_at"]
+    return campaigns
+
+
+def build_campaign_dashboard(integration=None):
     """Monta indicadores sem transformar ausência de medição em resultado."""
 
-    campaigns = deepcopy(CAMPAIGN_SNAPSHOTS)
+    integration = integration or {
+        "connected": False,
+        "mode": "Dados manuais de segurança",
+        "message": "Integração automática não consultada.",
+        "synced_at": None,
+        "period": "Última conferência manual",
+        "campaigns": (),
+        "missing": (),
+    }
+    campaigns = _merge_live_campaigns(deepcopy(CAMPAIGN_SNAPSHOTS), integration)
     impressions = sum(item["metrics"]["impressions"] for item in campaigns)
     clicks = sum(item["metrics"]["clicks"] for item in campaigns)
     cost = round(sum(item["metrics"]["cost"] for item in campaigns), 2)
@@ -97,8 +146,10 @@ def build_campaign_dashboard():
         metrics["ctr"] = _calculate_ctr(metrics["clicks"], metrics["impressions"])
 
     return {
-        "generated_at": "18/08/2026",
-        "data_mode": "Atualização manual",
+        "generated_at": integration.get("synced_at") or "18/08/2026",
+        "data_mode": integration["mode"],
+        "integration": integration,
+        "period": integration["period"],
         "account": deepcopy(CAMPAIGN_ACCOUNT),
         "summary": {
             "tracked": len(campaigns),
@@ -110,8 +161,5 @@ def build_campaign_dashboard():
         },
         "campaigns": campaigns,
         "future_channels": ("Facebook", "Instagram", "WhatsApp Status"),
-        "measurement_note": (
-            "Os números refletem a última conferência manual. "
-            "Não há integração automática com as plataformas nesta versão."
-        ),
+        "measurement_note": integration["message"],
     }
