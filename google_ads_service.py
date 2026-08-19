@@ -122,7 +122,7 @@ def _query_campaigns(config, access_token):
     results = []
     page_token = None
     while True:
-        payload = {"query": query, "pageSize": 1000}
+        payload = {"query": query}
         if page_token:
             payload["pageToken"] = page_token
         try:
