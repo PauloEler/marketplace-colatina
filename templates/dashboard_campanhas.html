@@ -9,28 +9,31 @@
       <h1>Dashboard de Campanhas</h1>
       <p>Acompanhamento claro das campanhas do Mercado Colatina e do Topa Tudo Colatinense.</p>
     </div>
-    <div class="dashboard-readonly" aria-label="Natureza e atualização dos dados">
-      <span aria-hidden="true">📊</span>
+    <div class="dashboard-readonly {{ 'is-connected' if campaigns.integration.connected else 'is-pending' }}" aria-label="Natureza e atualização dos dados">
+      <span aria-hidden="true">{{ '✓' if campaigns.integration.connected else '!' }}</span>
       <div>
         <strong>{{ campaigns.data_mode }}</strong>
-        <small>Última conferência: {{ campaigns.generated_at }}</small>
+        <small>{{ 'Última sincronização' if campaigns.integration.connected else 'Última conferência' }}: {{ campaigns.generated_at }}</small>
       </div>
     </div>
   </header>
 
   <aside class="campaign-data-notice" role="note">
-    <strong>Transparência dos dados</strong>
+    <div>
+      <strong>{{ 'Google Ads conectado' if campaigns.integration.connected else 'Integração pendente' }}</strong>
+      <a href="{{ url_for('painel_admin', visao='campanhas', atualizar=1) }}">Atualizar agora</a>
+    </div>
     <p>{{ campaigns.measurement_note }}</p>
   </aside>
 
   <section class="dashboard-section" aria-labelledby="campaign-summary-title">
     <div class="dashboard-section-heading">
       <div><span>01</span><h2 id="campaign-summary-title">Visão geral</h2></div>
-      <p>Conta Google Ads {{ campaigns.account.account_id }} · foco exclusivo em Colatina.</p>
+      <p>Conta Google Ads {{ campaigns.account.account_id }} · {{ campaigns.period }} · foco exclusivo em Colatina.</p>
     </div>
     <div class="campaign-metric-grid">
       <article data-campaign-metric="active" data-value="{{ campaigns.summary.active }}"><span>Campanhas ativas</span><strong>{{ campaigns.summary.active }}</strong><small>{{ campaigns.summary.tracked }} acompanhadas</small></article>
-      <article data-campaign-metric="impressions" data-value="{{ campaigns.summary.impressions }}"><span>Impressões</span><strong>{{ campaigns.summary.impressions }}</strong><small>Desde a última conferência</small></article>
+      <article data-campaign-metric="impressions" data-value="{{ campaigns.summary.impressions }}"><span>Impressões</span><strong>{{ campaigns.summary.impressions }}</strong><small>{{ campaigns.period }}</small></article>
       <article data-campaign-metric="clicks" data-value="{{ campaigns.summary.clicks }}"><span>Cliques</span><strong>{{ campaigns.summary.clicks }}</strong><small>Tráfego registrado</small></article>
       <article data-campaign-metric="cost" data-value="{{ campaigns.summary.cost }}"><span>Custo</span><strong>R$ {{ '%.2f'|format(campaigns.summary.cost)|replace('.', ',') }}</strong><small>Investimento consumido</small></article>
       <article data-campaign-metric="balance" data-value="{{ campaigns.account.available_balance }}"><span>Saldo disponível</span><strong>R$ {{ '%.2f'|format(campaigns.account.available_balance)|replace('.', ',') }}</strong><small>{{ campaigns.account.balance_status }}</small></article>
@@ -65,6 +68,7 @@
           <div><span>Cliques</span><strong>{{ campaign.metrics.clicks }}</strong></div>
           <div><span>CTR</span><strong>{{ (campaign.metrics.ctr ~ '%') if campaign.metrics.ctr is not none else '—' }}</strong></div>
           <div><span>Custo</span><strong>R$ {{ '%.2f'|format(campaign.metrics.cost)|replace('.', ',') }}</strong></div>
+          <div><span>Conversões</span><strong>{{ campaign.metrics.conversions if campaign.metrics.conversions is not none else '—' }}</strong></div>
         </div>
         {% if campaign.keywords %}
         <div class="campaign-keywords">
@@ -88,7 +92,7 @@
       <p>Sem misturar resultado confirmado com canais ainda não integrados.</p>
     </div>
     <div class="campaign-roadmap">
-      <div><strong>Integração futura</strong><p>Importar métricas oficiais do Google Ads quando houver credenciais e autorização técnica.</p></div>
+      <div><strong>Google Ads</strong><p>{{ 'Integração oficial ativa e protegida por cache.' if campaigns.integration.connected else 'Código pronto; aguardando as credenciais oficiais da conta.' }}</p></div>
       <div><strong>Outros canais preparados</strong><p>{{ campaigns.future_channels|join(' · ') }}</p></div>
       <div><strong>Regra de decisão</strong><p>Otimizar somente após volume suficiente de impressões, cliques e conversões.</p></div>
     </div>

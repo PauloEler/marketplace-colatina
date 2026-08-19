@@ -113,6 +113,7 @@ from service_professionals import (  # noqa: E402
     publish_service as publicar_servico_profissional,
 )
 from campaign_dashboard import build_campaign_dashboard  # noqa: E402
+from google_ads_service import get_google_ads_snapshot  # noqa: E402
 
 app = Flask(__name__)
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -4247,7 +4248,9 @@ def painel_admin():
     if request.args.get("visao") == "campanhas":
         return render_template(
             "dashboard_campanhas.html",
-            campaigns=build_campaign_dashboard(),
+            campaigns=build_campaign_dashboard(
+                get_google_ads_snapshot(force=request.args.get("atualizar") == "1")
+            ),
         )
     if request.args.get("visao") == "cockpit":
         return render_template(

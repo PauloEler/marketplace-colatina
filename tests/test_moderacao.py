@@ -23,6 +23,14 @@ os.environ.pop("HOME_FINISH_007B_ENABLED", None)
 os.environ.pop("HOME_FINISH_007C_ENABLED", None)
 os.environ.pop("HOME_COMPRE_PERTO_ENABLED", None)
 os.environ.pop("HOME_CIDADE_VIVA_PRODUCT_LIMIT", None)
+for google_ads_variable in (
+    "GOOGLE_ADS_DEVELOPER_TOKEN",
+    "GOOGLE_ADS_CLIENT_ID",
+    "GOOGLE_ADS_CLIENT_SECRET",
+    "GOOGLE_ADS_REFRESH_TOKEN",
+    "GOOGLE_ADS_LOGIN_CUSTOMER_ID",
+):
+    os.environ.pop(google_ads_variable, None)
 for indice_oferta in range(1, 12):
     os.environ.pop(f"OFERTA_PARCEIRO_{indice_oferta:02d}_URL", None)
 
@@ -3236,12 +3244,12 @@ class ModeracaoTestCase(unittest.TestCase):
 
         self.assertEqual(pagina.status_code, 200)
         self.assertIn("Dashboard de Campanhas", html)
-        self.assertIn("Atualização manual", html)
+        self.assertIn("Dados manuais de segurança", html)
         self.assertIn("333-169-5325", html)
         self.assertIn('data-campaign="mercado-colatina-001"', html)
         self.assertIn('data-campaign="topa-tudo-colatinense-001"', html)
         self.assertIn('data-campaign-metric="impressions" data-value="0"', html)
-        self.assertIn("Não há integração automática", html)
+        self.assertIn("Credenciais oficiais", html)
         self.assertNotIn("Conversões: 0", html)
 
     def test_plano_gratuito_permite_ate_dez_anuncios_ativos(self):

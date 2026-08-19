@@ -27,28 +27,29 @@ apresenta:
 
 ## Origem e confiabilidade
 
-Nesta versão os dados são um retrato manual da conferência realizada em
-18/08/2026 na conta Google Ads `333-169-5325`. O painel identifica isso
-explicitamente. Não existe sincronização automática e nenhuma métrica ausente é
-inventada.
+Com as credenciais oficiais configuradas, os dados de desempenho são
+sincronizados pela Google Ads API e armazenados em cache por 15 minutos. Sem as
+credenciais ou durante uma indisponibilidade, o painel preserva o retrato manual
+da conferência de 18/08/2026 e identifica claramente o fallback. Nenhuma métrica
+ausente é inventada.
 
 ## Arquitetura
 
-`campaign_dashboard.py` centraliza os snapshots e monta os agregados. A rota
-administrativa apenas entrega essa estrutura ao template. Essa separação
-permite substituir a origem manual por adaptadores oficiais do Google Ads e da
-Meta no futuro, preservando o template.
+`google_ads_service.py` autentica, consulta, normaliza e mantém o cache da API.
+`campaign_dashboard.py` combina a resposta oficial com os snapshots de
+segurança e monta os agregados. A rota administrativa entrega essa estrutura ao
+template sem acessar ou exibir segredos.
 
 ## Limitações
 
-- os números não mudam até uma nova conferência registrada no código;
-- conversões ainda não estão mensuradas;
+- a sincronização depende do token de desenvolvedor e das credenciais OAuth;
+- o saldo pré-pago permanece como conferência manual;
 - Facebook e Instagram aparecem somente no roteiro de evolução;
 - o painel não cria, edita, pausa ou publica campanhas.
 
 ## Próximos passos
 
-1. Observar a entrega das duas campanhas no Google Ads.
-2. Registrar a primeira leitura com impressões e cliques.
-3. Definir a conversão principal antes de automatizar decisões.
-4. Avaliar integração oficial, somente com credenciais e autorização.
+1. Concluir a autorização oficial da API.
+2. Cadastrar as credenciais secretas no Render.
+3. Validar a primeira sincronização automática.
+4. Definir a conversão principal antes de automatizar decisões.
