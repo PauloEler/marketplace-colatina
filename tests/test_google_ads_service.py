@@ -84,6 +84,7 @@ class GoogleAdsServiceTestCase(unittest.TestCase):
         query = post.call_args_list[1].kwargs["json"]["query"]
         self.assertNotIn("campaign.start_date", query)
         self.assertNotIn("campaign.end_date", query)
+        self.assertNotIn("pageSize", post.call_args_list[1].kwargs["json"])
         self.assertNotIn(
             "client-secret-test", str(post.call_args_list[1].kwargs["headers"])
         )
