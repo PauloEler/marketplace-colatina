@@ -4248,9 +4248,7 @@ def painel_admin():
     if request.args.get("visao") == "campanhas":
         return render_template(
             "dashboard_campanhas.html",
-            campaigns=build_campaign_dashboard(
-                get_google_ads_snapshot(force=request.args.get("atualizar") == "1")
-            ),
+            campaigns=build_campaign_dashboard(get_google_ads_snapshot()),
         )
     if request.args.get("visao") == "cockpit":
         return render_template(
@@ -4341,6 +4339,32 @@ def painel_admin():
         comunicados=comunicados,
         metricas=metricas,
     )
+
+
+@app.route("/admin/campanhas/atualizar", methods=["POST"])
+def atualizar_campanhas_google_ads():
+    if not admin():
+        return redirect(url_for("index"))
+
+    agora = time.time()
+    ultima_atualizacao = session.get("google_ads_atualizado_em", 0)
+    try:
+        intervalo = agora - float(ultima_atualizacao)
+    except (TypeError, ValueError):
+        intervalo = 60
+    if 0 <= intervalo < 60:
+        flash("Aguarde um minuto antes de atualizar novamente.", "erro")
+        return redirect(url_for("painel_admin", visao="campanhas"))
+
+    session["google_ads_atualizado_em"] = agora
+    resultado = get_google_ads_snapshot(force=True)
+    if resultado.get("connected"):
+        flash("Campanhas atualizadas pela API do Google Ads.", "ok")
+    else:
+        flash(
+            resultado.get("message", "Não foi possível atualizar as campanhas."), "erro"
+        )
+    return redirect(url_for("painel_admin", visao="campanhas"))
 
 
 @app.route("/admin/sugestoes")
