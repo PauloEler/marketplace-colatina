@@ -1,7 +1,10 @@
 import os
+import threading
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
+
+import requests
 
 from google_ads_service import get_google_ads_snapshot, reset_google_ads_cache
 
@@ -105,6 +108,43 @@ class GoogleAdsServiceTestCase(unittest.TestCase):
 
         self.assertIs(first, second)
         self.assertEqual(post.call_count, 2)
+
+    def test_falha_tem_cache_curto_para_evitar_repeticao_imediata(self):
+        with (
+            patch.dict(os.environ, GOOGLE_ADS_ENV, clear=False),
+            patch(
+                "google_ads_service.requests.post",
+                side_effect=requests.ConnectionError("indisponivel"),
+            ) as post,
+        ):
+            first = get_google_ads_snapshot()
+            second = get_google_ads_snapshot()
+
+        self.assertFalse(first["connected"])
+        self.assertIs(first, second)
+        self.assertEqual(post.call_count, 1)
+
+    def test_leitura_do_cache_nao_espera_refresh_em_andamento(self):
+        cached = {"connected": True, "campaigns": ()}
+        import google_ads_service
+
+        with google_ads_service._cache_lock:
+            google_ads_service._cache["value"] = cached
+            google_ads_service._cache["expires_at"] = float("inf")
+
+        with patch.dict(os.environ, GOOGLE_ADS_ENV, clear=False):
+            google_ads_service._refresh_lock.acquire()
+            try:
+                result = []
+                worker = threading.Thread(
+                    target=lambda: result.append(get_google_ads_snapshot())
+                )
+                worker.start()
+                worker.join(timeout=0.2)
+                self.assertFalse(worker.is_alive())
+                self.assertIs(result[0], cached)
+            finally:
+                google_ads_service._refresh_lock.release()
 
 
 if __name__ == "__main__":

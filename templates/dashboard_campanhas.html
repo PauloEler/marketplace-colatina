@@ -21,7 +21,10 @@
   <aside class="campaign-data-notice" role="note">
     <div>
       <strong>{{ 'Google Ads conectado' if campaigns.integration.connected else 'Integração pendente' }}</strong>
-      <a href="{{ url_for('painel_admin', visao='campanhas', atualizar=1) }}">Atualizar agora</a>
+      <form method="post" action="{{ url_for('atualizar_campanhas_google_ads') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Atualizar agora</button>
+      </form>
     </div>
     <p>{{ campaigns.measurement_note }}</p>
   </aside>

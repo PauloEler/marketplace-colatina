@@ -22,6 +22,7 @@ REQUIRED_CREDENTIALS = (
 )
 
 _cache_lock = threading.Lock()
+_refresh_lock = threading.Lock()
 _cache = {"expires_at": 0.0, "value": None}
 
 
@@ -203,10 +204,19 @@ def get_google_ads_snapshot(force=False, now=None):
     with _cache_lock:
         if not force and _cache["value"] and _cache["expires_at"] > time.monotonic():
             return _cache["value"]
+
+    with _refresh_lock:
+        with _cache_lock:
+            if (
+                not force
+                and _cache["value"]
+                and _cache["expires_at"] > time.monotonic()
+            ):
+                return _cache["value"]
         try:
             value = _live_snapshot(config, now=now)
         except GoogleAdsIntegrationError as error:
-            return {
+            value = {
                 "connected": False,
                 "mode": "Dados manuais de segurança",
                 "message": str(error),
@@ -215,8 +225,11 @@ def get_google_ads_snapshot(force=False, now=None):
                 "campaigns": (),
                 "missing": (),
             }
-        _cache["value"] = value
-        _cache["expires_at"] = time.monotonic() + config["cache_ttl"]
+        with _cache_lock:
+            _cache["value"] = value
+            _cache["expires_at"] = time.monotonic() + (
+                config["cache_ttl"] if value["connected"] else 60
+            )
         return value
 
 
