@@ -153,6 +153,48 @@ class ModeracaoTestCase(unittest.TestCase):
             sessao["is_admin"] = admin
             sessao["_csrf_token"] = "token-teste"
 
+    def test_atualizacao_google_ads_exige_post_csrf_e_limita_repeticao(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        snapshot = {
+            "connected": True,
+            "mode": "Integração automática",
+            "message": "Sincronizado.",
+            "synced_at": "21/08/2026 · 06:00",
+            "period": "Últimos 30 dias",
+            "campaigns": (),
+        }
+        with patch.object(
+            app_module, "get_google_ads_snapshot", return_value=snapshot
+        ) as sincronizar:
+            resposta_get = self.client.get("/admin?visao=campanhas&atualizar=1")
+            resposta_post = self.client.post(
+                "/admin/campanhas/atualizar",
+                data={"csrf_token": "token-teste"},
+            )
+            resposta_repetida = self.client.post(
+                "/admin/campanhas/atualizar",
+                data={"csrf_token": "token-teste"},
+            )
+
+        self.assertEqual(resposta_get.status_code, 200)
+        self.assertEqual(resposta_post.status_code, 302)
+        self.assertEqual(resposta_repetida.status_code, 302)
+        self.assertEqual(sincronizar.call_count, 2)
+        self.assertEqual(sincronizar.call_args_list[0].kwargs, {})
+        self.assertEqual(sincronizar.call_args_list[1].kwargs, {"force": True})
+
+    def test_atualizacao_google_ads_rejeita_csrf_invalido(self):
+        self.autenticar_sessao(self.admin_id, admin=True)
+        with patch.object(app_module, "get_google_ads_snapshot") as sincronizar:
+            resposta = self.client.post(
+                "/admin/campanhas/atualizar",
+                data={"csrf_token": "invalido"},
+            )
+
+        self.assertEqual(resposta.status_code, 302)
+        self.assertEqual(resposta.headers["Location"], "/")
+        sincronizar.assert_not_called()
+
     def enviar_denuncia(self):
         self.autenticar_sessao(self.comprador_id)
         return self.client.post(
