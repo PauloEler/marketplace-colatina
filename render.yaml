@@ -90,10 +90,3 @@ services:
         sync: false
       - key: OPENAI_MODEL
         value: gpt-5.6-luna
-
-databases:
-  - name: mercado-colatina-db
-    region: virginia
-    databaseName: mercado_colatina
-    user: mercado_colatina
-    plan: basic-256mb
